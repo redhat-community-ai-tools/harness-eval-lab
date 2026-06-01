@@ -96,69 +96,6 @@ uv run pytest
 uv run ruff check src/ tests/
 ```
 
-## Architecture
-
-```mermaid
-graph TD
-    CLI["cli.py<br/>3 commands"] --> Core
-    Plugin["plugin/<br/>2 skills"] --> Scripts["scripts/<br/>run_assessment.py<br/>run_skill_eval.py"]
-    Scripts --> Core
-    CLI --> Inspection
-    CLI --> Analysis
-    CLI --> Output
-
-    subgraph Core["core/"]
-        Setup["setup.py<br/>Discovery"]
-        FP["fingerprint.py"]
-        Types["types.py"]
-    end
-
-    subgraph Inspection["inspection/"]
-        Parsers["parsers.py"]
-        Engine["engine.py"]
-        Rules["rules/<br/>24 rules"]
-        Engine --> Parsers
-        Engine --> Rules
-    end
-
-    subgraph Rubric["rubric/"]
-        Scorer["scorer.py"]
-        Dims["dimensions.py"]
-        Scorer --> Dims
-    end
-
-    subgraph Analysis["analysis/"]
-        System["system.py<br/>5-dim scoring"]
-        Budget["budget.py"]
-        Triggers["triggers.py"]
-        Deps["dependencies.py"]
-        System --> Budget
-        System --> Triggers
-        System --> Deps
-    end
-
-    subgraph Output["output/"]
-        Report["report.py<br/>terminal + JSON"]
-    end
-
-    subgraph Utils["utils/"]
-        Tokens["tokens.py"]
-        Similarity["similarity.py"]
-        LLM["llm.py"]
-    end
-
-    Inspection --> Utils
-    Rubric --> Utils
-    Analysis --> Core
-    Inspection --> Core
-
-    style CLI fill:#333,color:#fff
-    style Plugin fill:#333,color:#fff
-    style System fill:#4CAF50,color:#fff
-    style Engine fill:#2196F3,color:#fff
-    style Scorer fill:#FF9800,color:#fff
-```
-
 ### Module Layout
 
 ```
