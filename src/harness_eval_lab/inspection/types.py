@@ -146,6 +146,7 @@ class RuleContext:
     target: ParsedFile | None = None
     all_skills: list[ParsedSkill] = field(default_factory=list)
     all_commands: list[ParsedCommand] = field(default_factory=list)
+    scan_state: dict[str, Any] = field(default_factory=dict)
 
     @property
     def command(self) -> ParsedCommand | None:

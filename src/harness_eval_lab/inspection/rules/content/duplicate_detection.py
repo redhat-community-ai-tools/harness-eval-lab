@@ -12,13 +12,7 @@ from harness_eval_lab.utils.similarity import tfidf_similarity
 
 SIMILARITY_THRESHOLD = 0.85
 
-_all_skill_texts: dict[str, str] = {}
-_duplicates_reported: set[tuple[str, str]] = set()
-
-
-def reset_duplicate_state() -> None:
-    _all_skill_texts.clear()
-    _duplicates_reported.clear()
+_STATE_KEY = "content/duplicate-detection"
 
 
 class DuplicateDetection:
@@ -38,20 +32,24 @@ class DuplicateDetection:
         if not skill.body:
             return
 
-        skill_key = skill.dir_name
-        _all_skill_texts[skill_key] = skill.body
+        if _STATE_KEY not in context.scan_state:
+            context.scan_state[_STATE_KEY] = {"texts": {}, "reported": set()}
+        state = context.scan_state[_STATE_KEY]
 
-        for other_name, other_text in _all_skill_texts.items():
+        skill_key = skill.dir_name
+        state["texts"][skill_key] = skill.body
+
+        for other_name, other_text in state["texts"].items():
             if other_name == skill_key:
                 continue
 
             pair = tuple(sorted([skill_key, other_name]))
-            if pair in _duplicates_reported:
+            if pair in state["reported"]:
                 continue
 
             similarity = tfidf_similarity(skill.body, other_text)
             if similarity >= SIMILARITY_THRESHOLD:
-                _duplicates_reported.add(pair)
+                state["reported"].add(pair)
                 context.report(
                     ReportDescriptor(
                         message_id="duplicate",

@@ -13,13 +13,7 @@ from harness_eval_lab.utils.similarity import tfidf_similarity
 
 SIMILARITY_THRESHOLD = 0.85
 
-_all_command_texts: dict[str, str] = {}
-_duplicates_reported: set[tuple[str, str]] = set()
-
-
-def reset_command_duplicate_state() -> None:
-    _all_command_texts.clear()
-    _duplicates_reported.clear()
+_STATE_KEY = "command/duplicate-detection"
 
 
 class CommandDuplicateDetection:
@@ -40,20 +34,24 @@ class CommandDuplicateDetection:
         if cmd is None or not cmd.body:
             return
 
-        cmd_key = cmd.dir_name
-        _all_command_texts[cmd_key] = cmd.body
+        if _STATE_KEY not in context.scan_state:
+            context.scan_state[_STATE_KEY] = {"texts": {}, "reported": set()}
+        state = context.scan_state[_STATE_KEY]
 
-        for other_name, other_text in _all_command_texts.items():
+        cmd_key = cmd.dir_name
+        state["texts"][cmd_key] = cmd.body
+
+        for other_name, other_text in state["texts"].items():
             if other_name == cmd_key:
                 continue
 
             pair = tuple(sorted([cmd_key, other_name]))
-            if pair in _duplicates_reported:
+            if pair in state["reported"]:
                 continue
 
             similarity = tfidf_similarity(cmd.body, other_text)
             if similarity >= SIMILARITY_THRESHOLD:
-                _duplicates_reported.add(pair)
+                state["reported"].add(pair)
                 context.report(ReportDescriptor(
                     message_id="duplicate",
                     data={
