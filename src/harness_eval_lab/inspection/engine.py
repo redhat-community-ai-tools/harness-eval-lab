@@ -58,12 +58,14 @@ def _run_rules(
     config_rules: dict[str, str | list] | None,
     all_skills: list[ParsedSkill] | None = None,
     all_commands: list[ParsedCommand] | None = None,
+    scan_state: dict | None = None,
 ) -> tuple[list[Finding], int]:
     """Run rules for a given target type. Returns (findings, suppression_count)."""
     findings: list[Finding] = []
     suppression_count = 0
     suppressions = parse_suppressions(raw_content) if raw_content else {}
     config_rules = config_rules or {}
+    scan_state = scan_state if scan_state is not None else {}
 
     dummy_skill = skill or ParsedSkill(
         dir_path="", dir_name="", skill_md_path=file_path, raw_content="",
@@ -126,6 +128,7 @@ def _run_rules(
             target=target,
             all_skills=all_skills or [],
             all_commands=all_commands or [],
+            scan_state=scan_state,
         )
         rule.create(context)
 
@@ -156,6 +159,7 @@ def _build_result(
 
 def lint(
     skill_path: str, config_rules: dict[str, str | list] | None = None,
+    scan_state: dict | None = None,
 ) -> InspectionResult:
     """Lint a single skill directory or SKILL.md file."""
     skill = parse_skill(skill_path)
@@ -171,6 +175,7 @@ def lint(
     rule_diags, suppression_count = _run_rules(
         ComponentType.SKILL, skill.skill_md_path, skill.raw_content,
         skill=skill, target=skill, config_rules=config_rules,
+        scan_state=scan_state,
     )
     diagnostics.extend(rule_diags)
 
@@ -185,6 +190,7 @@ def lint_command(
     config_rules: dict[str, str | list] | None = None,
     all_skills: list[ParsedSkill] | None = None,
     all_commands: list[ParsedCommand] | None = None,
+    scan_state: dict | None = None,
 ) -> InspectionResult:
     """Lint a single command directory."""
     cmd = parse_command(command_path)
@@ -200,6 +206,7 @@ def lint_command(
         ComponentType.COMMAND, cmd.command_md_path, cmd.raw_content,
         skill=None, target=cmd, config_rules=config_rules,
         all_skills=all_skills, all_commands=all_commands,
+        scan_state=scan_state,
     )
     diagnostics.extend(rule_diags)
 
@@ -213,6 +220,7 @@ def lint_claude_md(
     file_path: str,
     config_rules: dict[str, str | list] | None = None,
     all_skills: list[ParsedSkill] | None = None,
+    scan_state: dict | None = None,
 ) -> InspectionResult:
     """Lint a CLAUDE.md file."""
     claude_md = parse_claude_md(file_path)
@@ -228,6 +236,7 @@ def lint_claude_md(
         ComponentType.CLAUDE_MD, file_path, claude_md.raw_content,
         skill=None, target=claude_md, config_rules=config_rules,
         all_skills=all_skills,
+        scan_state=scan_state,
     )
     diagnostics.extend(rule_diags)
 
@@ -239,6 +248,7 @@ def lint_claude_md(
 
 def lint_hooks(
     settings_path: str, config_rules: dict[str, str | list] | None = None,
+    scan_state: dict | None = None,
 ) -> InspectionResult:
     """Lint hooks from settings.json."""
     hooks = parse_hooks(settings_path)
@@ -253,6 +263,7 @@ def lint_hooks(
     rule_diags, suppression_count = _run_rules(
         ComponentType.HOOKS, settings_path, hooks.raw_content,
         skill=None, target=hooks, config_rules=config_rules,
+        scan_state=scan_state,
     )
     diagnostics.extend(rule_diags)
 
@@ -266,6 +277,7 @@ def lint_agent(
     agent_path: str,
     config_rules: dict[str, str | list] | None = None,
     all_skills: list[ParsedSkill] | None = None,
+    scan_state: dict | None = None,
 ) -> InspectionResult:
     """Lint a single agent .md file."""
     agent = parse_agent(agent_path)
@@ -281,6 +293,7 @@ def lint_agent(
         ComponentType.AGENT, agent.agent_md_path, agent.raw_content,
         skill=None, target=agent, config_rules=config_rules,
         all_skills=all_skills,
+        scan_state=scan_state,
     )
     diagnostics.extend(rule_diags)
 
@@ -288,6 +301,27 @@ def lint_agent(
         agent_path, agent.file_name.removesuffix(".md"), agent.tokens, "agent",
         diagnostics, suppression_count,
     )
+
+
+def inspect_setup(
+    setup: object, config_rules: dict[str, str | list] | None = None,
+) -> list[InspectionResult]:
+    """Run inspection on all components in a setup."""
+    from harness_eval_lab.core.types import ComponentType as CT
+
+    scan_state: dict = {}
+    results: list[InspectionResult] = []
+    for comp in setup.by_type(CT.SKILL):
+        results.append(lint(str(Path(comp.path).parent), config_rules, scan_state=scan_state))
+    for comp in setup.by_type(CT.COMMAND):
+        results.append(lint_command(str(Path(comp.path).parent), config_rules, scan_state=scan_state))
+    for comp in setup.by_type(CT.CLAUDE_MD):
+        results.append(lint_claude_md(comp.path, config_rules, scan_state=scan_state))
+    for comp in setup.by_type(CT.HOOKS):
+        results.append(lint_hooks(comp.path, config_rules, scan_state=scan_state))
+    for comp in setup.by_type(CT.AGENT):
+        results.append(lint_agent(comp.path, config_rules, scan_state=scan_state))
+    return results
 
 
 def lint_directory(

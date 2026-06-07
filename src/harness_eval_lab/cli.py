@@ -22,17 +22,17 @@ def cli() -> None:
 @click.option("--preset", type=click.Choice(["recommended", "strict", "security"]), default="recommended")
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
 def eval_setup(path: str, preset: str, fmt: str) -> None:
-    """Evaluate a full setup: inspect all components, analyze the system, score 5 dimensions."""
+    """Evaluate a full setup: inspect all components, analyze token budget, triggers, and dependencies."""
     from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import PRESETS
+    from harness_eval_lab.inspection.engine import inspect_setup
     from harness_eval_lab.output.report import format_json, format_terminal
 
     config_rules = PRESETS.get(preset, {})
     setup = discover_setup(name=Path(path).name, path=path)
-    results = _inspect_setup(setup, config_rules)
+    results = inspect_setup(setup, config_rules)
 
     system = analyze_system(setup)
-    system.compute_scores(results)
 
     if fmt == "json":
         click.echo(format_json(system, results))
@@ -158,6 +158,7 @@ def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str,
 def scan(path: str, preset: str, fmt: str, fix: bool) -> None:
     """Quick static analysis scan. No LLM, deterministic, fast. Good for CI."""
     from harness_eval_lab.config.presets import PRESETS
+    from harness_eval_lab.inspection.engine import inspect_setup
     from harness_eval_lab.inspection.fixer import apply_fixes
 
     config_rules = PRESETS.get(preset, {})
@@ -165,7 +166,7 @@ def scan(path: str, preset: str, fmt: str, fix: bool) -> None:
 
     if target.is_dir():
         setup = discover_setup(name=target.name, path=path)
-        results = _inspect_setup(setup, config_rules)
+        results = inspect_setup(setup, config_rules)
     else:
         results = _inspect_single_file(target, config_rules)
 
@@ -202,31 +203,6 @@ def scan(path: str, preset: str, fmt: str, fix: bool) -> None:
             click.echo(f"Fixed {fr.fixes_applied} issues in {fr.file_path}")
 
 
-def _inspect_setup(setup, config_rules):
-    """Run inspection on all components in a setup."""
-    from harness_eval_lab.inspection.engine import (
-        lint,
-        lint_agent,
-        lint_claude_md,
-        lint_command,
-        lint_hooks,
-    )
-    from harness_eval_lab.inspection.types import InspectionResult
-
-    results: list[InspectionResult] = []
-    for comp in setup.by_type(ComponentType.SKILL):
-        results.append(lint(str(Path(comp.path).parent), config_rules))
-    for comp in setup.by_type(ComponentType.COMMAND):
-        results.append(lint_command(str(Path(comp.path).parent), config_rules))
-    for comp in setup.by_type(ComponentType.CLAUDE_MD):
-        results.append(lint_claude_md(comp.path, config_rules))
-    for comp in setup.by_type(ComponentType.HOOKS):
-        results.append(lint_hooks(comp.path, config_rules))
-    for comp in setup.by_type(ComponentType.AGENT):
-        results.append(lint_agent(comp.path, config_rules))
-    return results
-
-
 def _inspect_single_file(target, config_rules):
     """Inspect a single file, auto-detecting its type."""
     from harness_eval_lab.inspection.engine import (
@@ -248,6 +224,9 @@ def _inspect_single_file(target, config_rules):
         return [lint_hooks(str(target), config_rules)]
     elif target.suffix == ".md":
         return [lint_agent(str(target), config_rules)]
+    click.echo(f"Warning: could not detect component type for '{target.name}'. "
+               f"Expected: SKILL.md, command.md, CLAUDE.md, settings.json, or an agent .md file.",
+               err=True)
     return []
 
 
