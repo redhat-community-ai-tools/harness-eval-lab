@@ -36,28 +36,6 @@ def format_terminal(
     lines.append(f"Total tokens: {system.budget.total_tokens}")
     lines.append("")
 
-    lines.append("Dimension Scores:")
-    lines.append(f"{'─' * 60}")
-    overall_scores = []
-    for dim in ["soundness", "safety", "coherence", "efficiency", "impact"]:
-        score = system.dimension_scores.get(dim, 0.0)
-        stars = score_to_stars(score)
-        verdict = score_to_verdict(score)
-        if dim == "impact":
-            lines.append(f"  {dim:<12} {stars}  (requires task probing)")
-        else:
-            lines.append(f"  {dim:<12} {stars}  {score}/5  [{verdict}]")
-            overall_scores.append(score)
-
-    if overall_scores:
-        avg = sum(overall_scores) / len(overall_scores)
-        lines.append(f"{'─' * 60}")
-        lines.append(
-            f"  {'overall':<12} {score_to_stars(avg)}  "
-            f"{avg:.1f}/5  [{score_to_verdict(avg)}]"
-        )
-
-    lines.append("")
     lines.append("Token Budget:")
     lines.append(f"{'─' * 60}")
     lines.append(
@@ -150,11 +128,6 @@ def format_json(
     output = {
         "setup": system.setup_name,
         "component_count": system.component_count,
-        "dimension_scores": system.dimension_scores,
-        "overall": (
-            sum(v for k, v in system.dimension_scores.items() if k != "impact")
-            / max(1, sum(1 for k in system.dimension_scores if k != "impact"))
-        ),
         "budget": {
             "total_tokens": system.budget.total_tokens,
             "always_loaded": system.budget.always_loaded_tokens,

@@ -84,23 +84,10 @@ class TestSystemAnalysis:
         assert report.component_count == len(setup.components)
         assert report.budget.total_tokens > 0
 
-    def test_compute_scores(self, setup_a_path: str) -> None:
+    def test_findings_generated(self, setup_a_path: str) -> None:
         setup = discover_setup("a", setup_a_path)
         report = analyze_system(setup)
-        report.compute_scores()
-        assert "soundness" in report.dimension_scores
-        assert "safety" in report.dimension_scores
-        assert "coherence" in report.dimension_scores
-        assert "efficiency" in report.dimension_scores
-        assert "impact" in report.dimension_scores
-        assert report.dimension_scores["impact"] == 0.0
-
-    def test_scores_are_valid_range(self, setup_b_path: str) -> None:
-        setup = discover_setup("b", setup_b_path)
-        report = analyze_system(setup)
-        report.compute_scores()
-        for dim, score in report.dimension_scores.items():
-            assert 0.0 <= score <= 5.0, f"{dim} score {score} out of range"
+        assert isinstance(report.findings, list)
 
 
 class TestReportOutput:
@@ -110,10 +97,8 @@ class TestReportOutput:
 
         setup = discover_setup("a", setup_a_path)
         system = analyze_system(setup)
-        system.compute_scores()
         output = format_terminal(system, [])
         assert "Setup Assessment" in output
-        assert "soundness" in output
         assert "Token Budget" in output
 
     def test_json_format(self, setup_a_path: str) -> None:
@@ -124,9 +109,7 @@ class TestReportOutput:
 
         setup = discover_setup("a", setup_a_path)
         system = analyze_system(setup)
-        system.compute_scores()
         output = format_json(system, [])
         parsed = json.loads(output)
-        assert "dimension_scores" in parsed
         assert "budget" in parsed
         assert parsed["setup"] == "a"
