@@ -1,6 +1,6 @@
 ---
 name: eval-setup
-description: Evaluate the full agent setup (CLAUDE.md, skills, commands, hooks, agents, MCP configs) across 5 dimensions. Use when the user wants to check their setup health, find redundancy, detect issues, or get a quality scorecard.
+description: Evaluate the full agent setup (CLAUDE.md, skills, commands, hooks, agents, MCP configs) with static analysis and qualitative rubric scoring. Use when the user wants to check their setup health, find redundancy, detect issues, or get a quality report.
 allowed-tools:
   - Bash
   - Read
@@ -8,46 +8,80 @@ allowed-tools:
 
 # Evaluate Setup
 
-Evaluate the user's full agent setup across 5 dimensions: Soundness, Safety, Coherence, Efficiency, and Impact.
+Evaluate the user's full agent setup using two layers: static analysis (Layer 1) and qualitative rubric scoring (Layer 2).
 
-## What to do
+## Hard Rules
 
-1. Determine the setup path. If the user doesn't specify one, use the current working directory.
+1. **Never give a verdict without running the rubric.** Read the actual file content and score all rubric dimensions before assigning a star rating or verdict. Layer 1 error/warning counts are input data, not the verdict.
+2. **Every item must have a full rubric score block.** Every skill, command, agent, CLAUDE.md, and hook MUST have all dimensions scored with one-sentence justifications. No exceptions.
+3. **Read before you judge.** Do not summarize based on Layer 1 output alone. Read the actual file content to evaluate quality, clarity, and redundancy.
+4. **Don't manufacture problems.** If the setup is good, say so. Only recommend changes that would make a real difference. "You could trim 50 tokens" is not a real recommendation.
+5. **Always end with a short summary.** The last thing the user sees must be the terminal summary.
 
-2. Run the assessment script:
+## Step 1: Run Layer 1 (Static Analysis)
+
+Determine the setup path. If the user doesn't specify one, use the current working directory.
+
 ```bash
 uv run python skills/eval-setup/scripts/run_assessment.py <setup-path> recommended
 ```
 
-3. Read the JSON output. It contains:
-   - `dimension_scores`: scores 0-5 for each of the 5 dimensions
-   - `overall`: average score
-   - `budget`: token budget breakdown (always-loaded vs on-demand)
-   - `triggers`: skill trigger overlap analysis
-   - `dependencies`: broken references and orphan components
-   - `findings`: system-level findings
-   - `inspection`: per-component findings from 24 static analysis rules
+Read the JSON output. This gives you per-component diagnostics with rule IDs, severities, token counts, budget analysis, trigger overlaps, and dependency findings.
 
-4. Present the results to the user in a clear, conversational format:
-   - Start with the 5-dimension scorecard (use star ratings)
-   - Highlight the most important findings (errors first, then warnings)
-   - Explain what each finding means and why it matters
-   - If the token budget ratio is inverted (>50% always-loaded), explain why that's a problem
-   - If there are trigger overlaps, explain which skills would load together unnecessarily
-   - End with 3-5 concrete, prioritized suggestions for improvement
+## Step 2: Read Actual Files (Layer 2 Preparation)
 
-5. If the user asks follow-up questions, use the JSON data to answer specifically. Reference exact components, token counts, and rule IDs.
+Read the actual content of:
+1. Every skill file (SKILL.md) in the setup. If a skill has reference files in subdirectories, read those too and score the COMBINED content.
+2. Every command file (command.md or flat .md files in commands/)
+3. Every agent file (.md files in .claude/agents/)
+4. The CLAUDE.md file(s)
+5. The hooks in .claude/settings.json
 
-## Scoring Guide
+You need the actual content to evaluate quality, redundancy, and coherence.
 
-- **Soundness**: Does each component parse correctly? Are references valid? Are required fields present?
-- **Safety**: Any credential exposure? Prompt injection patterns? Dangerous hook commands? Unenforced constraints?
-- **Coherence**: Any duplicates between components? Trigger collisions? Broken dependencies? Type misplacement?
-- **Efficiency**: Is the token budget well-distributed? Any single component dominating? Overlapping triggers wasting context?
-- **Impact**: Requires task probing (not yet implemented). Report as "requires empirical testing."
+## Step 3: Score Each Component (Layer 2)
 
-## Verdicts
+For each component, read the actual file content (Step 2), then apply the rubric.
 
-- 4-5/5: HEALTHY
-- 3/5: NEEDS WORK
-- 1-2/5: PROBLEMATIC
+### Skills
+Read `rubric/skills-rubric.md` for dimension definitions and scoring criteria.
+Score each skill on all 5 dimensions with one-sentence justifications.
+
+### CLAUDE.md
+Read `rubric/claude-md-rubric.md` for dimension definitions.
+Score on all 5 dimensions.
+
+### Commands
+Read `rubric/commands-rubric.md` for dimension definitions.
+Score each command on all 7 dimensions. For clean commands, use a compact one-line format.
+
+### Agents
+Read `rubric/agents-rubric.md` for dimension definitions.
+Score each agent on all 5 dimensions.
+
+### Hooks
+Read `rubric/hooks-rubric.md` for what to check.
+Evaluate each hook on safety, reliability, scope, and performance.
+
+### Scoring formula
+Overall = round(weighted sum of dimensions). Weights are in each rubric file.
+Verdict: **KEEP** (4-5 stars), **REVIEW** (3 stars), **REMOVE** (1-2 stars).
+
+## Step 4: Cross-Type Optimization
+
+Read `rubric/cross-type-checks.md` and answer all 21 checks explicitly with YES or NO and a one-line explanation. Do not skip any check.
+
+This is where you look at the whole setup and suggest transformations between types: should a skill be a hook? Can two skills be merged? Is CLAUDE.md duplicating skill content?
+
+## Step 5: Produce the Report
+
+Read `report-format.md` for the full report structure.
+
+The report must include:
+- Inventory table (component counts, tokens, errors, warnings)
+- Per-component sections with Layer 1 checklist + Layer 2 rubric scores
+- Cross-type optimization (all 21 checks)
+- Numbered suggestions (actionable items only)
+- Terminal summary (always printed last)
+
+If the user asks follow-up questions, use the data to answer specifically. Reference exact components, token counts, and rule IDs.
