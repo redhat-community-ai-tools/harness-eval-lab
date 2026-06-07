@@ -12,6 +12,7 @@ from harness_eval_lab.inspection.types import (
 )
 
 _FIRST_PERSON = re.compile(r"\bI\s+(?:will|can|am|help)\b", re.I)
+_SECOND_PERSON = re.compile(r"\bYou\s+(?:can|should|will|may)\b", re.I)
 
 _USE_CASE_PHRASES = [
     "use when", "use for", "applies to", "relevant for",
@@ -31,6 +32,7 @@ class DescriptionQuality:
         category=RuleCategory.FRONTMATTER,
         messages={
             "first_person": "Description uses first-person POV ('{{match}}') — Anthropic recommends third-person for better discovery",
+            "second_person": "Description uses second-person POV ('{{match}}') — Anthropic recommends third-person (e.g. 'Processes files' not 'You can process files')",
             "no_use_case": "Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it",
             "too_long": "Description is {{length}} characters — Anthropic's documented limit is 1,024",
             "too_short": "Description is only {{length}} characters — too vague for reliable skill matching",
@@ -56,6 +58,14 @@ class DescriptionQuality:
             context.report(ReportDescriptor(
                 message_id="first_person",
                 data={"match": match.group(0)},
+                location=loc,
+            ))
+
+        match2 = _SECOND_PERSON.search(description)
+        if match2:
+            context.report(ReportDescriptor(
+                message_id="second_person",
+                data={"match": match2.group(0)},
                 location=loc,
             ))
 

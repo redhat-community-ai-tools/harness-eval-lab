@@ -25,6 +25,7 @@ def register_all_rules() -> None:
 
     # CLAUDE.md rules
     from harness_eval_lab.inspection.rules.claude_md.exists import ClaudeMdExists
+    from harness_eval_lab.inspection.rules.claude_md.generic_advice import ClaudeMdGenericAdvice
     from harness_eval_lab.inspection.rules.claude_md.skill_duplication import (
         ClaudeMdSkillDuplication,
     )
@@ -43,6 +44,7 @@ def register_all_rules() -> None:
         CommandNoPromptInjection,
     )
     from harness_eval_lab.inspection.rules.commands.script_exists import CommandScriptExists
+    from harness_eval_lab.inspection.rules.commands.shadows_builtin import CommandShadowsBuiltin
     from harness_eval_lab.inspection.rules.commands.skill_overlap import CommandSkillOverlap
     from harness_eval_lab.inspection.rules.content.broken_references import BrokenReferences
     from harness_eval_lab.inspection.rules.content.duplicate_detection import DuplicateDetection
@@ -74,9 +76,11 @@ def register_all_rules() -> None:
         CommandNoPromptInjection,
         CommandNoCredentialAccess,
         CommandSkillOverlap,
+        CommandShadowsBuiltin,
         CommandDuplicateDetection,
         ClaudeMdExists,
         ClaudeMdSkillDuplication,
+        ClaudeMdGenericAdvice,
         HooksValidStructure,
         AgentDescriptionRequired,
         ReferencedSkillsExist,
