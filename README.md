@@ -8,10 +8,10 @@ Most agent evaluation tools test whether a **skill** completes a task correctly.
 
 It evaluates setups across five dimensions: **Soundness** (does each piece work?), **Safety** (can any piece cause harm?), **Coherence** (do the pieces work together?), **Efficiency** (is the token budget well-distributed?), and **Impact** (does the setup actually help the agent?).
 
-Two evaluation modes:
+Two evaluation layers:
 
-- **`eval-setup`**: Evaluate the full setup. Inspects all components, runs system-level analysis (token budget, trigger overlaps, dependencies), and produces a 5-dimension scorecard.
-- **`eval-skill`**: Deep-evaluate a single skill, both individually (is it well-built?) and in context of the setup (is it redundant? does it overlap?).
+- **Layer 1 (CLI):** 26 deterministic Python rules + system-level analysis (token budget, trigger overlaps, dependencies). No LLM. Fast. Good for CI.
+- **Layer 2 (plugin only):** Claude reads every file, scores components qualitatively, runs 21 cross-type optimization checks, and produces the 5-dimension scorecard.
 
 ## Install
 
@@ -30,38 +30,39 @@ uv sync --extra llm
 ### As a CLI
 
 ```bash
-# Evaluate the full setup
+# Quick static scan (no LLM, fast, good for CI)
+harness-eval-lab scan /path/to/project
+harness-eval-lab scan /path/to/project --preset strict --format json
+harness-eval-lab scan /path/to/project --preset pre-workflow --fail-on-error
+
+# Full setup analysis (token budget, triggers, dependencies)
 harness-eval-lab eval-setup /path/to/project
 
 # Deep-evaluate one skill (with setup context)
 harness-eval-lab eval-skill /path/to/skills/my-skill --context /path/to/project
-
-# Quick static scan (no LLM, fast, good for CI)
-harness-eval-lab scan /path/to/project
-harness-eval-lab scan /path/to/project --preset strict --format json
 ```
 
 ### As a Claude Code plugin
 
 Install by adding the plugin directory, then use:
 
-- `/eval-setup` - evaluate the full setup, get a 5-dimension scorecard
-- `/eval-skill <skill-name>` - deep-evaluate one skill in context
+- `/eval-setup` - full evaluation with 5-dimension scorecard (Layer 1 + Layer 2)
+- `/eval-skill <skill-name>` - deep-evaluate one skill in context (Layer 1 + Layer 2)
 
 ## CLI Commands
 
 | Command | Description |
 |---------|-------------|
-| `eval-setup` | Full setup evaluation: inspect + system analysis + 5-dimension scorecard |
-| `eval-skill` | Deep-evaluate a single skill individually and in context |
 | `scan` | Quick static analysis (26 rules, no LLM, deterministic) |
+| `eval-setup` | Scan + system analysis (token budget, triggers, dependencies) |
+| `eval-skill` | Deep-evaluate a single skill individually and in context |
 
 ## Plugin Skills
 
 | Skill | Description |
 |-------|-------------|
-| `/eval-setup` | Evaluate the full agent setup, present scorecard conversationally |
-| `/eval-skill` | Deep-evaluate a single skill with contextual analysis |
+| `/eval-setup` | Layer 1 + Layer 2: 26 rules, system analysis, per-component qualitative scoring, 21 cross-type checks, 5-dimension scorecard |
+| `/eval-skill` | Layer 1 + Layer 2: deep-evaluate one skill with individual rubric + contextual analysis |
 
 ## Inspection Rules (26)
 
@@ -77,16 +78,6 @@ Install by adding the plugin directory, then use:
 | Agents | 6 | Description, skills exist, tool format, constraint matching, credentials, injection |
 
 Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.
-
-## Rubric Dimensions
-
-Scoring dimensions per component type (weights sum to 1.0):
-
-- **Skills:** Specificity, Redundancy, Trigger Quality, Token Efficiency, Content Quality
-- **Commands:** Description, Instruction Clarity, Script Integrity, Scope, Token Efficiency, Redundancy, Robustness
-- **CLAUDE.md:** Conciseness, Signal-to-Noise, Skill Separation, Structure, Conflict-Free
-- **Agents:** Specificity, Constraint Clarity, Zero-Trust Integrity, Token Efficiency, Content Quality
-- **Hooks:** Safety, Reliability, Scope, Performance
 
 ## Future Plans
 

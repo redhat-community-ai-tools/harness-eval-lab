@@ -8,7 +8,7 @@ Two interfaces: CLI (3 commands) and Claude Code plugin (2 skills). Both call th
 
 **Two evaluation layers:**
 - **Layer 1 (CLI):** 26 deterministic Python rules + system-level analysis (token budget, trigger overlaps, dependencies). No LLM. Fast. Good for CI.
-- **Layer 2 (plugin only):** Claude reads every file and scores components on weighted rubric dimensions. Qualitative evaluation that catches things rules can't (redundancy with defaults, type appropriateness, merge candidates).
+- **Layer 2 (plugin only):** Claude reads every file, scores components qualitatively, runs 21 cross-type optimization checks, and produces the 5-dimension scorecard (Soundness, Safety, Coherence, Efficiency, Impact).
 
 ## Development
 
@@ -21,29 +21,29 @@ Two interfaces: CLI (3 commands) and Claude Code plugin (2 skills). Both call th
 ## Commands
 
 ### CLI
-- `harness-eval-lab scan <path>` - run 26 rules, print errors and warnings. No LLM, deterministic, good for CI.
-- `harness-eval-lab eval-setup <path>` - run 26 rules + system-level analysis (token budget, trigger overlaps, dependencies). No scoring, no LLM.
-- `harness-eval-lab eval-skill <skill-path>` - inspect one skill + contextual analysis (overlap with other skills, CLAUDE.md duplication). Add `--context <path>` for setup context. Add `--rubric` for LLM-based scoring (optional, costs money).
+- `harness-eval-lab scan <path>` - run 26 rules, print errors and warnings. No LLM, deterministic, good for CI. Supports `--fail-on-error` for hooks/CI.
+- `harness-eval-lab eval-setup <path>` - run 26 rules + system-level analysis (token budget, trigger overlaps, dependencies).
+- `harness-eval-lab eval-skill <skill-path>` - inspect one skill + contextual analysis. Add `--context <path>` for setup context. Add `--rubric` for LLM-based scoring (optional, costs money).
 
 ### Plugin (slash commands)
-- `/eval-setup` - Layer 1 + Layer 2: run the engine, then Claude reads every file and scores on rubric dimensions
+- `/eval-setup` - Layer 1 + Layer 2: run the engine, then Claude reads every file, scores on the 5 dimensions, runs 21 cross-type checks, produces the scorecard
 - `/eval-skill` - Layer 1 + Layer 2: deep-evaluate one skill individually and in context
 
 ## Project structure
 
 - `src/harness_eval_lab/` - main package (the engine)
   - `cli.py` - Click CLI (3 commands)
-  - `config/` - rule presets (recommended/strict/security)
+  - `config/` - rule presets (recommended/strict/security/pre-workflow)
   - `core/` - setup discovery, fingerprinting, component types
   - `inspection/` - static analysis: parsers, lint engine, 26 rules, suppression, auto-fix
   - `rubric/` - LLM-based scoring with weighted dimensions per component type
   - `analysis/` - system-level analysis (budget, triggers, dependencies)
   - `output/` - report generation (terminal + JSON)
   - `utils/` - token counting, TF-IDF similarity, frontmatter parsing, LLM client
-- `skills/` - plugin skills (eval-setup, eval-skill) with SKILL.md + scripts
+- `skills/` - plugin skills (eval-setup, eval-skill) with SKILL.md + rubric files + scripts
 - `.claude-plugin/` - plugin registration
 - `tests/` - pytest test suite with fixtures
-- `future-plans/` - planned improvements, each in its own subfolder with status and optional Jira link
+- `future-plans/` - planned improvements, each in its own subfolder with status
 
 ## Conventions
 
