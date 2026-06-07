@@ -1,7 +1,6 @@
 # Evaluating Generated Workflow Code
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The problem
 

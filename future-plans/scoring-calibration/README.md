@@ -1,7 +1,6 @@
 # Scoring Calibration: Making Scores Trustworthy
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The problem
 

@@ -1,7 +1,6 @@
 # Adjusting to Dynamic Workflows
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The landscape shift
 

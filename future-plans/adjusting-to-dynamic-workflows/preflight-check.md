@@ -1,7 +1,6 @@
 # Pre-flight Check for Dynamic Workflows
 
-> **Status:** future
-> **Jira:** n/a
+> **Status:** built
 
 ## The problem
 

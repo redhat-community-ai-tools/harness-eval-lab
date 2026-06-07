@@ -1,7 +1,6 @@
 # Skills Ecosystem Quality Gate
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The problem
 

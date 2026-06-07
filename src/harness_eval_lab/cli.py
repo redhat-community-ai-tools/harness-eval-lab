@@ -19,7 +19,7 @@ def cli() -> None:
 
 @cli.command("eval-setup")
 @click.argument("path", type=click.Path(exists=True))
-@click.option("--preset", type=click.Choice(["recommended", "strict", "security"]), default="recommended")
+@click.option("--preset", type=click.Choice(["recommended", "strict", "security", "pre-workflow"]), default="recommended")
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
 def eval_setup(path: str, preset: str, fmt: str) -> None:
     """Evaluate a full setup: inspect all components, analyze token budget, triggers, and dependencies."""
@@ -43,7 +43,7 @@ def eval_setup(path: str, preset: str, fmt: str) -> None:
 @cli.command("eval-skill")
 @click.argument("skill_path", type=click.Path(exists=True))
 @click.option("--context", "context_path", type=click.Path(exists=True), default=None, help="Setup directory for contextual evaluation.")
-@click.option("--preset", type=click.Choice(["recommended", "strict", "security"]), default="recommended")
+@click.option("--preset", type=click.Choice(["recommended", "strict", "security", "pre-workflow"]), default="recommended")
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
 @click.option("--rubric", "run_rubric", is_flag=True, help="Also run LLM rubric scoring (requires API key).")
 @click.option("--provider", type=click.Choice(["gemini", "anthropic"]), default="gemini")
@@ -152,10 +152,11 @@ def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str,
 
 @cli.command()
 @click.argument("path", type=click.Path(exists=True))
-@click.option("--preset", type=click.Choice(["recommended", "strict", "security"]), default="recommended")
+@click.option("--preset", type=click.Choice(["recommended", "strict", "security", "pre-workflow"]), default="recommended")
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
 @click.option("--fix", is_flag=True, help="Apply auto-fixes.")
-def scan(path: str, preset: str, fmt: str, fix: bool) -> None:
+@click.option("--fail-on-error", is_flag=True, help="Exit with code 1 if any errors found. Useful for CI and hooks.")
+def scan(path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool) -> None:
     """Quick static analysis scan. No LLM, deterministic, fast. Good for CI."""
     from harness_eval_lab.config.presets import PRESETS
     from harness_eval_lab.inspection.engine import inspect_setup
@@ -201,6 +202,11 @@ def scan(path: str, preset: str, fmt: str, fix: bool) -> None:
         fix_results = apply_fixes(all_findings)
         for fr in fix_results:
             click.echo(f"Fixed {fr.fixes_applied} issues in {fr.file_path}")
+
+    if fail_on_error:
+        total_errors = sum(r.error_count for r in results)
+        if total_errors > 0:
+            raise SystemExit(1)
 
 
 def _inspect_single_file(target, config_rules):

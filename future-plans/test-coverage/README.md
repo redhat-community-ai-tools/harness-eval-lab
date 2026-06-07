@@ -1,7 +1,6 @@
 # Test Coverage: Making the Rules Trustworthy
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The problem
 

@@ -58,10 +58,40 @@ SECURITY: dict[str, str] = {
     "agent/no-credential-access": "error",
 }
 
+PRE_WORKFLOW: dict[str, str] = {
+    "structural/skill-md-exists": "off",
+    "frontmatter/description-required": "off",
+    "frontmatter/description-quality": "off",
+    "frontmatter/format-valid": "off",
+    "content/token-budget": "off",
+    "content/broken-references": "error",
+    "content/duplicate-detection": "off",
+    "security/no-prompt-injection": "error",
+    "security/no-credential-access": "error",
+    "command/description-required": "off",
+    "command/script-exists": "off",
+    "command/skill-overlap": "off",
+    "command/duplicate-detection": "off",
+    "command/shadows-builtin": "off",
+    "command/no-prompt-injection": "error",
+    "command/no-credential-access": "error",
+    "claude-md/exists": "off",
+    "claude-md/skill-duplication": "off",
+    "claude-md/generic-advice": "off",
+    "hooks/valid-structure": "error",
+    "agent/description-required": "off",
+    "agent/referenced-skills-exist": "error",
+    "agent/disallowed-tools-parseable": "off",
+    "agent/constraint-body-match": "off",
+    "agent/no-prompt-injection": "error",
+    "agent/no-credential-access": "error",
+}
+
 PRESETS: dict[str, dict[str, str]] = {
     "recommended": RECOMMENDED,
     "strict": STRICT,
     "security": SECURITY,
+    "pre-workflow": PRE_WORKFLOW,
 }
 
-__all__ = ["PRESETS", "RECOMMENDED", "STRICT", "SECURITY"]
+__all__ = ["PRESETS", "RECOMMENDED", "STRICT", "SECURITY", "PRE_WORKFLOW"]

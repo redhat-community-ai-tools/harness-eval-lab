@@ -139,7 +139,6 @@ Every plan doc should have:
 # Title: What Problem This Solves
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The problem
 What's wrong or missing today. Why should anyone care.
@@ -172,8 +171,6 @@ Things we don't know yet. Decisions that need to be made.
 | `in design` | Actively being designed |
 | `in progress` | Implementation underway |
 | `built` | Implemented and merged |
-
-Update the **Jira** field when a ticket is created for the plan.
 
 ### 4. Add to the root README
 

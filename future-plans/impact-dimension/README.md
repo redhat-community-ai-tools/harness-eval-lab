@@ -1,7 +1,6 @@
 # Measuring Impact: Does the Setup Actually Help?
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The problem
 

@@ -76,7 +76,7 @@ Install by adding the plugin directory, then use:
 | Hooks | 1 | Structure validation, dangerous patterns |
 | Agents | 6 | Description, skills exist, tool format, constraint matching, credentials, injection |
 
-Three presets: `recommended` (default), `strict`, `security`.
+Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.
 
 ## Rubric Dimensions
 
@@ -92,7 +92,7 @@ Scoring dimensions per component type (weights sum to 1.0):
 
 The [`future-plans/`](future-plans/) directory contains planned improvements, each in its own subfolder. Each doc explores a problem, presents approaches with trade-offs, and describes how to build it.
 
-Every plan doc has a **Status** and an optional **Jira** link at the top:
+Every plan doc has a **Status** at the top:
 
 | Status | Meaning |
 |--------|---------|

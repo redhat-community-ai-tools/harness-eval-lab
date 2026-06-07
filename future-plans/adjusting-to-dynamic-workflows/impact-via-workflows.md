@@ -1,7 +1,6 @@
 # Measuring Impact via Dynamic Workflows
 
 > **Status:** future
-> **Jira:** n/a
 
 ## The problem
 
