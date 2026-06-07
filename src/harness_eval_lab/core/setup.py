@@ -69,14 +69,16 @@ def _discover_claude_md(root: Path) -> list[ParsedComponent]:
 
 def _discover_skills(root: Path) -> list[ParsedComponent]:
     results = []
-    skills_dir = root / "skills"
-    if not skills_dir.is_dir():
-        return results
-    for skill_dir in sorted(skills_dir.iterdir()):
-        if not skill_dir.is_dir():
+    seen_paths: set[str] = set()
+    for skills_dir in [root / "skills", root / ".claude" / "skills"]:
+        if not skills_dir.is_dir():
             continue
-        skill_md = skill_dir / "SKILL.md"
-        if skill_md.is_file():
+        for skill_md in sorted(skills_dir.rglob("SKILL.md")):
+            resolved = str(skill_md.resolve())
+            if resolved in seen_paths:
+                continue
+            seen_paths.add(resolved)
+            skill_dir = skill_md.parent
             results.append(_parse_file(skill_md, ComponentType.SKILL, name=skill_dir.name))
     return results
 

@@ -314,7 +314,11 @@ def inspect_setup(
     for comp in setup.by_type(CT.SKILL):
         results.append(lint(str(Path(comp.path).parent), config_rules, scan_state=scan_state))
     for comp in setup.by_type(CT.COMMAND):
-        results.append(lint_command(str(Path(comp.path).parent), config_rules, scan_state=scan_state))
+        cmd_path = Path(comp.path)
+        if cmd_path.is_file() and cmd_path.name != "command.md":
+            results.append(lint_command(str(cmd_path), config_rules, scan_state=scan_state))
+        else:
+            results.append(lint_command(str(cmd_path.parent), config_rules, scan_state=scan_state))
     for comp in setup.by_type(CT.CLAUDE_MD):
         results.append(lint_claude_md(comp.path, config_rules, scan_state=scan_state))
     for comp in setup.by_type(CT.HOOKS):

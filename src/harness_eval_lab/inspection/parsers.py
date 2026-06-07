@@ -55,7 +55,7 @@ def _resolve_skill_path(skill_path: str) -> tuple[Path, Path | None, list[str]]:
 def _resolve_command_path(command_path: str) -> tuple[Path, Path | None, list[str]]:
     """Resolve a command path to (cmd_dir, cmd_md, errors)."""
     path = Path(command_path)
-    if path.is_file() and path.name == "command.md":
+    if path.is_file() and path.suffix == ".md":
         return path.parent, path, []
     if path.is_dir():
         cmd_md = path / "command.md"
