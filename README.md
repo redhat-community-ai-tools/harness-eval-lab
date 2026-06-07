@@ -54,7 +54,7 @@ Install by adding the plugin directory, then use:
 |---------|-------------|
 | `eval-setup` | Full setup evaluation: inspect + system analysis + 5-dimension scorecard |
 | `eval-skill` | Deep-evaluate a single skill individually and in context |
-| `scan` | Quick static analysis (24 rules, no LLM, deterministic) |
+| `scan` | Quick static analysis (26 rules, no LLM, deterministic) |
 
 ## Plugin Skills
 
@@ -63,16 +63,16 @@ Install by adding the plugin directory, then use:
 | `/eval-setup` | Evaluate the full agent setup, present scorecard conversationally |
 | `/eval-skill` | Deep-evaluate a single skill with contextual analysis |
 
-## Inspection Rules (24)
+## Inspection Rules (26)
 
 | Category | Rules | What they check |
 |----------|-------|-----------------|
 | Structural | 1 | SKILL.md exists |
-| Frontmatter | 3 | Description required/quality, format valid |
+| Frontmatter | 3 | Description required/quality (POV, use-case, length), format valid |
 | Content | 3 | Duplicate detection (TF-IDF), broken references, token budget |
-| Security | 2 | Credential access, prompt injection (16 patterns) |
-| Commands | 6 | Description, script exists, duplicates, credentials, injection, skill overlap |
-| CLAUDE.md | 2 | Exists, skill duplication |
+| Security | 2 | Credential access, prompt injection (17 patterns) |
+| Commands | 7 | Description, script exists, duplicates, credentials, injection, skill overlap, shadows built-in |
+| CLAUDE.md | 3 | Exists, skill duplication, generic advice detection |
 | Hooks | 1 | Structure validation, dangerous patterns |
 | Agents | 6 | Description, skills exist, tool format, constraint matching, credentials, injection |
 
@@ -87,3 +87,27 @@ Scoring dimensions per component type (weights sum to 1.0):
 - **CLAUDE.md:** Conciseness, Signal-to-Noise, Skill Separation, Structure, Conflict-Free
 - **Agents:** Specificity, Constraint Clarity, Zero-Trust Integrity, Token Efficiency, Content Quality
 - **Hooks:** Safety, Reliability, Scope, Performance
+
+## Future Plans
+
+The [`future-plans/`](future-plans/) directory contains planned improvements, each in its own subfolder. Each doc explores a problem, presents approaches with trade-offs, and describes how to build it.
+
+Every plan doc has a **Status** and an optional **Jira** link at the top:
+
+| Status | Meaning |
+|--------|---------|
+| `future` | Idea documented, not yet planned for implementation |
+| `in design` | Actively being designed, approaches being evaluated |
+| `in progress` | Implementation underway |
+| `built` | Implemented and merged |
+
+| Plan | What it addresses |
+|------|-------------------|
+| [impact-dimension](future-plans/impact-dimension/) | Measuring whether a setup actually helps the agent (A/B testing, activation rates) |
+| [adjusting-to-dynamic-workflows](future-plans/adjusting-to-dynamic-workflows/) | Adapting to Claude Code's dynamic workflows (pre-flight checks, workflow evaluation, quality gates) |
+| [scoring-calibration](future-plans/scoring-calibration/) | Validating score thresholds against real-world setups |
+| [test-coverage](future-plans/test-coverage/) | Expanding tests to cover all 26 rules with edge cases |
+
+## Contributing
+
+See [`how-to-contribute.md`](how-to-contribute.md) for guidelines on adding rules, future plans, and submitting PRs.

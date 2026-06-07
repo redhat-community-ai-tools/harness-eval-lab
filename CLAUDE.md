@@ -30,7 +30,7 @@ Two interfaces: CLI (3 commands) and Claude Code plugin (2 skills). Both call th
   - `cli.py` - Click CLI (3 commands)
   - `config/` - rule presets (recommended/strict/security)
   - `core/` - setup discovery, fingerprinting, component types
-  - `inspection/` - static analysis: parsers, lint engine, 24 rules, suppression, auto-fix
+  - `inspection/` - static analysis: parsers, lint engine, 26 rules, suppression, auto-fix
   - `rubric/` - LLM-based scoring with weighted dimensions per component type
   - `analysis/` - system-level analysis (budget, triggers, dependencies) + 5-dimension scoring
   - `output/` - report generation (terminal + JSON)
