@@ -15,6 +15,12 @@ class ComponentType(StrEnum):
     MCP_CONFIG = "mcp_config"
 
 
+class ComponentScope(StrEnum):
+    PROJECT = "project"
+    USER_GLOBAL = "user_global"
+    USER_PROJECT = "user_project"
+
+
 @dataclass(frozen=True)
 class ParsedComponent:
     """A parsed component with its raw content and metadata."""
@@ -25,6 +31,7 @@ class ParsedComponent:
     content: str
     frontmatter: dict[str, object] | None = None
     token_count: int = 0
+    scope: ComponentScope = ComponentScope.PROJECT
 
 
 @dataclass(frozen=True)

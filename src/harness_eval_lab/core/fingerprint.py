@@ -18,7 +18,10 @@ RELEVANT_PATTERNS = [
 ]
 
 
-def fingerprint_setup(setup_path: str) -> str:
+def fingerprint_setup(
+    setup_path: str,
+    user_config_dir: str | None = None,
+) -> str:
     """Compute a stable SHA256 of all agent-relevant files in a setup directory."""
     root = Path(setup_path)
     if not root.is_dir():
@@ -32,6 +35,20 @@ def fingerprint_setup(setup_path: str) -> str:
                 rel = str(filepath.relative_to(root))
                 content_hash = hashlib.sha256(filepath.read_bytes()).hexdigest()
                 file_hashes.append((rel, content_hash))
+
+    user_dir = Path(user_config_dir) if user_config_dir else None
+    if user_dir and user_dir.is_dir():
+        user_global = user_dir / "CLAUDE.md"
+        if user_global.is_file():
+            content_hash = hashlib.sha256(user_global.read_bytes()).hexdigest()
+            file_hashes.append(("~user/CLAUDE.md", content_hash))
+        projects_dir = user_dir / "projects"
+        if projects_dir.is_dir():
+            for f in sorted(projects_dir.glob("*/CLAUDE.md")):
+                if f.is_file():
+                    rel = f"~user/projects/{f.parent.name}/CLAUDE.md"
+                    content_hash = hashlib.sha256(f.read_bytes()).hexdigest()
+                    file_hashes.append((rel, content_hash))
 
     file_hashes.sort(key=lambda x: x[0])
 

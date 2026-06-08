@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from harness_eval_lab.core.setup import discover_setup
-from harness_eval_lab.core.types import ComponentType
+from harness_eval_lab.core.types import ComponentScope, ComponentType
 
 
 def test_discover_setup_a(setup_a_path: str) -> None:
@@ -68,3 +68,43 @@ def test_setup_b_commands(setup_b_path: str) -> None:
 def test_discover_nonexistent_path() -> None:
     with pytest.raises(FileNotFoundError):
         discover_setup("bad", "/nonexistent/path")
+
+
+def test_scope_field_default(setup_a_path: str) -> None:
+    setup = discover_setup("setup-a", setup_a_path)
+    for comp in setup.components:
+        assert comp.scope == ComponentScope.PROJECT
+
+
+def test_discover_user_global_claude_md(setup_a_path: str, tmp_path) -> None:
+    user_dir = tmp_path / ".claude"
+    user_dir.mkdir()
+    (user_dir / "CLAUDE.md").write_text("# Global user instructions\nUse uv.\n")
+
+    setup = discover_setup("setup-a", setup_a_path, user_config_dir=str(user_dir))
+    claude_mds = setup.by_type(ComponentType.CLAUDE_MD)
+    user_globals = [c for c in claude_mds if c.scope == ComponentScope.USER_GLOBAL]
+    assert len(user_globals) == 1
+    assert "Global user instructions" in user_globals[0].content
+    assert "(user-global)" in user_globals[0].name
+
+
+def test_discover_user_project_claude_md(setup_a_path: str, tmp_path) -> None:
+    user_dir = tmp_path / ".claude"
+    projects_dir = user_dir / "projects" / "abc123"
+    projects_dir.mkdir(parents=True)
+    (projects_dir / "CLAUDE.md").write_text("# Project-scoped user instructions\n")
+
+    setup = discover_setup("setup-a", setup_a_path, user_config_dir=str(user_dir))
+    claude_mds = setup.by_type(ComponentType.CLAUDE_MD)
+    user_projects = [c for c in claude_mds if c.scope == ComponentScope.USER_PROJECT]
+    assert len(user_projects) == 1
+    assert "Project-scoped" in user_projects[0].content
+    assert "abc123" in user_projects[0].name
+
+
+def test_no_user_config_graceful(setup_a_path: str) -> None:
+    setup = discover_setup("setup-a", setup_a_path, user_config_dir="/nonexistent/path")
+    claude_mds = setup.by_type(ComponentType.CLAUDE_MD)
+    user_scoped = [c for c in claude_mds if c.scope != ComponentScope.PROJECT]
+    assert len(user_scoped) == 0
