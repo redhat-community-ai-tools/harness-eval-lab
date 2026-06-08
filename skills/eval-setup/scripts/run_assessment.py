@@ -11,6 +11,7 @@ from pathlib import Path
 def main() -> None:
     setup_path = sys.argv[1] if len(sys.argv) > 1 else "."
     preset = sys.argv[2] if len(sys.argv) > 2 else "recommended"
+    user_config = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != "-" else None
 
     from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import PRESETS
@@ -19,7 +20,7 @@ def main() -> None:
     from harness_eval_lab.output.report import format_json
 
     config_rules = PRESETS.get(preset, {})
-    setup = discover_setup(name=Path(setup_path).name, path=setup_path)
+    setup = discover_setup(name=Path(setup_path).name, path=setup_path, user_config_dir=user_config)
     results = inspect_setup(setup, config_rules)
     system = analyze_system(setup)
 

@@ -17,6 +17,7 @@ def main() -> None:
     skill_path = sys.argv[1]
     context_path = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None
     preset = sys.argv[3] if len(sys.argv) > 3 else "recommended"
+    user_config = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] != "-" else None
 
     from harness_eval_lab.analysis.triggers import analyze_triggers
     from harness_eval_lab.config.presets import PRESETS
@@ -50,7 +51,7 @@ def main() -> None:
     }
 
     if context_path:
-        setup = discover_setup(name="context", path=context_path)
+        setup = discover_setup(name="context", path=context_path, user_config_dir=user_config)
         context_findings = []
 
         for comp in setup.by_type(ComponentType.SKILL):
