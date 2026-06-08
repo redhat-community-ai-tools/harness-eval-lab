@@ -12,11 +12,13 @@ RECOMMENDED: dict[str, str] = {
     "security/no-credential-access": "error",
     "security/reverse-shell": "error",
     "security/obfuscation": "error",
+    "security/data-exfiltration": "error",
     # Command rules
     "command/no-prompt-injection": "error",
     "command/no-credential-access": "error",
     "command/reverse-shell": "error",
     "command/obfuscation": "error",
+    "command/data-exfiltration": "error",
     # CLAUDE.md rules
     "claude-md/exists": "warning",
     # Agent rules
@@ -28,6 +30,7 @@ RECOMMENDED: dict[str, str] = {
     "agent/no-credential-access": "error",
     "agent/reverse-shell": "error",
     "agent/obfuscation": "error",
+    "agent/data-exfiltration": "error",
 }
 
 STRICT: dict[str, str] = {
@@ -56,6 +59,7 @@ SECURITY: dict[str, str] = {
     "command/no-credential-access": "error",
     "command/reverse-shell": "error",
     "command/obfuscation": "error",
+    "command/data-exfiltration": "error",
     # CLAUDE.md rules
     "claude-md/exists": "off",
     # Agent rules
@@ -67,6 +71,7 @@ SECURITY: dict[str, str] = {
     "agent/no-credential-access": "error",
     "agent/reverse-shell": "error",
     "agent/obfuscation": "error",
+    "agent/data-exfiltration": "error",
 }
 
 PRE_WORKFLOW: dict[str, str] = {
@@ -99,6 +104,7 @@ PRE_WORKFLOW: dict[str, str] = {
     "agent/no-credential-access": "error",
     "agent/reverse-shell": "error",
     "agent/obfuscation": "error",
+    "agent/data-exfiltration": "error",
 }
 
 PRESETS: dict[str, dict[str, str]] = {

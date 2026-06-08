@@ -7,6 +7,7 @@ def register_all_rules() -> None:
     """Import and register all built-in rules."""
     # Skill rules
     from harness_eval_lab.inspection.rules.agents.constraint_body_match import ConstraintBodyMatch
+    from harness_eval_lab.inspection.rules.agents.data_exfiltration import AgentDataExfiltration
 
     # Agent rules
     from harness_eval_lab.inspection.rules.agents.description_required import (
@@ -35,6 +36,7 @@ def register_all_rules() -> None:
     from harness_eval_lab.inspection.rules.claude_md.skill_duplication import (
         ClaudeMdSkillDuplication,
     )
+    from harness_eval_lab.inspection.rules.commands.data_exfiltration import CommandDataExfiltration
 
     # Command rules
     from harness_eval_lab.inspection.rules.commands.description_required import (
@@ -69,6 +71,7 @@ def register_all_rules() -> None:
 
     # Hooks rules
     from harness_eval_lab.inspection.rules.hooks.valid_structure import HooksValidStructure
+    from harness_eval_lab.inspection.rules.security.data_exfiltration import DataExfiltration
     from harness_eval_lab.inspection.rules.security.no_credential_access import NoCredentialAccess
     from harness_eval_lab.inspection.rules.security.no_prompt_injection import NoPromptInjection
     from harness_eval_lab.inspection.rules.security.obfuscation_detection import (
@@ -91,12 +94,14 @@ def register_all_rules() -> None:
         NoCredentialAccess,
         ReverseShellDetection,
         ObfuscationDetection,
+        DataExfiltration,
         CommandDescriptionRequired,
         CommandScriptExists,
         CommandNoPromptInjection,
         CommandNoCredentialAccess,
         CommandReverseShellDetection,
         CommandObfuscationDetection,
+        CommandDataExfiltration,
         CommandSkillOverlap,
         CommandShadowsBuiltin,
         CommandDuplicateDetection,
@@ -112,5 +117,6 @@ def register_all_rules() -> None:
         AgentNoCredentialAccess,
         AgentReverseShellDetection,
         AgentObfuscationDetection,
+        AgentDataExfiltration,
     ]:
         register_rule(rule_cls())
