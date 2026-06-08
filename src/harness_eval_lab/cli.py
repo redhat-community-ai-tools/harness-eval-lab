@@ -21,7 +21,8 @@ def cli() -> None:
 @click.argument("path", type=click.Path(exists=True))
 @click.option("--preset", type=click.Choice(["recommended", "strict", "security", "pre-workflow"]), default="recommended")
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
-def eval_setup(path: str, preset: str, fmt: str) -> None:
+@click.option("--user-config", type=click.Path(), default=None, help="Path to ~/.claude directory for user-level CLAUDE.md discovery.")
+def eval_setup(path: str, preset: str, fmt: str, user_config: str | None) -> None:
     """Evaluate a full setup: inspect all components, analyze token budget, triggers, and dependencies."""
     from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import PRESETS
@@ -29,7 +30,7 @@ def eval_setup(path: str, preset: str, fmt: str) -> None:
     from harness_eval_lab.output.report import format_json, format_terminal
 
     config_rules = PRESETS.get(preset, {})
-    setup = discover_setup(name=Path(path).name, path=path)
+    setup = discover_setup(name=Path(path).name, path=path, user_config_dir=user_config)
     results = inspect_setup(setup, config_rules)
 
     system = analyze_system(setup)
@@ -48,7 +49,8 @@ def eval_setup(path: str, preset: str, fmt: str) -> None:
 @click.option("--rubric", "run_rubric", is_flag=True, help="Also run LLM rubric scoring (requires API key).")
 @click.option("--provider", type=click.Choice(["gemini", "anthropic"]), default="gemini")
 @click.option("--model", default=None, help="LLM model for rubric scoring.")
-def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str, run_rubric: bool, provider: str, model: str | None) -> None:
+@click.option("--user-config", type=click.Path(), default=None, help="Path to ~/.claude directory for user-level CLAUDE.md discovery.")
+def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str, run_rubric: bool, provider: str, model: str | None, user_config: str | None) -> None:
     """Deep-evaluate a single skill, individually and in context of the setup."""
     from harness_eval_lab.config.presets import PRESETS
     from harness_eval_lab.inspection.engine import lint
@@ -68,19 +70,19 @@ def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str,
 
     rubric_result = None
     if run_rubric:
-        from harness_eval_lab.rubric.scorer import RubricScorer
+        from harness_eval_lab.rubric.scorer import RubricChecker
         from harness_eval_lab.utils.llm import create_client
 
         client = create_client(provider, model)
-        scorer = RubricScorer(client)
+        checker = RubricChecker(client)
 
         context_text = None
         if context_path:
-            ctx_setup = discover_setup(name="context", path=context_path)
+            ctx_setup = discover_setup(name="context", path=context_path, user_config_dir=user_config)
             parts = [f"[{c.component_type.value}] {c.name}: {c.content[:200]}" for c in ctx_setup.components]
             context_text = "\n".join(parts)
 
-        rubric_result = scorer.score(
+        rubric_result = checker.check(
             component_type="skill",
             component_name=skill.dir_name,
             content=skill.raw_content,
@@ -102,11 +104,15 @@ def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str,
             output["context_findings"] = context_findings
         if rubric_result:
             output["rubric"] = {
-                "overall": rubric_result.overall,
-                "verdict": rubric_result.verdict,
-                "dimensions": [
-                    {"name": d.name, "score": d.score, "weight": d.weight, "justification": d.justification}
-                    for d in rubric_result.dimensions
+                "issues": [
+                    {
+                        "category": i.category,
+                        "description": i.description,
+                        "evidence": i.evidence,
+                        "suggestion": i.suggestion,
+                        "severity": i.severity,
+                    }
+                    for i in rubric_result.issues
                 ],
                 "summary": rubric_result.summary,
             }
@@ -138,12 +144,15 @@ def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str,
                 click.echo(f"  [~] {finding}")
 
         if rubric_result:
-            from harness_eval_lab.output.report import score_to_stars
-            stars = score_to_stars(rubric_result.overall)
-            click.echo(f"\nRubric Score: {stars} {rubric_result.overall:.1f}/5 [{rubric_result.verdict}]")
-            click.echo(f"{'─' * 60}")
-            for d in rubric_result.dimensions:
-                click.echo(f"  {d.name}: {d.score}/5 (weight {d.weight}) - {d.justification}")
+            if rubric_result.issues:
+                click.echo(f"\nRubric Issues ({len(rubric_result.issues)} found):")
+                click.echo(f"{'─' * 60}")
+                for issue in rubric_result.issues:
+                    click.echo(f"  [{issue.category}] {issue.description}")
+                    click.echo(f"    Evidence: {issue.evidence}")
+                    click.echo(f"    Fix: {issue.suggestion}")
+            else:
+                click.echo("\nRubric: No issues found.")
             if rubric_result.summary:
                 click.echo(f"\n  Summary: {rubric_result.summary}")
 
@@ -156,7 +165,8 @@ def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str,
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
 @click.option("--fix", is_flag=True, help="Apply auto-fixes.")
 @click.option("--fail-on-error", is_flag=True, help="Exit with code 1 if any errors found. Useful for CI and hooks.")
-def scan(path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool) -> None:
+@click.option("--user-config", type=click.Path(), default=None, help="Path to ~/.claude directory for user-level CLAUDE.md discovery.")
+def scan(path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool, user_config: str | None) -> None:
     """Quick static analysis scan. No LLM, deterministic, fast. Good for CI."""
     from harness_eval_lab.config.presets import PRESETS
     from harness_eval_lab.inspection.engine import inspect_setup
@@ -166,7 +176,7 @@ def scan(path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool) -> No
     target = Path(path)
 
     if target.is_dir():
-        setup = discover_setup(name=target.name, path=path)
+        setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
         results = inspect_setup(setup, config_rules)
     else:
         results = _inspect_single_file(target, config_rules)

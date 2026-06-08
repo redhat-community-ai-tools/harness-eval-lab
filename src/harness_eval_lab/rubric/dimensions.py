@@ -1,114 +1,99 @@
-"""Dimension definitions per component type."""
+"""Issue category definitions per component type."""
 
 from __future__ import annotations
 
-from harness_eval_lab.rubric.types import DimensionDef
+from harness_eval_lab.rubric.types import IssueCategory
 
-SKILL_DIMENSIONS = [
-    DimensionDef(
+SKILL_CATEGORIES = [
+    IssueCategory(
         name="specificity",
-        weight=0.25,
-        description="1=vague platitudes; 5=every instruction is specific and actionable with concrete patterns",
+        description="Flag if instructions are vague platitudes with no actionable patterns. Look for generic advice like 'write clean code' vs specific rules like 'always use raise from'.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="redundancy",
-        weight=0.25,
-        description="1=duplicates default behavior; 5=entirely unique, teaches the agent something new",
+        description="Flag if instructions duplicate Claude's default behavior (e.g., 'be helpful', 'handle errors properly', 'think step by step'). Test: if this skill were deleted, would Claude behave differently?",
     ),
-    DimensionDef(
+    IssueCategory(
         name="trigger_quality",
-        weight=0.20,
-        description="1=no description or triggers everything; 5=precise targeting with clear 'use when' phrasing",
+        description="Flag if the description is missing, too broad, too narrow, uses coercive language (MUST, ALWAYS), or lacks activation context ('use when' phrasing).",
     ),
-    DimensionDef(
+    IssueCategory(
         name="token_efficiency",
-        weight=0.15,
-        description="1=over 3000 tokens with low value; 5=high value-to-token ratio",
+        description="Flag if SKILL.md is over 3000 tokens with low value density, or if detailed procedures should be split into reference files.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="content_quality",
-        weight=0.15,
-        description="1=no structure; 5=organized, has examples, valid references, edge cases covered",
+        description="Flag if there is no structure, no examples, broken file references, or missing edge case handling.",
     ),
 ]
 
-COMMAND_DIMENSIONS = [
-    DimensionDef(name="description_quality", weight=0.20, description="Clear, actionable description"),
-    DimensionDef(name="instruction_clarity", weight=0.20, description="Instructions are unambiguous"),
-    DimensionDef(name="script_integrity", weight=0.15, description="Referenced scripts exist and work"),
-    DimensionDef(name="scope", weight=0.10, description="Scope is appropriate, not too broad or narrow"),
-    DimensionDef(name="token_efficiency", weight=0.10, description="Good value-to-token ratio"),
-    DimensionDef(name="redundancy", weight=0.15, description="Not duplicating built-in or skill behavior"),
-    DimensionDef(name="robustness", weight=0.10, description="Handles edge cases and errors"),
+COMMAND_CATEGORIES = [
+    IssueCategory(name="description_quality", description="Flag if the description is missing, too vague, or doesn't clearly say what the command does."),
+    IssueCategory(name="instruction_clarity", description="Flag if instructions are ambiguous or Claude wouldn't know what to do or in what order."),
+    IssueCategory(name="script_integrity", description="Flag if referenced scripts don't exist or the discovery pattern is broken."),
+    IssueCategory(name="scope", description="Flag if this should be a skill (auto-triggered) instead of a command (user-triggered), or vice versa."),
+    IssueCategory(name="token_efficiency", description="Flag if the command is bloated. Under 15KB is fine; 15-30KB should be split; over 30KB must be split."),
+    IssueCategory(name="redundancy", description="Flag if Claude already does this without the command. Built-in capabilities include plan mode, commit messages, code explanation, and code review."),
+    IssueCategory(name="robustness", description="Flag if the command hardcodes assumptions or doesn't handle missing dependencies."),
 ]
 
-CLAUDE_MD_DIMENSIONS = [
-    DimensionDef(
+CLAUDE_MD_CATEGORIES = [
+    IssueCategory(
         name="conciseness",
-        weight=0.25,
-        description="Would removing any part cause the agent to make mistakes? Ruthlessly prune.",
+        description="Flag lines that could be removed without causing Claude to make mistakes. Ruthlessly prune.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="signal_to_noise",
-        weight=0.25,
-        description="Only unique knowledge, not generic advice like 'write clean code'",
+        description="Flag generic advice Claude already follows ('write clean code', 'be helpful', 'follow best practices'). Also flag standard language conventions (use linters instead) and detailed API docs (link instead).",
     ),
-    DimensionDef(
+    IssueCategory(
         name="skill_separation",
-        weight=0.20,
-        description="Domain-specific rules belong in skills (on-demand), not CLAUDE.md (every session)",
+        description="Flag domain-specific rules that only matter sometimes. These waste context every session and should be skills instead.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="structure",
-        weight=0.15,
-        description="Clear sections, critical rules marked, scannable",
+        description="Flag if sections are unclear, critical rules aren't marked, or the document isn't scannable.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="conflict_free",
-        weight=0.15,
-        description="No contradictions with skills or other configuration",
+        description="Flag contradictions with any skill, command, or other configuration.",
     ),
 ]
 
-AGENT_DIMENSIONS = [
-    DimensionDef(
+AGENT_CATEGORIES = [
+    IssueCategory(
         name="specificity",
-        weight=0.25,
-        description="1=vague; 5=every phase has specific steps",
+        description="Flag if phases have vague steps like 'implement the fix' with no concrete procedure.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="constraint_clarity",
-        weight=0.25,
-        description="1=no constraints; 5=body and disallowedTools form a coherent boundary",
+        description="Flag if constraints are missing, or if body constraints aren't backed by disallowedTools entries.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="zero_trust_integrity",
-        weight=0.20,
-        description="1=blind trust; 5=explicit verification, injection-resistant",
+        description="Flag if external inputs (issue text, PR descriptions) are blindly trusted without verification steps.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="token_efficiency",
-        weight=0.15,
-        description="1=over 5000 tokens with low value; 5=procedures delegated to skills",
+        description="Flag if over 5000 tokens with low value density, or if procedures should be delegated to skills.",
     ),
-    DimensionDef(
+    IssueCategory(
         name="content_quality",
-        weight=0.15,
-        description="1=no structure; 5=identity, constraints, procedure, output, failure handling",
+        description="Flag if missing key sections (identity, constraints, procedure, output format, failure handling).",
     ),
 ]
 
-HOOKS_DIMENSIONS = [
-    DimensionDef(name="safety", weight=0.30, description="No dangerous patterns, no destructive commands"),
-    DimensionDef(name="reliability", weight=0.25, description="Scripts exist, commands are well-formed"),
-    DimensionDef(name="scope", weight=0.25, description="Hooks are scoped appropriately, not over-broad"),
-    DimensionDef(name="performance", weight=0.20, description="Hooks are fast, no unnecessary blocking"),
+HOOKS_CATEGORIES = [
+    IssueCategory(name="safety", description="Flag dangerous patterns (rm -rf, force push, curl|bash) or destructive state modifications."),
+    IssueCategory(name="reliability", description="Flag if referenced scripts don't exist or commands are malformed."),
+    IssueCategory(name="scope", description="Flag if the hook is over-broad or if the behavior is advisory (should be CLAUDE.md/skill instead)."),
+    IssueCategory(name="performance", description="Flag if the hook is slow or blocks unnecessarily."),
 ]
 
-DIMENSIONS_BY_TYPE: dict[str, list[DimensionDef]] = {
-    "skill": SKILL_DIMENSIONS,
-    "command": COMMAND_DIMENSIONS,
-    "claude_md": CLAUDE_MD_DIMENSIONS,
-    "agent": AGENT_DIMENSIONS,
-    "hooks": HOOKS_DIMENSIONS,
+CATEGORIES_BY_TYPE: dict[str, list[IssueCategory]] = {
+    "skill": SKILL_CATEGORIES,
+    "command": COMMAND_CATEGORIES,
+    "claude_md": CLAUDE_MD_CATEGORIES,
+    "agent": AGENT_CATEGORIES,
+    "hooks": HOOKS_CATEGORIES,
 }

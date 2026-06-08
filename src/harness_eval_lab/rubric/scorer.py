@@ -1,77 +1,70 @@
-"""RubricScorer: score components via LLM-based rubric evaluation."""
+"""RubricChecker: detect issues in components via LLM-based evaluation."""
 
 from __future__ import annotations
 
 import re
 
-from harness_eval_lab.rubric.dimensions import DIMENSIONS_BY_TYPE
-from harness_eval_lab.rubric.prompts import SYSTEM_PROMPT, build_scoring_prompt
-from harness_eval_lab.rubric.types import DimensionDef, DimensionScore, RubricResult
+from harness_eval_lab.rubric.dimensions import CATEGORIES_BY_TYPE
+from harness_eval_lab.rubric.prompts import SYSTEM_PROMPT, build_issue_prompt
+from harness_eval_lab.rubric.types import IssueCategory, RubricIssue, RubricResult
 from harness_eval_lab.utils.llm import LLMClient
 
-_DIMENSION_RE = re.compile(
-    r"DIMENSION:\s*(\S+)\s*\|\s*SCORE:\s*(\d)\s*\|\s*JUSTIFICATION:\s*(.+)"
+_ISSUE_RE = re.compile(
+    r"ISSUE:\s*(.+?)\s*\|\s*CATEGORY:\s*(\S+)\s*\|\s*EVIDENCE:\s*(.+?)\s*\|\s*SUGGESTION:\s*(.+)"
 )
 _SUMMARY_RE = re.compile(r"SUMMARY:\s*(.+)")
 
 
-class RubricScorer:
+class RubricChecker:
     def __init__(self, client: LLMClient) -> None:
         self.client = client
 
-    def score(
+    def check(
         self,
         component_type: str,
         component_name: str,
         content: str,
         context: str | None = None,
-        dimension_overrides: list[DimensionDef] | None = None,
+        category_overrides: list[IssueCategory] | None = None,
     ) -> RubricResult:
-        dimensions = dimension_overrides or DIMENSIONS_BY_TYPE.get(component_type, [])
-        if not dimensions:
+        categories = category_overrides or CATEGORIES_BY_TYPE.get(component_type, [])
+        if not categories:
             return RubricResult(
                 component_name=component_name,
                 component_type=component_type,
-                summary=f"No rubric dimensions defined for type '{component_type}'",
+                summary=f"No issue categories defined for type '{component_type}'",
             )
 
-        prompt = build_scoring_prompt(
+        prompt = build_issue_prompt(
             component_type=component_type,
             component_name=component_name,
             content=content,
-            dimensions=dimensions,
+            categories=categories,
             context=context,
         )
 
         response = self.client.generate(SYSTEM_PROMPT, prompt)
-        return self._parse_response(response, component_name, component_type, dimensions)
+        return self._parse_response(response, component_name, component_type)
 
     def _parse_response(
         self,
         response: str,
         component_name: str,
         component_type: str,
-        dimensions: list[DimensionDef],
     ) -> RubricResult:
-        dim_weights = {d.name: d.weight for d in dimensions}
-        scores: list[DimensionScore] = []
+        issues: list[RubricIssue] = []
         summary = ""
 
         for line in response.strip().split("\n"):
             line = line.strip()
 
-            dim_match = _DIMENSION_RE.match(line)
-            if dim_match:
-                name = dim_match.group(1)
-                score_val = int(dim_match.group(2))
-                justification = dim_match.group(3).strip()
-                score_val = max(1, min(5, score_val))
-                weight = dim_weights.get(name, 0.0)
-                scores.append(DimensionScore(
-                    name=name,
-                    score=score_val,
-                    weight=weight,
-                    justification=justification,
+            issue_match = _ISSUE_RE.match(line)
+            if issue_match:
+                issues.append(RubricIssue(
+                    description=issue_match.group(1).strip(),
+                    category=issue_match.group(2).strip(),
+                    evidence=issue_match.group(3).strip(),
+                    suggestion=issue_match.group(4).strip(),
                 ))
                 continue
 
@@ -79,11 +72,9 @@ class RubricScorer:
             if sum_match:
                 summary = sum_match.group(1).strip()
 
-        result = RubricResult(
+        return RubricResult(
             component_name=component_name,
             component_type=component_type,
-            dimensions=scores,
+            issues=issues,
             summary=summary,
         )
-        result.compute_overall()
-        return result

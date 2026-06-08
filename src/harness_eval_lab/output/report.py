@@ -8,20 +8,6 @@ from harness_eval_lab.analysis.system import SystemReport
 from harness_eval_lab.inspection.types import InspectionResult
 
 
-def score_to_stars(score: float) -> str:
-    rounded = max(1, min(5, round(score)))
-    return "★" * rounded + "☆" * (5 - rounded)
-
-
-def score_to_verdict(score: float) -> str:
-    rounded = round(score)
-    if rounded >= 4:
-        return "HEALTHY"
-    if rounded == 3:
-        return "NEEDS WORK"
-    return "PROBLEMATIC"
-
-
 def format_terminal(
     system: SystemReport,
     inspection_results: list[InspectionResult],
