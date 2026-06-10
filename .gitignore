@@ -8,6 +8,7 @@ build/
 *.egg
 .venv/
 venv/
+.harness-venv/
 .env
 .mypy_cache/
 .ruff_cache/
