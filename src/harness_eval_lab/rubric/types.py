@@ -32,3 +32,4 @@ class RubricResult:
     component_type: str
     issues: list[RubricIssue] = field(default_factory=list)
     summary: str = ""
+    verdict: str = ""
