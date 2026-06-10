@@ -1,28 +1,46 @@
 # CLAUDE.md Rubric
 
-Check CLAUDE.md for issues in 5 categories. Report only real issues, citing specific evidence.
+Check CLAUDE.md for issues in 6 categories. Report only real issues, citing specific evidence.
 
-## Conciseness
+## Size and density
 
 Flag if:
-- Any line could be removed without causing Claude to make mistakes
+- File exceeds 200 lines (Anthropic's recommended limit per file)
 - Content is padded or repetitive
+- Any line could be removed without causing Claude to make mistakes
 
-Test: "Would removing this cause Claude to make mistakes?" If not, flag it.
+Test: "Would removing this line cause Claude to make a mistake it wouldn't otherwise make?" If not, flag it.
+
+For large projects, use multiple focused CLAUDE.md files in subdirectories rather than one oversized root file.
 
 ## Signal-to-noise
 
 Flag if:
 - Contains generic advice Claude already follows ("write clean code", "be helpful", "follow best practices", "think step by step")
-- Contains standard language conventions (use linters instead)
+- Documents things Claude already knows: git workflows, package managers, testing frameworks, standard language features, Docker, CI/CD patterns, debugging
+- Contains standard language conventions that linters enforce
 - Contains detailed API docs (link instead of inline)
 - Contains file-by-file descriptions that will rot as the codebase evolves
+- Rules are not specific and verifiable
 
-## Skill separation
+Specificity test examples:
+- Bad: "Format code properly" (vague, unverifiable)
+- Good: "Use 2-space indentation in all YAML files"
+- Bad: "Handle errors gracefully" (Claude already does this)
+- Good: "All API handlers must return ErrorResponse with error_code from errors.py"
+- Bad: "Write good tests" (vague platitude)
+- Good: "Tests use factory_boy fixtures, never raw model constructors"
+
+## Procedures belong in skills
 
 Flag if:
-- Contains domain-specific rules that only matter for specific tasks
-- These waste context every session and should be on-demand skills instead
+- Contains multi-step procedures (deployment steps, review checklists, migration guides)
+- Contains domain-specific rules that only matter for certain tasks (e.g., "when writing API endpoints..." or "for database migrations...")
+- These waste context every session; move them to on-demand skills instead
+
+Test: "Does this rule matter in every single conversation, or only when doing a specific task?" If task-specific, it belongs in a skill.
+
+CLAUDE.md should contain only facts Claude needs every session: project identity, build/test commands, universal conventions, and pointers to where detailed procedures live.
 
 ## Structure
 

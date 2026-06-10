@@ -1,4 +1,6 @@
-# Report Format
+# Report Format (Layer 2)
+
+Note: The inventory table, token budget, and context utilization sections share the same format as the Layer 1 lint report (`skills/eval-setup-lint/report-format.md`). Layer 2 adds per-component analysis, cross-type optimization, and the summary areas.
 
 ## Structure
 

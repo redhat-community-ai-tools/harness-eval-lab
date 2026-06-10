@@ -2,6 +2,8 @@
 
 Check each command for issues in 7 categories. For clean commands, use a compact one-line format.
 
+Note: In Claude Code, commands have been merged into the skills system. A command is now a skill with `disable-model-invocation: true` (user triggers it with /name, Claude never auto-invokes). When reviewing commands, consider whether each one belongs in this category or should be a skill with auto-invocation.
+
 ## Description quality
 
 Flag if:
@@ -24,8 +26,9 @@ Flag if:
 ## Scope appropriateness
 
 Flag if:
-- This should be a skill (auto-triggered) instead of a command (user-triggered)
-- Commands are for explicit actions (/review, /deploy); skills are for passive behavior
+- Command should be a skill with auto-invocation instead (Claude detects the situation and loads it automatically)
+- Ask: "Does the user need to remember to type /name, or should Claude recognize when this is needed?" If Claude should recognize it, this should be a skill with auto-invocation enabled.
+- Conversely, commands that perform destructive or high-stakes actions (/deploy, /release) are correct as user-triggered commands.
 
 ## Token efficiency
 
@@ -37,8 +40,8 @@ Flag if:
 
 Flag if:
 - Claude already does this without the command
-- Built-in capabilities include: plan mode, commit messages, code explanation, code review
-- Test: "if i deleted this command, could i get the same result by just asking Claude?" If yes, flag it.
+- Built-in capabilities include: plan mode, commit messages, code explanation, code review, init, security-review
+- Test: "If i deleted this command, could i get the same result by just asking Claude?" If yes, flag it.
 
 ## Robustness
 
