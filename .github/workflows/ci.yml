@@ -21,7 +21,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --extra dev
 
       - name: Ruff check
         run: uv run ruff check src/ tests/
@@ -43,7 +43,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --extra dev
 
       - name: Mypy
         run: uv run mypy src/
@@ -62,7 +62,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --extra dev
 
       - name: Run tests with coverage
         run: uv run pytest -v --cov=src --cov-report=term-missing
@@ -81,7 +81,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --extra dev
 
       - name: Lint own setup
         run: uv run harness-eval-lab eval-setup-lint . --fail-on-error
