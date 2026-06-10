@@ -1,7 +1,7 @@
 {
   "name": "harness-eval-lab",
   "version": "0.1.0",
-  "description": "Evaluate AI agent setups across 5 dimensions: Soundness, Safety, Coherence, Efficiency, Impact.",
+  "description": "Evaluate AI agent setups for best practices, redundancy, and cross-component issues.",
   "author": "Benjamin Kapner",
   "repository": "https://github.com/Benkapner/harness-eval-lab",
   "keywords": ["evaluation", "harness", "setup", "skills", "configuration"],
