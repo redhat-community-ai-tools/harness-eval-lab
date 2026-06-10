@@ -49,6 +49,88 @@ def _interpolate(template: str, data: dict[str, str | int] | None) -> str:
     )
 
 
+def _resolve_severity(
+    rule: object,
+    config_rules: dict[str, str | list],
+) -> tuple[Severity, list] | None:
+    """Determine effective severity and options for a rule.
+
+    Returns (severity, options), or None if the rule should be skipped.
+    """
+    severity_config = config_rules.get(rule.meta.id)
+    if severity_config == "off":
+        return None
+
+    if isinstance(severity_config, list) and len(severity_config) > 0:
+        sev_str = severity_config[0]
+        options = severity_config[1:]
+    elif isinstance(severity_config, str):
+        sev_str = severity_config
+        options = []
+    else:
+        sev_str = rule.meta.default_severity.value
+        options = []
+
+    if sev_str == "off":
+        return None
+
+    try:
+        severity = Severity(sev_str)
+    except ValueError:
+        severity = rule.meta.default_severity
+
+    return severity, options
+
+
+def _make_report_fn(
+    rule_id: str,
+    severity: Severity,
+    meta_messages: dict[str, str],
+    category: str,
+    fixable: bool,
+    file_path: str,
+    suppressions: dict,
+    findings: list[Finding],
+    suppression_counter: list[int],
+) -> callable:
+    """Build a report callback for a single rule.
+
+    Uses a mutable list for the suppression counter so the caller can read
+    the updated value after all rules have run.
+    """
+    def report(descriptor: ReportDescriptor) -> None:
+        loc = descriptor.location or Location(file=file_path)
+        if is_suppressed(suppressions, rule_id, loc.start_line):
+            suppression_counter[0] += 1
+            return
+        template = meta_messages.get(descriptor.message_id, descriptor.message_id)
+        message = _interpolate(template, descriptor.data)
+        effective_severity = descriptor.severity_override or severity
+        findings.append(Finding(
+            rule_id=rule_id, severity=effective_severity, message=message,
+            location=loc, category=category, fix=descriptor.fix if fixable else None,
+        ))
+    return report
+
+
+def _parse_errors_to_findings(
+    parse_errors: list[str],
+    file_path: str,
+    category: str = "structural",
+) -> list[Finding]:
+    """Convert parse errors into Finding objects."""
+    return [
+        Finding(
+            rule_id="parser",
+            severity=Severity.ERROR,
+            message=error,
+            location=Location(file=file_path),
+            category=category,
+        )
+        for error in parse_errors
+    ]
+
+
 def _run_rules(
     target_type: ComponentType,
     file_path: str,
@@ -62,7 +144,7 @@ def _run_rules(
 ) -> tuple[list[Finding], int]:
     """Run rules for a given target type. Returns (findings, suppression_count)."""
     findings: list[Finding] = []
-    suppression_count = 0
+    suppression_counter = [0]
     suppressions = parse_suppressions(raw_content) if raw_content else {}
     config_rules = config_rules or {}
     scan_state = scan_state if scan_state is not None else {}
@@ -79,49 +161,17 @@ def _run_rules(
         if rule.meta.target_type != target_type:
             continue
 
-        severity_config = config_rules.get(rule.meta.id)
-        if severity_config == "off":
+        resolved = _resolve_severity(rule, config_rules)
+        if resolved is None:
             continue
-
-        if isinstance(severity_config, list) and len(severity_config) > 0:
-            sev_str = severity_config[0]
-            options = severity_config[1:]
-        elif isinstance(severity_config, str):
-            sev_str = severity_config
-            options = []
-        else:
-            sev_str = rule.meta.default_severity.value
-            options = []
-
-        if sev_str == "off":
-            continue
-
-        try:
-            severity = Severity(sev_str)
-        except ValueError:
-            severity = rule.meta.default_severity
-
-        def make_report(rule_id, sev, meta_messages, category, fixable, fp):
-            def report(descriptor: ReportDescriptor) -> None:
-                nonlocal suppression_count
-                loc = descriptor.location or Location(file=fp)
-                if is_suppressed(suppressions, rule_id, loc.start_line):
-                    suppression_count += 1
-                    return
-                template = meta_messages.get(descriptor.message_id, descriptor.message_id)
-                message = _interpolate(template, descriptor.data)
-                effective_severity = descriptor.severity_override or sev
-                findings.append(Finding(
-                    rule_id=rule_id, severity=effective_severity, message=message,
-                    location=loc, category=category, fix=descriptor.fix if fixable else None,
-                ))
-            return report
+        severity, options = resolved
 
         context = RuleContext(
             skill=dummy_skill,
-            report=make_report(
+            report=_make_report_fn(
                 rule.meta.id, severity, rule.meta.messages,
                 rule.meta.category, rule.meta.fixable, file_path,
+                suppressions, findings, suppression_counter,
             ),
             severity=severity,
             options=options,
@@ -132,7 +182,7 @@ def _run_rules(
         )
         rule.create(context)
 
-    return findings, suppression_count
+    return findings, suppression_counter[0]
 
 
 def _build_result(
@@ -163,14 +213,11 @@ def lint(
 ) -> InspectionResult:
     """Lint a single skill directory or SKILL.md file."""
     skill = parse_skill(skill_path)
-    diagnostics: list[Finding] = []
-
-    for parse_error in skill.parse_errors:
-        diagnostics.append(Finding(
-            rule_id="parser", severity=Severity.ERROR, message=parse_error,
-            location=Location(file=skill.skill_md_path),
-            category=skill.parse_errors[0] if skill.parse_errors else "structural",
-        ))
+    diagnostics = _parse_errors_to_findings(
+        skill.parse_errors,
+        skill.skill_md_path,
+        category=skill.parse_errors[0] if skill.parse_errors else "structural",
+    )
 
     rule_diags, suppression_count = _run_rules(
         ComponentType.SKILL, skill.skill_md_path, skill.raw_content,
@@ -194,13 +241,7 @@ def lint_command(
 ) -> InspectionResult:
     """Lint a single command directory."""
     cmd = parse_command(command_path)
-    diagnostics: list[Finding] = []
-
-    for parse_error in cmd.parse_errors:
-        diagnostics.append(Finding(
-            rule_id="parser", severity=Severity.ERROR, message=parse_error,
-            location=Location(file=cmd.command_md_path), category="structural",
-        ))
+    diagnostics = _parse_errors_to_findings(cmd.parse_errors, cmd.command_md_path)
 
     rule_diags, suppression_count = _run_rules(
         ComponentType.COMMAND, cmd.command_md_path, cmd.raw_content,
@@ -224,13 +265,7 @@ def lint_claude_md(
 ) -> InspectionResult:
     """Lint a CLAUDE.md file."""
     claude_md = parse_claude_md(file_path)
-    diagnostics: list[Finding] = []
-
-    for parse_error in claude_md.parse_errors:
-        diagnostics.append(Finding(
-            rule_id="parser", severity=Severity.ERROR, message=parse_error,
-            location=Location(file=file_path), category="structural",
-        ))
+    diagnostics = _parse_errors_to_findings(claude_md.parse_errors, file_path)
 
     rule_diags, suppression_count = _run_rules(
         ComponentType.CLAUDE_MD, file_path, claude_md.raw_content,
@@ -252,13 +287,7 @@ def lint_hooks(
 ) -> InspectionResult:
     """Lint hooks from settings.json."""
     hooks = parse_hooks(settings_path)
-    diagnostics: list[Finding] = []
-
-    for parse_error in hooks.parse_errors:
-        diagnostics.append(Finding(
-            rule_id="parser", severity=Severity.ERROR, message=parse_error,
-            location=Location(file=settings_path), category="structural",
-        ))
+    diagnostics = _parse_errors_to_findings(hooks.parse_errors, settings_path)
 
     rule_diags, suppression_count = _run_rules(
         ComponentType.HOOKS, settings_path, hooks.raw_content,
@@ -281,13 +310,7 @@ def lint_agent(
 ) -> InspectionResult:
     """Lint a single agent .md file."""
     agent = parse_agent(agent_path)
-    diagnostics: list[Finding] = []
-
-    for parse_error in agent.parse_errors:
-        diagnostics.append(Finding(
-            rule_id="parser", severity=Severity.ERROR, message=parse_error,
-            location=Location(file=agent.agent_md_path), category="structural",
-        ))
+    diagnostics = _parse_errors_to_findings(agent.parse_errors, agent.agent_md_path)
 
     rule_diags, suppression_count = _run_rules(
         ComponentType.AGENT, agent.agent_md_path, agent.raw_content,
