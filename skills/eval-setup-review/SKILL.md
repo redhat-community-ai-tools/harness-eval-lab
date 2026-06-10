@@ -1,14 +1,14 @@
 ---
-name: eval-setup
-description: Evaluate the full agent setup (CLAUDE.md, skills, commands, hooks, agents, MCP configs) with static analysis and qualitative issue detection. Use when the user wants to check their setup health, find redundancy, detect issues, or get a quality report.
+name: eval-setup-review
+description: Full qualitative review of the agent setup. Reads every file, applies per-component rubrics, runs 21 cross-type optimization checks, and produces KEEP/REVIEW/REMOVE verdicts. Use when the user wants a deep review, redundancy check, or quality assessment of their setup.
 allowed-tools:
   - Bash
   - Read
 ---
 
-# Evaluate Setup
+# Review Setup
 
-Evaluate the user's full agent setup using two layers: static analysis (Layer 1, deterministic) and qualitative issue detection (Layer 2, Claude reads every file).
+Full qualitative review of the user's agent setup. Claude reads every file and evaluates quality, redundancy, coherence, and optimization opportunities.
 
 ## Hard Rules
 
@@ -17,21 +17,33 @@ Evaluate the user's full agent setup using two layers: static analysis (Layer 1,
 3. **Don't manufacture problems.** If the setup is good, say so.
 4. **Always end with the evidence-based summary.**
 
-## Step 1: Run Layer 1 (Static Analysis)
+## Step 1: Ask Output Preference
+
+Before doing anything else, ask the user:
+
+> Where should i present the results?
+> 1. **Terminal** - print the report here in the conversation
+> 2. **File** - write a markdown report to a file (you'll choose the path)
+
+Wait for their answer before proceeding.
+
+## Step 2: Run Layer 1 for Context
 
 Determine the setup path. If the user doesn't specify one, use the current working directory.
 
 ```bash
-uv run python skills/eval-setup/scripts/run_assessment.py <setup-path> recommended
+uv run python skills/eval-setup-lint/scripts/run_assessment.py <setup-path> recommended
 ```
 
-Read the JSON output. This gives you per-component diagnostics, token budget, trigger overlaps, and dependency findings.
+Read the JSON output. This gives you per-component diagnostics, token budget, context utilization, trigger overlaps, and dependency findings.
 
-## Step 2: Read Actual Files (Layer 2)
+Do NOT present the Layer 1 report separately. Use it as context for the qualitative review.
+
+## Step 3: Read Actual Files
 
 Read the actual content of every component: SKILL.md files (including reference files in subdirectories), command files, agent files, CLAUDE.md, and settings.json for hooks.
 
-## Step 3: Analyze Each Component
+## Step 4: Analyze Each Component
 
 For each component, provide:
 - Layer 1 results (which rules passed/failed)
@@ -46,31 +58,35 @@ Use the per-component rubric files for detailed criteria:
 - Agents: read `rubric/agents-rubric.md`
 - Hooks: read `rubric/hooks-rubric.md`
 
-## Step 4: Cross-Type Optimization
+## Step 5: Cross-Type Optimization
 
 Read `rubric/cross-type-checks.md` and answer all 21 checks with YES/NO and a one-line explanation. These check whether components should be transformed (skill to hook?), merged, or removed.
 
-## Step 5: Summarize by Area
+## Step 6: Summarize by Area
 
-Based on everything from Steps 1-4, summarize findings in 5 areas. Do not assign numeric scores. Count issues and cite specifics.
+Based on everything from Steps 2-5, summarize findings in 5 areas. Do not assign numeric scores. Count issues and cite specifics.
 
 **Structure:** Count Layer 1 structural/frontmatter errors. List by name. "N errors (list)" or "Clean. No issues found."
 
-**Security:** Count Layer 1 security findings + Layer 2 concerns. List by name. "N issues (list)" or "Clean. No issues found."
+**Security:** Count Layer 1 security findings + qualitative concerns. List by name. "N issues (list)" or "Clean. No issues found."
 
 **Coherence:** Count duplicates, conflicts, trigger overlaps, broken dependencies, cross-type issues. List specifics.
 
-**Efficiency:** Report always-loaded vs on-demand token ratio and heaviest component with token counts.
+**Efficiency:** Report always-loaded vs on-demand token ratio, heaviest component with token counts, and context utilization highlights (any models where peak > 20%).
 
 **Redundancy:** Count components containing content Claude already knows by default. List which ones and why.
 
-## Step 6: Produce the Report
+## Step 7: Produce the Report
 
 Read `report-format.md` for the full report structure. The report must include:
 1. The setup health summary (the headline)
 2. Inventory table
 3. Token budget breakdown
-4. Per-component analysis (Layer 1 + Layer 2)
+4. Per-component analysis (Layer 1 + qualitative review)
 5. Cross-type optimization (21 checks)
 6. Numbered suggestions
 7. Terminal summary
+
+**If the user chose terminal:** print the report in the conversation.
+
+**If the user chose file:** write the report as markdown to the path they specified (or suggest `eval-setup-review-report.md` in the current directory). Tell them the file path when done.

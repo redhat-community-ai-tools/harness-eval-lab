@@ -10,13 +10,13 @@ This report evaluates the Claude Code setup across 5 areas:
 - **Structure** - Do all components parse correctly? Are required fields present? Do references resolve?
 - **Security** - Any credential exposure, injection risk, or dangerous hooks?
 - **Coherence** - Do components work together? Any duplicates, conflicts, or broken dependencies?
-- **Efficiency** - Is the token budget well-distributed? Always-loaded vs on-demand?
+- **Efficiency** - Is the token budget well-distributed? Always-loaded vs on-demand? Context utilization across models?
 - **Redundancy** - Does each component teach Claude something it doesn't already know?
 
 Two layers produce the evidence:
 
-**Layer 1 (Static Analysis)** runs 26 deterministic rules. No AI involved.
-**Layer 2 (Qualitative Analysis)** Claude reads every file and checks for issues
+**Layer 1 (Static Analysis)** runs 26 deterministic rules + system-level analysis. No AI involved.
+**Layer 2 (Qualitative Review)** Claude reads every file and checks for issues
 that deterministic rules can't catch.
 
 ---
@@ -26,7 +26,7 @@ that deterministic rules can't catch.
 Structure:   [N] errors ([specifics]) / Clean. No issues found.
 Security:    [N] issues ([specifics]) / Clean. No issues found.
 Coherence:   [N] overlaps/conflicts ([specifics]) / Clean.
-Efficiency:  [N]% always-loaded. Heaviest: [name] at [N] tokens.
+Efficiency:  [N]% always-loaded. Heaviest: [name] at [N] tokens. [Context utilization highlights if any warnings.]
 Redundancy:  [N] components with default-behavior content ([which]).
 
 ---
@@ -61,7 +61,7 @@ For each component, provide:
 
   Layer 1: [pass/fail checklist for relevant rules]
 
-  Layer 2 Assessment:
+  Qualitative Assessment:
     [2-3 sentences: what this component does, whether it adds value,
     whether it's well-built. Reference specific content.]
 

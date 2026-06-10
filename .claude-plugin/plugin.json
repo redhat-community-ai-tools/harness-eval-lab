@@ -8,7 +8,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "command": "uv run python skills/eval-setup/scripts/ensure_deps.py",
+        "command": "uv run python skills/eval-setup-lint/scripts/ensure_deps.py",
         "timeout": 30000
       }
     ]
