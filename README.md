@@ -10,8 +10,8 @@ It evaluates setups across five dimensions: **Soundness** (does each piece work?
 
 Two evaluation layers:
 
-- **Layer 1 (CLI):** 26 deterministic Python rules + system-level analysis (token budget, trigger overlaps, dependencies). No LLM. Fast. Good for CI.
-- **Layer 2 (plugin only):** Claude reads every file, scores components qualitatively, runs 21 cross-type optimization checks, and produces the 5-dimension scorecard.
+- **Layer 1 (`lint`):** 26 deterministic Python rules + system-level analysis (token budget, trigger overlaps, dependencies, context utilization). No LLM. Fast. Good for CI.
+- **Layer 2 (`review`):** LLM-based qualitative review. Per-component rubric scoring, 21 cross-type optimization checks, KEEP/REVIEW/REMOVE verdicts. Works in CLI (via API key) and as a Claude Code plugin (in-session).
 
 ## Install
 
@@ -19,7 +19,7 @@ Two evaluation layers:
 uv sync
 ```
 
-With LLM support (for rubric scoring in `eval-skill`):
+With LLM support (for `review` and `eval-skill --rubric`):
 
 ```bash
 uv sync --extra llm
@@ -30,38 +30,43 @@ uv sync --extra llm
 ### As a CLI
 
 ```bash
-# Quick static scan (no LLM, fast, good for CI)
-harness-eval-lab scan /path/to/project
-harness-eval-lab scan /path/to/project --preset strict --format json
-harness-eval-lab scan /path/to/project --preset pre-workflow --fail-on-error
+# Layer 1: static analysis + system analysis (no LLM, fast, CI-suitable)
+harness-eval-lab eval-setup-lint /path/to/project
+harness-eval-lab eval-setup-lint /path/to/project --preset strict --format json
+harness-eval-lab eval-setup-lint /path/to/project --fail-on-error
 
-# Full setup analysis (token budget, triggers, dependencies)
-harness-eval-lab eval-setup /path/to/project
+# Layer 2: LLM rubric scoring per component (requires API key)
+export GEMINI_API_KEY=your-key  # or ANTHROPIC_API_KEY
+harness-eval-lab eval-setup-review /path/to/project
+harness-eval-lab eval-setup-review /path/to/project --provider anthropic --model claude-sonnet-4-20250514
 
 # Deep-evaluate one skill (with setup context)
 harness-eval-lab eval-skill /path/to/skills/my-skill --context /path/to/project
+harness-eval-lab eval-skill /path/to/skills/my-skill --context /path/to/project --rubric
 ```
 
 ### As a Claude Code plugin
 
 Install by adding the plugin directory, then use:
 
-- `/eval-setup` - full evaluation with 5-dimension scorecard (Layer 1 + Layer 2)
-- `/eval-skill <skill-name>` - deep-evaluate one skill in context (Layer 1 + Layer 2)
+- `/eval-setup-lint` - Layer 1: fast static analysis (no LLM)
+- `/eval-setup-review` - Layer 2: full qualitative review with KEEP/REVIEW/REMOVE verdicts
+- `/eval-skill <skill-name>` - deep-evaluate one skill in context
 
 ## CLI Commands
 
 | Command | Description |
 |---------|-------------|
-| `scan` | Quick static analysis (26 rules, no LLM, deterministic) |
-| `eval-setup` | Scan + system analysis (token budget, triggers, dependencies) |
+| `eval-setup-lint` | Layer 1: 26 rules + system analysis (budget, triggers, dependencies, context utilization). No LLM, CI-suitable. |
+| `eval-setup-review` | Layer 2: LLM rubric scoring per component. Requires API key. |
 | `eval-skill` | Deep-evaluate a single skill individually and in context |
 
 ## Plugin Skills
 
 | Skill | Description |
 |-------|-------------|
-| `/eval-setup` | Layer 1 + Layer 2: 26 rules, system analysis, per-component qualitative scoring, 21 cross-type checks, 5-dimension scorecard |
+| `/eval-setup-lint` | Layer 1 only: 26 rules, system analysis. No LLM, fast, CI-suitable. |
+| `/eval-setup-review` | Layer 2 + Layer 1 context: per-component qualitative review, 21 cross-type checks, KEEP/REVIEW/REMOVE verdicts. |
 | `/eval-skill` | Layer 1 + Layer 2: deep-evaluate one skill with individual rubric + contextual analysis |
 
 ## Inspection Rules (26)

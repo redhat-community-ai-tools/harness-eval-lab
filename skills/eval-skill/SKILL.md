@@ -18,11 +18,21 @@ Deep-evaluate a single skill using two layers: static analysis (Layer 1) and qua
 4. **Don't manufacture problems.** If the skill is good, say so. Only report real issues.
 5. **Always end with a short summary.**
 
-## Step 1: Select the Skill
+## Step 1: Ask Output Preference
+
+Before doing anything else, ask the user:
+
+> Where should i present the results?
+> 1. **Terminal** - print the report here in the conversation
+> 2. **File** - write a markdown report to a file (you'll choose the path)
+
+Wait for their answer before proceeding.
+
+## Step 2: Select the Skill
 
 Determine the skill path. If the user says a skill name, find it under `skills/<name>/SKILL.md`.
 
-## Step 2: Run Layer 1 (Static Analysis)
+## Step 3: Run Layer 1 (Static Analysis)
 
 Determine the setup context path (usually the current working directory).
 
@@ -34,7 +44,7 @@ If no context path, pass `-` as the second argument.
 
 Read the JSON output. It contains diagnostics, token count, and contextual findings from Layer 1.
 
-## Step 3: Read Actual Files (Layer 2 Preparation)
+## Step 4: Read Actual Files (Layer 2 Preparation)
 
 Read the skill's actual content:
 1. The SKILL.md file
@@ -46,7 +56,7 @@ Also read for context (don't check these, they're context for evaluating the tar
 5. CLAUDE.md
 6. Hooks in .claude/settings.json
 
-## Step 4: Individual Rubric (Layer 2)
+## Step 5: Individual Rubric (Layer 2)
 
 Read `rubric/skills-rubric.md` for the issue categories and what to flag.
 
@@ -54,7 +64,7 @@ Check the skill against all 5 categories. For each issue found, cite specific ev
 
 Verdict: **KEEP** (no issues or minor only), **REVIEW** (multiple issues), **REMOVE** (fundamentally broken/redundant)
 
-## Step 5: Contextual Analysis (Layer 2)
+## Step 6: Contextual Analysis (Layer 2)
 
 Read `rubric/contextual-analysis.md` and evaluate all 5 contextual dimensions.
 
@@ -63,7 +73,7 @@ Check redundancy against three sources:
 - Other skills in the workspace (overlap = partially redundant)
 - CLAUDE.md content (duplication = wasted tokens)
 
-## Step 6: Produce the Report
+## Step 7: Produce the Report
 
 Read `report-format.md` for the full report structure.
 
@@ -73,3 +83,7 @@ The report must include:
 - Layer 2 contextual analysis
 - +/!/x sections (good, improve, broken)
 - Final verdict with suggestions
+
+**If the user chose terminal:** print the report in the conversation.
+
+**If the user chose file:** write the report as markdown to the path they specified (or suggest `eval-skill-report.md` in the current directory). Tell them the file path when done.

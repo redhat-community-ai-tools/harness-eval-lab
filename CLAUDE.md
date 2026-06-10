@@ -4,11 +4,11 @@
 
 AI agent setup evaluation tool. Inspects the environment around AI coding agents: CLAUDE.md, skills, commands, hooks, MCP configs, and sub-agents. Catches structural issues, security problems, redundancy, and token budget waste.
 
-Two interfaces: CLI (3 commands) and Claude Code plugin (2 skills). Both call the same Python engine.
+Two interfaces: CLI (3 commands) and Claude Code plugin (3 skills). Both call the same Python engine.
 
 **Two evaluation layers:**
-- **Layer 1 (CLI):** 26 deterministic Python rules + system-level analysis (token budget, trigger overlaps, dependencies). No LLM. Fast. Good for CI. Optional `--rubric` flag for LLM-based issue detection.
-- **Layer 2 (plugin only):** Claude reads every file, detects issues qualitatively, runs 21 cross-type optimization checks, and produces an evidence-based health summary.
+- **Layer 1:** 26 deterministic Python rules + system-level analysis (token budget, trigger overlaps, dependencies, context utilization). No LLM. Fast. Good for CI.
+- **Layer 2:** LLM-based qualitative review. Per-component rubric scoring, 21 cross-type optimization checks, KEEP/REVIEW/REMOVE verdicts. In the plugin, Claude does the review in-session. In the CLI, an external LLM API call does it (requires API key).
 
 ## Development
 
@@ -21,28 +21,29 @@ Two interfaces: CLI (3 commands) and Claude Code plugin (2 skills). Both call th
 ## Commands
 
 ### CLI
-- `harness-eval-lab scan <path>` - run 26 rules, print errors and warnings. No LLM, deterministic, good for CI. Supports `--fail-on-error` for hooks/CI.
-- `harness-eval-lab eval-setup <path>` - run 26 rules + system-level analysis (token budget, trigger overlaps, dependencies).
-- `harness-eval-lab eval-skill <skill-path>` - inspect one skill + contextual analysis. Add `--context <path>` for setup context. Add `--rubric` for LLM-based issue detection (optional, costs money).
+- `harness-eval-lab eval-setup-lint <path>` - Layer 1: 26 rules + system analysis (budget, triggers, dependencies, context utilization). No LLM, deterministic, CI-suitable. Supports `--fail-on-error`, `--fix`, `--format json`.
+- `harness-eval-lab eval-setup-review <path>` - Layer 2 only: LLM rubric scoring per component. Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` in environment. Use `--provider` and `--model` to configure.
+- `harness-eval-lab eval-skill <skill-path>` - deep-evaluate one skill + contextual analysis. Add `--context <path>` for setup context. Add `--rubric` for LLM scoring.
 
 All CLI commands support `--user-config <path>` to discover user-level CLAUDE.md files from `~/.claude/`.
 
 ### Plugin (slash commands)
-- `/eval-setup` - Layer 1 + Layer 2: run the engine, then Claude reads every file, detects issues, runs 21 cross-type checks, produces health summary
+- `/eval-setup-lint` - Layer 1 only: run 26 rules + system-level analysis. No LLM, fast, CI-suitable.
+- `/eval-setup-review` - Layer 2 + Layer 1 context: Claude reads every file, applies per-component rubrics, runs 21 cross-type checks, produces health summary with KEEP/REVIEW/REMOVE verdicts.
 - `/eval-skill` - Layer 1 + Layer 2: deep-evaluate one skill individually and in context
 
 ## Project structure
 
 - `src/harness_eval_lab/` - main package (the engine)
-  - `cli.py` - Click CLI (3 commands)
+  - `cli.py` - Click CLI (3 commands: eval-setup-lint, eval-setup-review, eval-skill)
   - `config/` - rule presets (recommended/strict/security/pre-workflow)
   - `core/` - setup discovery, fingerprinting, component types
   - `inspection/` - static analysis: parsers, lint engine, 26 rules, suppression, auto-fix
   - `rubric/` - LLM-based issue detection with per-component-type categories
-  - `analysis/` - system-level analysis (budget, triggers, dependencies)
+  - `analysis/` - system-level analysis (budget, triggers, dependencies, context utilization)
   - `output/` - report generation (terminal + JSON)
   - `utils/` - token counting, TF-IDF similarity, frontmatter parsing, LLM client
-- `skills/` - plugin skills (eval-setup, eval-skill) with SKILL.md + rubric files + scripts
+- `skills/` - plugin skills (eval-setup-lint, eval-setup-review, eval-skill) with SKILL.md + rubric files + scripts
 - `.claude-plugin/` - plugin registration
 - `tests/` - pytest test suite with fixtures
 - `future-plans/` - planned improvements, each in its own subfolder with status

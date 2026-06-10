@@ -17,28 +17,165 @@ def cli() -> None:
     """Evaluate AI agent setups."""
 
 
-@cli.command("eval-setup")
+@cli.command("eval-setup-lint")
 @click.argument("path", type=click.Path(exists=True))
 @click.option("--preset", type=click.Choice(["recommended", "strict", "security", "pre-workflow"]), default="recommended")
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
+@click.option("--fix", is_flag=True, help="Apply auto-fixes.")
+@click.option("--fail-on-error", is_flag=True, help="Exit with code 1 if any errors found. Useful for CI and hooks.")
 @click.option("--user-config", type=click.Path(), default=None, help="Path to ~/.claude directory for user-level CLAUDE.md discovery.")
-def eval_setup(path: str, preset: str, fmt: str, user_config: str | None) -> None:
-    """Evaluate a full setup: inspect all components, analyze token budget, triggers, and dependencies."""
+def eval_setup_lint(path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool, user_config: str | None) -> None:
+    """Layer 1: 26 rules + system analysis. No LLM, deterministic, fast."""
     from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import PRESETS
     from harness_eval_lab.inspection.engine import inspect_setup
+    from harness_eval_lab.inspection.fixer import apply_fixes
     from harness_eval_lab.output.report import format_json, format_terminal
 
     config_rules = PRESETS.get(preset, {})
-    setup = discover_setup(name=Path(path).name, path=path, user_config_dir=user_config)
-    results = inspect_setup(setup, config_rules)
+    target = Path(path)
 
-    system = analyze_system(setup)
+    if target.is_dir():
+        setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
+        results = inspect_setup(setup, config_rules)
+        system = analyze_system(setup)
+
+        if fmt == "json":
+            click.echo(format_json(system, results))
+        else:
+            click.echo(format_terminal(system, results))
+    else:
+        results = _inspect_single_file(target, config_rules)
+
+        if fmt == "json":
+            output = [
+                {
+                    "target": f"{r.target_type}/{r.target_name}",
+                    "tokens": r.tokens,
+                    "errors": r.error_count,
+                    "warnings": r.warning_count,
+                    "findings": [
+                        {"rule": d.rule_id, "severity": d.severity.value, "message": d.message}
+                        for d in r.diagnostics
+                    ],
+                }
+                for r in results
+            ]
+            click.echo(json_mod.dumps(output, indent=2))
+        else:
+            total_errors = sum(r.error_count for r in results)
+            total_warnings = sum(r.warning_count for r in results)
+            for r in results:
+                if r.diagnostics:
+                    click.echo(f"\n{r.target_type}/{r.target_name} ({r.tokens} tokens):")
+                    for d in r.diagnostics:
+                        icon = "X" if d.severity.value == "error" else "!"
+                        click.echo(f"  [{icon}] {d.rule_id}: {d.message}")
+            click.echo(f"\n{len(results)} components scanned, {total_errors} errors, {total_warnings} warnings")
+
+    if fix:
+        all_findings = [d for r in results for d in r.diagnostics]
+        fix_results = apply_fixes(all_findings)
+        for fr in fix_results:
+            click.echo(f"Fixed {fr.fixes_applied} issues in {fr.file_path}")
+
+    if fail_on_error:
+        total_errors = sum(r.error_count for r in results)
+        if total_errors > 0:
+            raise SystemExit(1)
+
+
+@cli.command("eval-setup-review")
+@click.argument("path", type=click.Path(exists=True))
+@click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
+@click.option("--provider", type=click.Choice(["gemini", "anthropic"]), default="gemini")
+@click.option("--model", default=None, help="LLM model for rubric scoring.")
+@click.option("--user-config", type=click.Path(), default=None, help="Path to ~/.claude directory for user-level CLAUDE.md discovery.")
+def eval_setup_review(path: str, fmt: str, provider: str, model: str | None, user_config: str | None) -> None:
+    """Layer 2: LLM rubric scoring per component. Requires API key in environment."""
+    from harness_eval_lab.rubric.scorer import RubricChecker
+    from harness_eval_lab.utils.llm import create_client
+
+    setup = discover_setup(name=Path(path).name, path=path, user_config_dir=user_config)
+
+    client = create_client(provider, model)
+    checker = RubricChecker(client)
+
+    context_parts = [
+        f"[{c.component_type.value}] {c.name}: {c.content[:200]}"
+        for c in setup.components
+    ]
+    context_text = "\n".join(context_parts)
+
+    component_type_map = {
+        ComponentType.SKILL: "skill",
+        ComponentType.COMMAND: "command",
+        ComponentType.CLAUDE_MD: "claude_md",
+        ComponentType.HOOKS: "hooks",
+        ComponentType.AGENT: "agent",
+    }
+
+    rubric_results = []
+    for comp in setup.components:
+        comp_type_str = component_type_map.get(comp.component_type)
+        if not comp_type_str:
+            continue
+        click.echo(f"  Reviewing {comp.component_type.value}/{comp.name}...", err=True)
+        result = checker.check(
+            component_type=comp_type_str,
+            component_name=comp.name,
+            content=comp.content,
+            context=context_text,
+        )
+        rubric_results.append(result)
 
     if fmt == "json":
-        click.echo(format_json(system, results))
+        output = {
+            "setup": setup.name,
+            "component_count": len(setup.components),
+            "rubric": [
+                {
+                    "component": rr.component_name,
+                    "type": rr.component_type,
+                    "issues": [
+                        {
+                            "category": i.category,
+                            "description": i.description,
+                            "evidence": i.evidence,
+                            "suggestion": i.suggestion,
+                        }
+                        for i in rr.issues
+                    ],
+                    "summary": rr.summary,
+                }
+                for rr in rubric_results
+            ],
+        }
+        click.echo(json_mod.dumps(output, indent=2))
     else:
-        click.echo(format_terminal(system, results))
+        click.echo(f"\n{'=' * 60}")
+        click.echo(f"Setup Review: {setup.name}")
+        click.echo(f"{'=' * 60}")
+        click.echo(f"Components: {len(setup.components)}")
+        click.echo(f"Provider: {provider} | Model: {model or 'default'}")
+        click.echo("")
+
+        for rr in rubric_results:
+            if rr.issues:
+                click.echo(f"  {rr.component_type}/{rr.component_name}:")
+                for issue in rr.issues:
+                    click.echo(f"    [{issue.category}] {issue.description}")
+                    click.echo(f"      Evidence: {issue.evidence}")
+                    click.echo(f"      Fix: {issue.suggestion}")
+            else:
+                click.echo(f"  {rr.component_type}/{rr.component_name}: no issues")
+            if rr.summary:
+                click.echo(f"    Summary: {rr.summary}")
+            click.echo("")
+
+        total_issues = sum(len(rr.issues) for rr in rubric_results)
+        click.echo(f"{len(rubric_results)} components reviewed, {total_issues} rubric issues found")
+        click.echo("")
 
 
 @cli.command("eval-skill")
@@ -157,66 +294,6 @@ def eval_skill(skill_path: str, context_path: str | None, preset: str, fmt: str,
                 click.echo(f"\n  Summary: {rubric_result.summary}")
 
         click.echo("")
-
-
-@cli.command()
-@click.argument("path", type=click.Path(exists=True))
-@click.option("--preset", type=click.Choice(["recommended", "strict", "security", "pre-workflow"]), default="recommended")
-@click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
-@click.option("--fix", is_flag=True, help="Apply auto-fixes.")
-@click.option("--fail-on-error", is_flag=True, help="Exit with code 1 if any errors found. Useful for CI and hooks.")
-@click.option("--user-config", type=click.Path(), default=None, help="Path to ~/.claude directory for user-level CLAUDE.md discovery.")
-def scan(path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool, user_config: str | None) -> None:
-    """Quick static analysis scan. No LLM, deterministic, fast. Good for CI."""
-    from harness_eval_lab.config.presets import PRESETS
-    from harness_eval_lab.inspection.engine import inspect_setup
-    from harness_eval_lab.inspection.fixer import apply_fixes
-
-    config_rules = PRESETS.get(preset, {})
-    target = Path(path)
-
-    if target.is_dir():
-        setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
-        results = inspect_setup(setup, config_rules)
-    else:
-        results = _inspect_single_file(target, config_rules)
-
-    if fmt == "json":
-        output = [
-            {
-                "target": f"{r.target_type}/{r.target_name}",
-                "tokens": r.tokens,
-                "errors": r.error_count,
-                "warnings": r.warning_count,
-                "findings": [
-                    {"rule": d.rule_id, "severity": d.severity.value, "message": d.message}
-                    for d in r.diagnostics
-                ],
-            }
-            for r in results
-        ]
-        click.echo(json_mod.dumps(output, indent=2))
-    else:
-        total_errors = sum(r.error_count for r in results)
-        total_warnings = sum(r.warning_count for r in results)
-        for r in results:
-            if r.diagnostics:
-                click.echo(f"\n{r.target_type}/{r.target_name} ({r.tokens} tokens):")
-                for d in r.diagnostics:
-                    icon = "X" if d.severity.value == "error" else "!"
-                    click.echo(f"  [{icon}] {d.rule_id}: {d.message}")
-        click.echo(f"\n{len(results)} components scanned, {total_errors} errors, {total_warnings} warnings")
-
-    if fix:
-        all_findings = [d for r in results for d in r.diagnostics]
-        fix_results = apply_fixes(all_findings)
-        for fr in fix_results:
-            click.echo(f"Fixed {fr.fixes_applied} issues in {fr.file_path}")
-
-    if fail_on_error:
-        total_errors = sum(r.error_count for r in results)
-        if total_errors > 0:
-            raise SystemExit(1)
 
 
 def _inspect_single_file(target, config_rules):
