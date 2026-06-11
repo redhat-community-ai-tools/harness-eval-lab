@@ -102,6 +102,19 @@ def parse_skill(skill_path: str) -> ParsedSkill:
     )
 
 
+def _extract_script_refs_outside_code_blocks(body: str) -> list[str]:
+    """Extract .py references only from lines outside fenced code blocks."""
+    refs: list[str] = []
+    in_fence = False
+    for line in body.split("\n"):
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            refs.extend(re.findall(r"[\w./-]+\.py\b", line))
+    return refs
+
+
 def parse_command(command_path: str) -> ParsedCommand:
     """Parse a command directory or command.md file."""
     cmd_dir, cmd_md, errors = _resolve_command_path(command_path)
@@ -121,7 +134,7 @@ def parse_command(command_path: str) -> ParsedCommand:
         )
 
     raw_content, fm, parse_errors = _read_and_parse(cmd_md)
-    script_refs = re.findall(r"[\w./-]+\.py\b", fm.body)
+    script_refs = _extract_script_refs_outside_code_blocks(fm.body)
 
     return ParsedCommand(
         dir_path=str(cmd_dir),

@@ -65,8 +65,8 @@ Only show models where utilization is non-trivial. If all 1M models show <1%, gr
 
   [N] broken reference(s):
     - [source] references missing [target]
-  [N] orphan component(s):
-    - [component]
+
+Or: No broken references.
 
 ---
 
@@ -79,11 +79,37 @@ Or: No system-level findings.
 
 ---
 
-## Inspection Summary
+## Inspection Results
 
   [N] components inspected, [N] errors, [N] warnings
 
-  [component]:
-    [X] rule-id: message
-    [!] rule-id: message
+  ### Skills ([N])
+
+    [skill-name]                               PASS
+    [skill-name]                               [N] errors, [N] warnings
+      [X] rule-id: message
+      [!] rule-id: message
+
+  ### Commands ([N])
+
+    [cmd-name]                                 PASS
+    [cmd-name]                                 [N] warnings
+      [!] rule-id: [N] findings
+            [detail]
+            [detail]
+
+  ### Hooks ([N])
+
+    hooks                                      [N] warnings
+      [!] rule-id: message
+
+  ### CLAUDE.md ([N])
+
+    CLAUDE.md                                  PASS
+
+  ### Agents ([N])
+
+    [agent-name]                               PASS
+
+Group by component type. Show PASS for clean components. For components with findings, show error/warning counts on the status line and details indented below. When a single rule fires multiple times, compress into "[N] findings" with details listed underneath.
 ```

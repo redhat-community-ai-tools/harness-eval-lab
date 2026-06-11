@@ -82,7 +82,7 @@ class TestSecurityFixtureE2E:
             ],
         )
         assert result.exit_code == 0
-        assert "security/" in result.output
+        assert "no-credential-access" in result.output or "no-prompt-injection" in result.output
 
     def test_cli_lint_fail_on_error_exits_nonzero(self) -> None:
         from click.testing import CliRunner
@@ -122,9 +122,15 @@ class TestSecurityFixtureE2E:
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert "inspection" in data
+        assert "summary" in data["inspection"]
+        all_components = []
+        for key, val in data["inspection"].items():
+            if key == "summary":
+                continue
+            all_components.extend(val)
         security_rules = [
             f
-            for comp in data["inspection"]
+            for comp in all_components
             for f in comp["findings"]
             if f["rule"].startswith("security/")
         ]

@@ -3,9 +3,47 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 
 from harness_eval_lab.analysis.system import SystemReport
 from harness_eval_lab.inspection.types import InspectionResult
+
+_TYPE_DISPLAY = {
+    "skill": "Skills",
+    "command": "Commands",
+    "hooks": "Hooks",
+    "claude_md": "CLAUDE.md",
+    "agent": "Agents",
+}
+
+_TYPE_ORDER = ["skill", "command", "hooks", "claude_md", "agent"]
+
+
+def _shorten_rule_id(rule_id: str) -> str:
+    parts = rule_id.split("/", 1)
+    return parts[1] if len(parts) > 1 else rule_id
+
+
+def _compress_findings(diagnostics: list) -> list[str]:
+    """Group identical rule findings into compressed lines."""
+    from collections import Counter
+
+    by_rule: dict[str, list] = defaultdict(list)
+    for d in diagnostics:
+        by_rule[d.rule_id].append(d)
+
+    compressed: list[str] = []
+    for rule_id, findings in by_rule.items():
+        icon = "X" if findings[0].severity.value == "error" else "!"
+        short_id = _shorten_rule_id(rule_id)
+        if len(findings) <= 2:
+            for d in findings:
+                compressed.append(f"[{icon}] {short_id}: {d.message}")
+        else:
+            compressed.append(f"[{icon}] {short_id}: {len(findings)} findings")
+            for d in findings:
+                compressed.append(f"      {d.message}")
+    return compressed
 
 
 def format_terminal(
@@ -80,21 +118,16 @@ def format_terminal(
             for name_a, name_b, sim in system.triggers.overlap_pairs:
                 lines.append(f"    - {name_a} <-> {name_b} ({sim:.0%} similar)")
 
-    if system.dependencies.broken_refs or system.dependencies.orphan_components:
+    if system.dependencies.broken_refs:
         lines.append("")
         lines.append("Dependencies:")
         lines.append(f"{'─' * 60}")
-        if system.dependencies.broken_refs:
-            lines.append(f"  {len(system.dependencies.broken_refs)} broken reference(s):")
-            for edge in system.dependencies.broken_refs:
-                lines.append(
-                    f"    - {edge.source_type}/{edge.source_name} "
-                    f"references missing {edge.target_type}/{edge.target_name}"
-                )
-        if system.dependencies.orphan_components:
-            lines.append(f"  {len(system.dependencies.orphan_components)} orphan component(s):")
-            for name in system.dependencies.orphan_components:
-                lines.append(f"    - {name}")
+        lines.append(f"  {len(system.dependencies.broken_refs)} broken reference(s):")
+        for edge in system.dependencies.broken_refs:
+            lines.append(
+                f"    - {edge.source_type}/{edge.source_name} "
+                f"references missing {edge.target_type}/{edge.target_name}"
+            )
 
     if system.findings:
         lines.append("")
@@ -105,23 +138,130 @@ def format_terminal(
 
     total_errors = sum(r.error_count for r in inspection_results)
     total_warnings = sum(r.warning_count for r in inspection_results)
-    if total_errors or total_warnings:
+    if inspection_results:
         lines.append("")
-        lines.append("Inspection Summary:")
+        lines.append("Inspection Results:")
         lines.append(f"{'─' * 60}")
         lines.append(
             f"  {len(inspection_results)} components inspected, "
             f"{total_errors} errors, {total_warnings} warnings"
         )
+
+        grouped: dict[str, list[InspectionResult]] = defaultdict(list)
         for r in inspection_results:
-            if r.diagnostics:
-                lines.append(f"  {r.target_type}/{r.target_name}:")
-                for d in r.diagnostics:
-                    icon = "X" if d.severity.value == "error" else "!"
-                    lines.append(f"    [{icon}] {d.rule_id}: {d.message}")
+            grouped[r.target_type].append(r)
+
+        for type_key in _TYPE_ORDER:
+            if type_key not in grouped:
+                continue
+            results = grouped[type_key]
+            label = _TYPE_DISPLAY.get(type_key, type_key)
+            lines.append("")
+            lines.append(f"  {label} ({len(results)})")
+            lines.append(f"  {'─' * 56}")
+            for r in results:
+                if not r.diagnostics:
+                    lines.append(f"    {r.target_name:<40} PASS")
+                else:
+                    parts = []
+                    if r.error_count:
+                        parts.append(f"{r.error_count} error{'s' if r.error_count != 1 else ''}")
+                    if r.warning_count:
+                        parts.append(
+                            f"{r.warning_count} warning{'s' if r.warning_count != 1 else ''}"
+                        )
+                    status = ", ".join(parts)
+                    lines.append(f"    {r.target_name:<40} {status}")
+                    for line in _compress_findings(r.diagnostics):
+                        lines.append(f"      {line}")
+
+        for type_key in grouped:
+            if type_key not in _TYPE_ORDER:
+                results = grouped[type_key]
+                label = _TYPE_DISPLAY.get(type_key, type_key)
+                lines.append("")
+                lines.append(f"  {label} ({len(results)})")
+                lines.append(f"  {'─' * 56}")
+                for r in results:
+                    if not r.diagnostics:
+                        lines.append(f"    {r.target_name:<40} PASS")
+                    else:
+                        parts = []
+                        if r.error_count:
+                            parts.append(
+                                f"{r.error_count} error{'s' if r.error_count != 1 else ''}"
+                            )
+                        if r.warning_count:
+                            parts.append(
+                                f"{r.warning_count} warning{'s' if r.warning_count != 1 else ''}"
+                            )
+                        status = ", ".join(parts)
+                        lines.append(f"    {r.target_name:<40} {status}")
+                        for line in _compress_findings(r.diagnostics):
+                            lines.append(f"      {line}")
 
     lines.append("")
     return "\n".join(lines)
+
+
+def _build_json_inspection(inspection_results: list[InspectionResult]) -> dict:
+    total_errors = sum(r.error_count for r in inspection_results)
+    total_warnings = sum(r.warning_count for r in inspection_results)
+
+    grouped: dict[str, list[InspectionResult]] = defaultdict(list)
+    for r in inspection_results:
+        grouped[r.target_type].append(r)
+
+    result: dict = {
+        "summary": {
+            "total": len(inspection_results),
+            "errors": total_errors,
+            "warnings": total_warnings,
+        },
+    }
+
+    for type_key in _TYPE_ORDER:
+        if type_key not in grouped:
+            continue
+        result[type_key] = [
+            {
+                "name": r.target_name,
+                "status": "pass" if not r.diagnostics else "fail",
+                "errors": r.error_count,
+                "warnings": r.warning_count,
+                "findings": [
+                    {
+                        "rule": d.rule_id,
+                        "severity": d.severity.value,
+                        "message": d.message,
+                    }
+                    for d in r.diagnostics
+                ],
+            }
+            for r in grouped[type_key]
+        ]
+
+    for type_key in grouped:
+        if type_key not in _TYPE_ORDER:
+            result[type_key] = [
+                {
+                    "name": r.target_name,
+                    "status": "pass" if not r.diagnostics else "fail",
+                    "errors": r.error_count,
+                    "warnings": r.warning_count,
+                    "findings": [
+                        {
+                            "rule": d.rule_id,
+                            "severity": d.severity.value,
+                            "message": d.message,
+                        }
+                        for d in r.diagnostics
+                    ],
+                }
+                for r in grouped[type_key]
+            ]
+
+    return result
 
 
 def format_json(
@@ -173,25 +313,8 @@ def format_json(
                 }
                 for e in system.dependencies.broken_refs
             ],
-            "orphans": system.dependencies.orphan_components,
         },
         "findings": system.findings,
-        "inspection": [
-            {
-                "target": f"{r.target_type}/{r.target_name}",
-                "tokens": r.tokens,
-                "errors": r.error_count,
-                "warnings": r.warning_count,
-                "findings": [
-                    {
-                        "rule": d.rule_id,
-                        "severity": d.severity.value,
-                        "message": d.message,
-                    }
-                    for d in r.diagnostics
-                ],
-            }
-            for r in inspection_results
-        ],
+        "inspection": _build_json_inspection(inspection_results),
     }
     return json.dumps(output, indent=2)

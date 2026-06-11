@@ -50,9 +50,6 @@ DEFAULT_MODELS: list[ModelSpec] = [
     ModelSpec("claude-opus-4.6-1m", 1_000_000),
     ModelSpec("claude-opus-4.7-1m", 1_000_000),
     ModelSpec("claude-opus-4.8-1m", 1_000_000),
-    ModelSpec("gemini-2.5-flash", 1_048_576),
-    ModelSpec("gpt-4o", 128_000),
-    ModelSpec("gpt-4.1-mini", 1_048_576),
 ]
 
 
