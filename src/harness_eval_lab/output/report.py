@@ -26,8 +26,6 @@ def _shorten_rule_id(rule_id: str) -> str:
 
 def _compress_findings(diagnostics: list) -> list[str]:
     """Group identical rule findings into compressed lines."""
-    from collections import Counter
-
     by_rule: dict[str, list] = defaultdict(list)
     for d in diagnostics:
         by_rule[d.rule_id].append(d)
