@@ -86,7 +86,7 @@ class TestAstBehavioral:
     def test_clean_python_no_findings(self, skill_dir: Path) -> None:
         _write_skill(
             skill_dir,
-            py_content='def add(a, b):\n    return a + b\n',
+            py_content="def add(a, b):\n    return a + b\n",
         )
         result = lint(str(skill_dir), SECURITY)
         ast_findings = [d for d in result.diagnostics if d.rule_id == "security/ast-behavioral"]
@@ -134,8 +134,7 @@ class TestMcpLeastPrivilege:
             d for d in result.diagnostics if d.rule_id == "security/mcp-least-privilege"
         ]
         underdeclared = [
-            d for d in mcp_findings
-            if "underdeclared" in d.rule_id or "shell" in d.message.lower()
+            d for d in mcp_findings if "underdeclared" in d.rule_id or "shell" in d.message.lower()
         ]
         assert len(underdeclared) >= 1
 
@@ -200,9 +199,7 @@ class TestYaraScan:
         _write_skill(skill_dir)
         with patch.dict("sys.modules", {"yara": None}):
             result = lint(str(skill_dir), SECURITY)
-        yara_findings = [
-            d for d in result.diagnostics if d.rule_id == "security/yara-signatures"
-        ]
+        yara_findings = [d for d in result.diagnostics if d.rule_id == "security/yara-signatures"]
         skip_findings = [d for d in yara_findings if d.severity.value == "info"]
         assert len(skip_findings) >= 1
 

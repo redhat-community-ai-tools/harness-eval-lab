@@ -59,8 +59,7 @@ def _is_dynamic_source(node: ast.expr) -> bool:
     if isinstance(node, ast.Call):
         name = _get_call_name(node)
         if name and any(
-            kw in name.lower()
-            for kw in ["decode", "b64decode", "urlopen", "read", "recv", "get"]
+            kw in name.lower() for kw in ["decode", "b64decode", "urlopen", "read", "recv", "get"]
         ):
             return True
     return isinstance(node, ast.Subscript)

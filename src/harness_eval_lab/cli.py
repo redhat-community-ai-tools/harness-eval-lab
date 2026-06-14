@@ -245,7 +245,10 @@ def eval_setup_security(
     skip_notices: list[str] = []
     for r in results:
         for d in r.diagnostics:
-            if d.rule_id in ("security/yara-signatures", "security/cve-lookup") and d.severity.value == "info":
+            if (
+                d.rule_id in ("security/yara-signatures", "security/cve-lookup")
+                and d.severity.value == "info"
+            ):
                 skip_notices.append(d.message)
 
     rubric_results = []

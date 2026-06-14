@@ -142,7 +142,9 @@ class YaraScan:
 
             matches = rules.match(data=data)
             for match in matches:
-                cat_str = match.meta.get("category", "unknown") if hasattr(match, "meta") else "unknown"
+                cat_str = (
+                    match.meta.get("category", "unknown") if hasattr(match, "meta") else "unknown"
+                )
                 cat_label = _CATEGORY_MAP.get(cat_str, cat_str)
 
                 context.report(

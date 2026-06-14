@@ -116,18 +116,26 @@ def _analyze_file(py_path: Path, context: RuleContext, skill_md_path: str) -> No
                     if source_type:
                         tainted[target.id] = (source_type, getattr(node, "lineno", 0))
 
-            if isinstance(target, ast.Name) and isinstance(node.value, ast.Subscript) and isinstance(node.value.value, ast.Attribute):
-                    attr_name = ""
-                    if isinstance(node.value.value.value, ast.Name):
-                        attr_name = f"{node.value.value.value.id}.{node.value.value.attr}"
-                    if attr_name in _CREDENTIAL_SOURCES:
-                        tainted[target.id] = ("credential", getattr(node, "lineno", 0))
+            if (
+                isinstance(target, ast.Name)
+                and isinstance(node.value, ast.Subscript)
+                and isinstance(node.value.value, ast.Attribute)
+            ):
+                attr_name = ""
+                if isinstance(node.value.value.value, ast.Name):
+                    attr_name = f"{node.value.value.value.id}.{node.value.value.attr}"
+                if attr_name in _CREDENTIAL_SOURCES:
+                    tainted[target.id] = ("credential", getattr(node, "lineno", 0))
 
             if isinstance(target, ast.Name) and isinstance(node.value, ast.JoinedStr):
                 for val in node.value.values:
-                    if isinstance(val, ast.FormattedValue) and isinstance(val.value, ast.Name) and val.value.id in tainted:
-                            tainted[target.id] = tainted[val.value.id]
-                            break
+                    if (
+                        isinstance(val, ast.FormattedValue)
+                        and isinstance(val.value, ast.Name)
+                        and val.value.id in tainted
+                    ):
+                        tainted[target.id] = tainted[val.value.id]
+                        break
 
         if isinstance(node, ast.Call):
             call_name = _get_call_name(node)

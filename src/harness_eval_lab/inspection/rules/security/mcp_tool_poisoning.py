@@ -12,10 +12,16 @@ from harness_eval_lab.inspection.types import (
 )
 
 _HIDDEN_INSTRUCTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    ("HTML comment with instruction", re.compile(r"<!--\s*(?:system|instruction|ignore|override|you\s+are)", re.I)),
+    (
+        "HTML comment with instruction",
+        re.compile(r"<!--\s*(?:system|instruction|ignore|override|you\s+are)", re.I),
+    ),
     ("markdown comment", re.compile(r"\[//\]:\s*#\s*\(.*(?:ignore|override|instruction)", re.I)),
     ("base64 blob in text", re.compile(r"(?:data:text/[^;]+;base64,|[A-Za-z0-9+/]{40,}={0,2})")),
-    ("data URI with script", re.compile(r"data:\s*(?:text/javascript|application/javascript|text/html)", re.I)),
+    (
+        "data URI with script",
+        re.compile(r"data:\s*(?:text/javascript|application/javascript|text/html)", re.I),
+    ),
 ]
 
 _ZERO_WIDTH_CHARS = {
