@@ -49,6 +49,14 @@ Flag if:
 - Critical rules aren't marked or easy to find
 - Document isn't scannable (no headers, no logical grouping)
 
+## Instruction clarity
+
+Flag if:
+- Contains contradictory instructions: "always use tabs" in one section and "use spaces for indentation" in another. Look for pairs where one rule negates or conflicts with another rule in the same file.
+- Uses non-deterministic language for rules that should be deterministic: "consider", "maybe", "sometimes", "if possible", "try to" in contexts where a clear rule is needed. (These are fine in suggestions, but not in rules.)
+- Critical instructions are buried in the middle of a long file. Important rules should be near the top or clearly marked, not hidden in paragraph 47.
+- Contains conditional instructions ("when X, do Y") where the condition X is never defined or referenced elsewhere in the setup.
+
 ## Conflict-free
 
 Flag if:

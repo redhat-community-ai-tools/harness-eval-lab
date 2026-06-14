@@ -16,6 +16,10 @@ Flag if:
 Flag if:
 - Claude wouldn't know what to do or in what order
 - Steps are ambiguous or contradictory
+- Uses vague language: "handle appropriately", "follow best practices", "be careful"
+- Contains hedging where a clear directive is needed: "consider", "try to", "you might want to"
+- Important instructions are buried below less important content
+- Conditional instructions reference triggers or situations the command wouldn't encounter
 
 ## Script integrity
 

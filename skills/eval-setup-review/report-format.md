@@ -17,7 +17,7 @@ This report evaluates the Claude Code setup across 5 areas:
 
 Two layers produce the evidence:
 
-**Layer 1 (Static Analysis)** runs 26 deterministic rules + system-level analysis. No AI involved.
+**Layer 1 (Static Analysis)** runs 39 deterministic rules + system-level analysis. No AI involved.
 **Layer 2 (Qualitative Review)** Claude reads every file and checks for issues
 that deterministic rules can't catch.
 

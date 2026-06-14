@@ -70,6 +70,15 @@ Flag if:
 
 Token budget applies to SKILL.md only (always-loaded cost). Reference files in subdirectories load on demand. The pattern is: SKILL.md provides routing, context, and high-level instructions; reference files provide details.
 
+## Instruction clarity
+
+Flag if:
+- Contains contradictory instructions within the same SKILL.md (e.g., "always run tests" in one section, "skip tests if not needed" in another)
+- Uses vague, non-actionable language: "follow best practices", "be thorough", "use common sense", "handle appropriately". These tell Claude nothing it doesn't already know.
+- Uses hedging language for rules that should be deterministic: "consider doing X", "you might want to", "try to", "if possible" when a clear "do X" is needed
+- Important instructions are buried deep in the file, below less important content. Critical rules should be early or clearly marked.
+- Contains orphaned conditionals: "when the user asks about X, do Y" where X is not something the skill's trigger would match
+
 ## Content quality
 
 Flag if:

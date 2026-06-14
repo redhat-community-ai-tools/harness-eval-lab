@@ -62,21 +62,7 @@ Use the per-component rubric files for detailed criteria:
 
 Read `rubric/cross-type-checks.md` and answer all 21 checks with YES/NO and a one-line explanation. These check whether components should be transformed (skill to hook?), merged, or removed.
 
-## Step 6: Summarize by Area
-
-Based on everything from Steps 2-5, summarize findings in 5 areas. Do not assign numeric scores. Count issues and cite specifics.
-
-**Structure:** Count Layer 1 structural/frontmatter errors. List by name. "N errors (list)" or "Clean. No issues found."
-
-**Security:** Count Layer 1 security findings + qualitative concerns. List by name. "N issues (list)" or "Clean. No issues found."
-
-**Coherence:** Count duplicates, conflicts, trigger overlaps, broken dependencies, cross-type issues. List specifics.
-
-**Efficiency:** Report always-loaded vs on-demand token ratio, heaviest component with token counts, and context utilization highlights (any models where peak > 20%).
-
-**Redundancy:** Count components containing content Claude already knows by default. List which ones and why.
-
-## Step 7: Produce the Report
+## Step 6: Produce the Report
 
 Read `report-format.md` for the full report structure. The report must include:
 1. The setup health summary (the headline)
@@ -86,6 +72,14 @@ Read `report-format.md` for the full report structure. The report must include:
 5. Cross-type optimization (21 checks)
 6. Numbered suggestions
 7. Terminal summary
+
+At the very end of the report, include a timing line:
+
+```
+Completed in [duration] seconds.
+```
+
+Where [duration] is the wall-clock time from when you started Step 2 to when you finished formatting.
 
 **If the user chose terminal:** print the report in the conversation.
 
