@@ -1,0 +1,2411 @@
+============================================================
+Setup Assessment: setup
+============================================================
+Components: 67
+Total tokens: 167060
+
+Token Budget:
+────────────────────────────────────────────────────────────
+  Always-loaded (CLAUDE.md, hooks): 2734 tokens (2%)
+  On-demand (skills, commands, agents): 164326 tokens (98%)
+  By type:
+    skill        117673 tokens (70%)
+    rule          46033 tokens (28%)
+    claude_md      2734 tokens (2%)
+    output_style    620 tokens (0%)
+
+Trigger Analysis:
+────────────────────────────────────────────────────────────
+  39/39 skills have descriptions
+  24 skills lack activation context ('use when' phrasing):
+    - agent-browser
+    - auth
+    - breezing
+    - cc-update-review
+    - crud
+    - generate-slide
+    - generate-video
+    - gogcli-ops
+    - harness-loop
+    - harness-plan
+    - harness-release
+    - harness-review
+    - harness-setup
+    - harness-sync
+    - harness-work
+    - maintenance
+    - principles
+    - session-control
+    - session-init
+    - session-memory
+    - session-state
+    - ui
+    - vibecoder-guide
+    - workflow-guide
+  3 trigger overlap(s) detected:
+    - session-control <-> session-state (60% similar)
+    - cursor-ask <-> cursor-do (60% similar)
+    - generate-slide <-> generate-video (55% similar)
+
+Findings:
+────────────────────────────────────────────────────────────
+  [!] Trigger overlap: 'session-control' and 'session-state' have 60% description similarity, may load together.
+  [!] Trigger overlap: 'cursor-ask' and 'cursor-do' have 60% description similarity, may load together.
+  [!] Trigger overlap: 'generate-slide' and 'generate-video' have 55% description similarity, may load together.
+  [!] Context critical: setup uses 84% of claude-haiku-4.5 and 4 others's 200,000-token window.
+
+Inspection Results:
+────────────────────────────────────────────────────────────
+  67 components inspected, 517 errors, 64 warnings
+
+  Skills (39)
+  ────────────────────────────────────────────────────────
+    agent-browser                            2 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/browser-automation.md' does not exist
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/ai-snapshot-workflow.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    auth                                     2 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/authentication.md' does not exist
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/payments.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    breezing                                 24 errors, 2 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] token-budget: Skill is 8536 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 24 findings
+            Referenced file 'composer 2.5' does not exist
+            Referenced file 'resolve-impl-backend.sh' does not exist
+            Referenced file 'cursor-companion.sh' does not exist
+            Referenced file 'scripts/enable-1h-cache.sh' does not exist
+            Referenced file 'env.local' does not exist
+            Referenced file 'scripts/codex-companion.sh' does not exist
+            Referenced file '../../docs/long-running-harness.md' does not exist
+            Referenced file 'docs/long-running-harness.md' does not exist
+            Referenced file 'advisor-request.v1' does not exist
+            Referenced file 'scripts/set-impl-backend.sh' does not exist
+            Referenced file '.claude/rules/cursor-cli-only.md' does not exist
+            Referenced file 'worker-report.v1' does not exist
+            Referenced file 'scripts/resolve-impl-backend.sh' does not exist
+            Referenced file 'scripts/model-routing.sh' does not exist
+            Referenced file 'scripts/cursor-companion.sh' does not exist
+            Referenced file '*.cursor.sh' does not exist
+            Referenced file '.cursor/AGENTS.md' does not exist
+            Referenced file '.cursor-plugin/plugin.json' does not exist
+            Referenced file 'advisor-response.v1' does not exist
+            Referenced file '0.123.0' does not exist
+            Referenced file 'git log --oneline {base_ref}..HEAD' does not exist
+            Referenced file 'git diff --stat {base_ref}..HEAD' does not exist
+            Referenced file 'decisions.md' does not exist
+            Referenced file 'team-composition.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cc-cursor-cc                             
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cc-update-review                         6 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 6 findings
+            Referenced file 'docs/CLAUDE-feature-table.md' does not exist
+            Referenced file 'git diff -- docs/CLAUDE-feature-table.md' does not exist
+            Referenced file 'hooks/hooks.json' does not exist
+            Referenced file '.claude-plugin/hooks.json' does not exist
+            Referenced file '.claude-plugin/settings.json' does not exist
+            Referenced file 'Plans.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    ci                                       3 errors
+      [X] broken-references: 3 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/analyzing-failures.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/fixing-tests.md' does not exist
+            Referenced file 'agents/ci-cd-fixer.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    crud                                     1 error, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: Referenced file 'drizzle.config.ts' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cursor-ask                               10 errors
+      [X] broken-references: 10 findings
+            Referenced file 'scripts/model-routing.sh' does not exist
+            Referenced file 'scripts/cursor-companion.sh' does not exist
+            Referenced file '*.pem' does not exist
+            Referenced file '*.key' does not exist
+            Referenced file '~/.claude/settings.json' does not exist
+            Referenced file '*.cursor.sh' does not exist
+            Referenced file '~/.cursor/permissions.json' does not exist
+            Referenced file '.claude/rules/cursor-cli-only.md' does not exist
+            Referenced file 'worker-report.v1' does not exist
+            Referenced file 'review-result.v1' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cursor-do                                7 errors, 1 warning
+      [!] token-budget: Skill is 6498 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 7 findings
+            Referenced file '.claude/rules/cursor-cli-only.md' does not exist
+            Referenced file 'scripts/cursor-companion.sh' does not exist
+            Referenced file 'scripts/resolve-impl-backend.sh' does not exist
+            Referenced file 'scripts/model-routing.sh' does not exist
+            Referenced file 'scripts/ci/check-consistency.sh' does not exist
+            Referenced file 'Plans.md' does not exist
+            Referenced file 'tsconfig*.json' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cursor-rescue                            4 errors
+      [X] broken-references: 4 findings
+            Referenced file 'scripts/resolve-impl-backend.sh' does not exist
+            Referenced file 'scripts/set-impl-backend.sh' does not exist
+            Referenced file 'scripts/model-routing.sh' does not exist
+            Referenced file 'scripts/setup-cursor.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cursor-review                            4 errors
+      [X] broken-references: 4 findings
+            Referenced file 'cursor-companion.sh' does not exist
+            Referenced file 'scripts/resolve-impl-backend.sh' does not exist
+            Referenced file 'scripts/model-routing.sh' does not exist
+            Referenced file 'scripts/cursor-companion.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cursor-setup                             5 errors
+      [X] broken-references: 5 findings
+            Referenced file 'scripts/resolve-impl-backend.sh' does not exist
+            Referenced file 'scripts/set-impl-backend.sh' does not exist
+            Referenced file '~/.cursor/permissions.json' does not exist
+            Referenced file 'env.local' does not exist
+            Referenced file 'scripts/setup-cursor.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    deploy                                   3 errors
+      [X] broken-references: 3 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/deployment-setup.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/analytics.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/health-checking.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    generate-slide                           11 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 11 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/slide-generator.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/slide-quality-check.md' does not exist
+            Referenced file 'README.md' does not exist
+            Referenced file 'package.json' does not exist
+            Referenced file 'Cargo.toml' does not exist
+            Referenced file 'pyproject.toml' does not exist
+            Referenced file 'CLAUDE.md' does not exist
+            Referenced file 'Plans.md' does not exist
+            Referenced file 'slide-generator.md' does not exist
+            Referenced file 'slide-quality-check.md' does not exist
+            Referenced file 'out/slides/quality-report.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    generate-video                           15 errors, 2 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 15 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/best-practices.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/analyzer.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/planner.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/generator.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/visual-effects.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/image-generator.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/image-quality-check.md' does not exist
+            Referenced file 'analyzer.md' does not exist
+            Referenced file 'planner.md' does not exist
+            Referenced file 'generator.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/best-practices.md#テンプレート' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/generator.md#音声同期ルール重要' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/generator.md#bgm-サポート' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/generator.md#字幕サポート' does not exist
+            Referenced file 'assets/generated/' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [!] cve-lookup: ajv (npm): GHSA-2g4f-4pwh-qvx6 [UNKNOWN] - No summary available
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [X] cve-lookup
+    gogcli-ops                               1 error, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/gogcli-cheatsheet.md' does not exist
+      [!] mcp-least-privilege: 4 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-accept                           17 errors
+      [X] broken-references: 17 findings
+            Referenced file 'personal-preference.v1' does not exist
+            Referenced file 'accept-record-decision.sh' does not exist
+            Referenced file 'scripts/render-html.sh' does not exist
+            Referenced file '.claude/state/views/accept-<timestamp>.html' does not exist
+            Referenced file '.claude/state/views/accept-<timestamp>.context.json' does not exist
+            Referenced file 'acceptance-context.v1' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/schemas/acceptance-context.v1.schema.json' does not exist
+            Referenced file 'scripts/load-cross-project-groups.sh' does not exist
+            Referenced file '.claude/rules/cross-repo-handoff.md' does not exist
+            Referenced file 'scripts/accept-past-issues.sh' does not exist
+            Referenced file 'past-issue.v1' does not exist
+            Referenced file '.claude/state/tdd-red-log/<task-id>.jsonl' does not exist
+            Referenced file 'scripts/plan-brief-open.sh' does not exist
+            Referenced file 'accept-past-issues.sh' does not exist
+            Referenced file 'render-html.sh' does not exist
+            Referenced file 'scripts/accept-record-decision.sh' does not exist
+            Referenced file 'acceptance-decision.v1' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-loop                             11 errors, 2 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] token-budget: Skill is 4128 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 11 findings
+            Referenced file 'scripts/enable-1h-cache.sh' does not exist
+            Referenced file 'plans/manifest.json' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/flow.md' does not exist
+            Referenced file 'Plans.md' does not exist
+            Referenced file 'scripts/...' does not exist
+            Referenced file 'scripts/generate-sprint-contract.js' does not exist
+            Referenced file 'scripts/enrich-sprint-contract.sh' does not exist
+            Referenced file 'scripts/ensure-sprint-contract-ready.sh' does not exist
+            Referenced file 'advisor-request.v1' does not exist
+            Referenced file 'scripts/detect-review-plateau.sh' does not exist
+            Referenced file '0.123.0' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-orchestration                    4 errors
+      [X] broken-references: 4 findings
+            Referenced file '.claude/state/orchestration-ledger.jsonl' does not exist
+            Referenced file '.claude/state/orchestration-totals.json' does not exist
+            Referenced file 'scripts/orchestration-scorecard.sh' does not exist
+            Referenced file 'scripts/render-html.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-plan                             22 errors, 2 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] token-budget: Skill is 6214 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 22 findings
+            Referenced file 'plans/manifest.json' does not exist
+            Referenced file '.claude/state/active-plan.json' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/planning-quality.md' does not exist
+            Referenced file 'spec.md > sub-spec > Plans.md' does not exist
+            Referenced file 'spec.md' does not exist
+            Referenced file 'Plans.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/create.md' does not exist
+            Referenced file 'docs/spec/00-project-spec.md' does not exist
+            Referenced file 'docs/plans/spec-ssot.md' does not exist
+            Referenced file 'scripts/claude-longrun.sh' does not exist
+            Referenced file 'bash scripts/claude-longrun.sh' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/sync.md' does not exist
+            Referenced file '.claude/state/agent-trace.jsonl' does not exist
+            Referenced file 'scripts/plans-issue-bridge.sh' does not exist
+            Referenced file 'docs/plans/team-mode.md' does not exist
+            Referenced file 'scripts/plan-registry.sh' does not exist
+            Referenced file 'scripts/generate-sprint-contract.js' does not exist
+            Referenced file 'docs/plans/named-plans.md' does not exist
+            Referenced file 'N.1' does not exist
+            Referenced file 'N.1, N.2' does not exist
+            Referenced file 'scripts/generate-skill-manifest.sh' does not exist
+            Referenced file 'docs/plans/briefs-manifest.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-plan-brief                       13 errors
+      [X] broken-references: 13 findings
+            Referenced file 'plan-brief-record-decision.sh' does not exist
+            Referenced file 'scripts/plan-brief-compile.sh' does not exist
+            Referenced file '.claude/state/views/plan-brief-<timestamp>.html' does not exist
+            Referenced file '.claude/state/views/plan-brief-<timestamp>.context.json' does not exist
+            Referenced file 'plan-brief-context.v1' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/schemas/plan-brief-context.v1.schema.json' does not exist
+            Referenced file 'scripts/load-cross-project-groups.sh' does not exist
+            Referenced file '.claude/rules/cross-repo-handoff.md' does not exist
+            Referenced file 'scripts/render-html.sh' does not exist
+            Referenced file 'scripts/plan-brief-open.sh' does not exist
+            Referenced file 'render-html.sh' does not exist
+            Referenced file 'plan-brief-open.sh' does not exist
+            Referenced file 'scripts/plan-brief-record-decision.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-progress                         7 errors
+      [X] broken-references: 7 findings
+            Referenced file 'out/progress-snapshot.html' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/schemas/progress-snapshot.v1.schema.json' does not exist
+            Referenced file 'scripts/progress-snapshot.sh' does not exist
+            Referenced file 'progress-snapshot.v1' does not exist
+            Referenced file 'scripts/render-html.sh' does not exist
+            Referenced file 'scripts/plan-brief-open.sh' does not exist
+            Referenced file 'progress-snapshot.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-release                          23 errors, 2 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] token-budget: Skill is 7701 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 23 findings
+            Referenced file 'git log @{upstream}..HEAD' does not exist
+            Referenced file 'main..HEAD' does not exist
+            Referenced file '.claude/state/review-result.json' does not exist
+            Referenced file '.claude/state/review-approved.json' does not exist
+            Referenced file 'CHANGELOG.md' does not exist
+            Referenced file 'package.json' does not exist
+            Referenced file 'pyproject.toml' does not exist
+            Referenced file 'Cargo.toml' does not exist
+            Referenced file 'scripts/release-preflight.sh' does not exist
+            Referenced file 'node scripts/build-opencode.js' does not exist
+            Referenced file 'scripts/build-opencode.js' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/version-files.md' does not exist
+            Referenced file '.claude-plugin/plugin.json' does not exist
+            Referenced file 'scripts/check-release-version-sync.py' does not exist
+            Referenced file '${HARNESS_PLUGIN_ROOT}/scripts/check-release-version-sync.py' does not exist
+            Referenced file 'VERSION > package.json > .claude-plugin/plugin.json > .codex-plugin/plugin.json' does not exist
+            Referenced file '.codex-plugin/plugin.json' does not exist
+            Referenced file '.claude-plugin/marketplace.json' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/bump-detection.md' does not exist
+            Referenced file '[Unreleased]: .../compare/v<prev>...HEAD' does not exist
+            Referenced file 'v<new>...HEAD' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/release-notes.md' does not exist
+            Referenced file 'vX.Y.Z' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-review                           9 errors, 2 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] token-budget: Skill is 5194 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 9 findings
+            Referenced file 'Plans.md' does not exist
+            Referenced file 'scripts/resolve-impl-backend.sh' does not exist
+            Referenced file 'scripts/review-ai-residuals.sh' does not exist
+            Referenced file 'scripts/review-weak-supervision-report.sh' does not exist
+            Referenced file 'it.skip' does not exist
+            Referenced file 'test.skip' does not exist
+            Referenced file 'scripts/harness-review-closeout.sh' does not exist
+            Referenced file '{BASE_REF}..HEAD' does not exist
+            Referenced file 'decision_needed.v1' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-setup                            32 errors, 2 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] token-budget: Skill is 6811 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 32 findings
+            Referenced file 'docs/claude-code-setup-mcp-telemetry-provider.md' does not exist
+            Referenced file 'Plans.md' does not exist
+            Referenced file '0.130.0' does not exist
+            Referenced file 'docs/codex-plugin-workflows-policy.md' does not exist
+            Referenced file '.claude-plugin/plugin.json' does not exist
+            Referenced file '0.123.0' does not exist
+            Referenced file 'docs/codex-provider-setup-policy.md' does not exist
+            Referenced file 'gpt-5.4' does not exist
+            Referenced file 'rust-v0.130.0' does not exist
+            Referenced file 'docs/codex-mcp-diagnostics.md' does not exist
+            Referenced file '.mcp.json' does not exist
+            Referenced file '.claude/mcp.json' does not exist
+            Referenced file 'docs/codex-sandbox-execution-policy.md' does not exist
+            Referenced file 'requirements.toml' does not exist
+            Referenced file 'codex/.codex/config.toml' does not exist
+            Referenced file 'scripts/codex-companion.sh' does not exist
+            Referenced file 'scripts/codex/codex-exec-wrapper.sh' does not exist
+            Referenced file '.claude/rules/cursor-cli-only.md' does not exist
+            Referenced file 'set-impl-backend.sh' does not exist
+            Referenced file 'scripts/set-impl-backend.sh' does not exist
+            Referenced file '~/.cursor/permissions.json' does not exist
+            Referenced file '*.pem' does not exist
+            Referenced file '*.key' does not exist
+            Referenced file '~/.claude/settings.json' does not exist
+            Referenced file '*.cursor.sh' does not exist
+            Referenced file '~/.cursor/cli-config.json.tmp' does not exist
+            Referenced file 'docs/sandbox-allowlist-recipe.md' does not exist
+            Referenced file 'scripts/sync-skill-mirrors.sh' does not exist
+            Referenced file 'docs/plugin-managed-settings-policy.md' does not exist
+            Referenced file 'owner/repo@vX.X.X' does not exist
+            Referenced file 'settings.local.json' does not exist
+            Referenced file 'tail -1000 .claude/state/agent-trace.jsonl > /tmp/trace && mv /tmp/trace .claude/state/agent-trace.jsonl' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-sync                             2 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: Referenced file 'plans/manifest.json' does not exist
+      [X] broken-references: Referenced file 'scripts/plan-registry.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    harness-work                             54 errors, 4 warnings
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] token-budget: Skill is 17726 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [!] token-budget: SKILL.md is 915 lines — Anthropic recommends keeping SKILL.md under 500 lines
+      [X] broken-references: 54 findings
+            Referenced file '.cursor/AGENTS.md' does not exist
+            Referenced file 'agents/worker.md' does not exist
+            Referenced file 'scripts/codex-companion.sh' does not exist
+            Referenced file 'scripts/cursor-companion.sh' does not exist
+            Referenced file 'scripts/resolve-impl-backend.sh' does not exist
+            Referenced file 'env.local' does not exist
+            Referenced file '~/.config/claude-harness/impl-backend.env' does not exist
+            Referenced file 'composer 2.5' does not exist
+            Referenced file 'resolve-impl-backend.sh' does not exist
+            Referenced file 'cursor-companion.sh' does not exist
+            Referenced file 'scripts/model-routing.sh' does not exist
+            Referenced file 'model-routing.sh' does not exist
+            Referenced file 'codex-companion.sh' does not exist
+            Referenced file 'worker-report.v1' does not exist
+            Referenced file 'companion-result.v1' does not exist
+            Referenced file 'baseCommit..HEAD' does not exist
+            Referenced file '.claude/rules/cursor-cli-only.md' does not exist
+            Referenced file 'bash tests/test-support-claim-wording.sh' does not exist
+            Referenced file 'bash scripts/ci/check-consistency.sh' does not exist
+            Referenced file 'scripts/ci/check-consistency.sh' does not exist
+            Referenced file 'bash tests/validate-plugin.sh' does not exist
+            Referenced file 'README_ja.md' does not exist
+            Referenced file 'plans/manifest.json' does not exist
+            Referenced file 'docs/plans/spec-ssot.md' does not exist
+            Referenced file 'Plans.md' does not exist
+            Referenced file 'docs/model-routing-policy.md' does not exist
+            Referenced file '.claude/rules/opus-4-7-prompt-audit.md' does not exist
+            Referenced file 'docs/effort-level-policy.md' does not exist
+            Referenced file 'scripts/...' does not exist
+            Referenced file 'docs/spec/00-project-spec.md' does not exist
+            Referenced file 'docs/ARCHITECTURE.md' does not exist
+            Referenced file 'docs/HANDOFF.md' does not exist
+            Referenced file 'docs/oem/PROJECT_COMPASS.md' does not exist
+            Referenced file '.claude/state/tdd-red-log/<task-id>.jsonl' does not exist
+            Referenced file 'scripts/log-tdd-red.sh' does not exist
+            Referenced file 'sprint-contract.json' does not exist
+            Referenced file 'scripts/generate-sprint-contract.js' does not exist
+            Referenced file 'scripts/enrich-sprint-contract.sh' does not exist
+            Referenced file 'scripts/ensure-sprint-contract-ready.sh' does not exist
+            Referenced file 'advisor-response.v1' does not exist
+            Referenced file 'scripts/run-contract-review-checks.sh' does not exist
+            Referenced file 'scripts/write-review-result.sh' does not exist
+            Referenced file '.cursor-plugin/plugin.json' does not exist
+            Referenced file '.cursor/agents/worker.md' does not exist
+            Referenced file 'team-composition.md' does not exist
+            Referenced file 'scripts/generate-browser-review-artifact.sh' does not exist
+            Referenced file 'scripts/browser-review-runner.sh' does not exist
+            Referenced file 'scripts/auto-checkpoint.sh' does not exist
+            Referenced file 'advisor-request.v1' does not exist
+            Referenced file '.claude/state/contracts/<task-id>.sprint-contract.json' does not exist
+            Referenced file '.claude/state/pending-fix-proposals.jsonl' does not exist
+            Referenced file '26.1.fix' does not exist
+            Referenced file 'review-output.schema.json' does not exist
+            Referenced file 'scripts/review-ai-residuals.sh' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] mcp-tool-poisoning: Line 254: base64 blob in text. Hidden instructions can manipulate agent behavior.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [X] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    maintenance                              5 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 5 findings
+            Referenced file 'agent-trace.jsonl' does not exist
+            Referenced file 'harness-usage.json' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/cleanup.md' does not exist
+            Referenced file 'scripts/auto-cleanup-hook.sh' does not exist
+            Referenced file 'auto_cleanup_hook.go' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    memory                                   6 errors
+      [X] broken-references: 6 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/ssot-initialization.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/plans-merging.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/workflow-migration.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/sync-project-specs.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/sync-ssot-from-memory.md' does not exist
+            Referenced file '../../.claude/memory/decisions.md#d22-3層メモリアーキテクチャ' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    notebookLM                               2 errors
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/notebooklm-yaml.md' does not exist
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/notebooklm-slides.md' does not exist
+      [!] mcp-least-privilege: allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] mcp-least-privilege: allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    principles                               4 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 4 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/general-principles.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/diff-aware-editing.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/repo-context-reading.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/vibecoder-guide.md' does not exist
+      [!] mcp-least-privilege: allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    session                                  4 errors
+      [X] broken-references: 4 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/session-control.md' does not exist
+            Referenced file '.claude/state/session.json' does not exist
+            Referenced file '.claude/state/session.events.jsonl' does not exist
+            Referenced file '.claude/memory/*.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [+] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    session-control                          4 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 4 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/session-control.md' does not exist
+            Referenced file 'scripts/session-control.sh' does not exist
+            Referenced file 'session.json' does not exist
+            Referenced file 'session.events.jsonl' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    session-init                             3 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 3 findings
+            Referenced file '~/.harness-mem/harness-mem.db' does not exist
+            Referenced file '.claude/state/session.json' does not exist
+            Referenced file 'scripts/harness-memd' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    session-memory                           11 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 11 findings
+            Referenced file 'docs/MEMORY_POLICY.md' does not exist
+            Referenced file 'decisions.md' does not exist
+            Referenced file 'patterns.md' does not exist
+            Referenced file 'session-log.md' does not exist
+            Referenced file 'context.json' does not exist
+            Referenced file '.claude/state/session.json' does not exist
+            Referenced file 'UserProfile.tsx' does not exist
+            Referenced file 'LoginForm.tsx' does not exist
+            Referenced file '.claude/memory/context.json' does not exist
+            Referenced file '~/.claude/projects/<project>/memory/MEMORY.md' does not exist
+            Referenced file '../../.claude/memory/decisions.md#d22-3層メモリアーキテクチャ' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    session-state                            2 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: Referenced file 'docs/SESSION_ORCHESTRATION.md' does not exist
+      [X] broken-references: Referenced file '${CLAUDE_SKILL_DIR}/references/state-transition.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    ui                                       4 errors, 1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [X] broken-references: 4 findings
+            Referenced file '${CLAUDE_SKILL_DIR}/references/ui-skills.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/frontend-design.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/component-generation.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/feedback-forms.md' does not exist
+      [!] mcp-least-privilege: 5 findings
+            allowed-tools grants shell access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants env access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants file_write access but no code uses it. Remove unused permissions to follow least-privilege.
+            allowed-tools grants network access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    vibecoder-guide                          1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] mcp-least-privilege: allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    workflow-guide                           1 warning
+      [!] description-quality: Description lacks use-case context — include phrases like 'use when', 'applies to', 'relevant for' so Claude knows when to activate it
+      [!] mcp-least-privilege: allowed-tools grants file_read access but no code uses it. Remove unused permissions to follow least-privilege.
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [+] description-required
+      [X] description-quality
+      [+] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [X] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+
+  CLAUDE.md (1)
+  ────────────────────────────────────────────────────────
+    CLAUDE.md                                PASS
+      [+] exists
+      [+] skill-duplication
+      [+] generic-advice
+
+  Rules (26)
+  ────────────────────────────────────────────────────────
+    active-watching-test-policy              9 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 8 findings
+            Referenced file 'go/internal/session/monitor.go' does not exist
+            Referenced file 'scripts/hook-handlers/' does not exist
+            Referenced file 'go/SPEC.md' does not exist
+            Referenced file 'go/cmd/harness/mem.go' does not exist
+            Referenced file 'go/cmd/harness/mem_test.go' does not exist
+            Referenced file 'go/internal/session/monitor_test.go' does not exist
+            Referenced file '../memory/decisions.md' does not exist
+            Referenced file '../memory/patterns.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cc-update-policy                         3 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file 'CLAUDE.md' does not exist
+      [X] broken-references: Referenced file 'docs/CLAUDE-feature-table.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    client-redaction                         1 error, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    codex-cli-only                           3 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file 'scripts/codex-companion.sh' does not exist
+      [X] broken-references: Referenced file 'review-output.schema.json' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    command-editing                          14 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 13 findings
+            Referenced file 'harness-mem.md' does not exist
+            Referenced file 'harness-init.md' does not exist
+            Referenced file 'harness-review.md' does not exist
+            Referenced file 'harness-update.md' does not exist
+            Referenced file 'ci-setup.md' does not exist
+            Referenced file 'lsp-setup.md' does not exist
+            Referenced file 'sync-status.md' does not exist
+            Referenced file 'sync-ssot-from-memory.md' does not exist
+            Referenced file 'commands/core/harness-init.md' does not exist
+            Referenced file 'commands/optional/cursor-mem.md' does not exist
+            Referenced file 'commands/optional/ci-setup.md' does not exist
+            Referenced file '../memory/decisions.md' does not exist
+            Referenced file '../memory/patterns.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    commit-safety                            2 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file '.claude-plugin/settings.json' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cross-project-groups                     2 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file 'scripts/load-cross-project-groups.sh' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cross-repo-handoff                       21 errors, 2 warnings
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [!] token-budget: Skill is 5183 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 20 findings
+            Referenced file 'client-redaction.v1' does not exist
+            Referenced file 'pii-filter.ts' does not exist
+            Referenced file '.claude/rules/cross-project-groups.yaml' does not exist
+            Referenced file 'scripts/load-cross-project-groups.sh' does not exist
+            Referenced file 'docs/cross-project-groups-schema.md' does not exist
+            Referenced file '.claude/rules/client-redaction.yaml' does not exist
+            Referenced file 'scripts/redact-by-dictionary.sh' does not exist
+            Referenced file 'scripts/redact-by-ner.sh' does not exist
+            Referenced file 'scripts/final-scan-redaction.py' does not exist
+            Referenced file 'scripts/render-html.sh' does not exist
+            Referenced file 'cross-project-audit.v1' does not exist
+            Referenced file 'scripts/cross-project-audit-log.sh' does not exist
+            Referenced file './tests/validate-plugin.sh' does not exist
+            Referenced file 'bash scripts/ci/check-consistency.sh' does not exist
+            Referenced file 'scripts/ci/check-consistency.sh' does not exist
+            Referenced file 'mcp-server/src/pii/pii-filter.ts' does not exist
+            Referenced file 'scripts/docs' does not exist
+            Referenced file '.claude/rules/cross-repo-handoff.md' does not exist
+            Referenced file '.claude/memory/decisions.md' does not exist
+            Referenced file '.claude/rules/migration-policy.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    cursor-cli-only                          21 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 20 findings
+            Referenced file 'scripts/cursor-companion.sh' does not exist
+            Referenced file '~/.claude/settings.json' does not exist
+            Referenced file '~/.cursor/permissions.json' does not exist
+            Referenced file 'worker-report.v1' does not exist
+            Referenced file '*.pem' does not exist
+            Referenced file '*.key' does not exist
+            Referenced file '*.cursor.sh' does not exist
+            Referenced file 'review-result.v1' does not exist
+            Referenced file 'skills/cursor-ask/SKILL.md' does not exist
+            Referenced file 'skills/cursor-do/SKILL.md' does not exist
+            Referenced file 'skills/harness-review/references/cursor-review.md' does not exist
+            Referenced file 'references/cursor-review.md' does not exist
+            Referenced file 'cursor-companion.sh' does not exist
+            Referenced file 'api2.cursor.sh' does not exist
+            Referenced file 'agentn.global.api5.cursor.sh' does not exist
+            Referenced file '~/.cursor/cli-config.json.tmp' does not exist
+            Referenced file 'docs/sandbox-allowlist-recipe.md' does not exist
+            Referenced file 'skills/harness-work/SKILL.md' does not exist
+            Referenced file '.claude/rules/codex-cli-only.md' does not exist
+            Referenced file '.claude/rules/self-audit.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    deleted-concepts                         4 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 3 findings
+            Referenced file 'scripts/check-residue.sh' does not exist
+            Referenced file 'scripts/setup-codex.sh' does not exist
+            Referenced file 'scripts/codex-setup-local.sh' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    github-release                           3 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file 'URL' does not exist
+      [X] broken-references: Referenced file '...' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    hooks-2.1.139-plus                       23 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 22 findings
+            Referenced file '2.1.133' does not exist
+            Referenced file '2.1.142' does not exist
+            Referenced file 'effort.level' does not exist
+            Referenced file 'docs/upstream-update-snapshot-2026-05-15.md' does not exist
+            Referenced file 'notification-handler.sh' does not exist
+            Referenced file '${CLAUDE_PROJECT_DIR}/scripts/foo.sh' does not exist
+            Referenced file 'scripts/foo.sh' does not exist
+            Referenced file 'scripts/hook-handlers/notification-handler.sh' does not exist
+            Referenced file 'tests/test-hooks-*.sh' does not exist
+            Referenced file '.claude-plugin/hooks.json' does not exist
+            Referenced file '.claude/rules/cross-repo-handoff.md' does not exist
+            Referenced file 'go/internal/hookhandler/terminal_notify.go' does not exist
+            Referenced file 'go/internal/hookhandler/notification_handler.go' does not exist
+            Referenced file 'go/internal/hookhandler/task_completed.go' does not exist
+            Referenced file 'scripts/hook-handlers/webhook-notify.sh' does not exist
+            Referenced file 'scripts/lib/terminal-notify.sh' does not exist
+            Referenced file 'hooks.json' does not exist
+            Referenced file 'grep -nE '"SessionStart"|"Setup"|"SubagentStart"' .claude-plugin/hooks.json' does not exist
+            Referenced file 'tests/validate-plugin.sh' does not exist
+            Referenced file '.claude/rules/opus-4-7-prompt-audit.md' does not exist
+            Referenced file '.claude/rules/skill-editing.md' does not exist
+            Referenced file '.claude/rules/commit-safety.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    hooks-2.1.152-plus                       7 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 6 findings
+            Referenced file '2.1.152' does not exist
+            Referenced file 'docs/upstream-update-snapshot-2026-05-27.md' does not exist
+            Referenced file '.claude/rules/hooks-2.1.139-plus.md' does not exist
+            Referenced file 'docs/message-display-policy.md' does not exist
+            Referenced file '.claude/rules/skill-frontmatter-2.1.152-plus.md' does not exist
+            Referenced file 'CLAUDE.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    hooks-editing                            9 errors, 2 warnings
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [!] token-budget: Skill is 4619 tokens — computed budget is 4000 (20000 context budget / 5 concurrent skills, ceiling 4000)
+      [X] broken-references: 8 findings
+            Referenced file 'hooks.json' does not exist
+            Referenced file 'hooks/hooks.json' does not exist
+            Referenced file '.claude-plugin/hooks.json' does not exist
+            Referenced file './scripts/sync-plugin-cache.sh' does not exist
+            Referenced file 'scripts/sync-plugin-cache.sh' does not exist
+            Referenced file 'scripts/run-script.js' does not exist
+            Referenced file 'run-script.js' does not exist
+            Referenced file '../memory/decisions.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [X] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    implementation-quality                   1 error, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    migration-policy                         11 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 10 findings
+            Referenced file 'check-residue.sh' does not exist
+            Referenced file 'docs/MIGRATION-*.md' does not exist
+            Referenced file '.claude/rules/v3-architecture.md' does not exist
+            Referenced file 'CHANGELOG.md' does not exist
+            Referenced file 'scripts/check-residue.sh' does not exist
+            Referenced file 'core/src/guardrails/rules.ts' does not exist
+            Referenced file '.claude/rules/deleted-concepts.yaml' does not exist
+            Referenced file 'go/cmd/harness/doctor.go' does not exist
+            Referenced file 'tests/validate-plugin.sh' does not exist
+            Referenced file 'skills/harness-release/SKILL.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    opus-4-7-prompt-audit                    10 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 9 findings
+            Referenced file 'advisor-request.v1' does not exist
+            Referenced file 'advisor-response.v1' does not exist
+            Referenced file 'review-result.v1' does not exist
+            Referenced file 'worker-report.v1' does not exist
+            Referenced file 'self_review[].rule' does not exist
+            Referenced file 'memory_updates[].scope' does not exist
+            Referenced file 'scripts/codex-companion.sh' does not exist
+            Referenced file 'team-composition.md' does not exist
+            Referenced file 'codex-companion.sh' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    self-audit                               4 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 3 findings
+            Referenced file '.claude-plugin/settings.json' does not exist
+            Referenced file 'tests/validate-plugin.sh' does not exist
+            Referenced file '.claude/settings.local.json' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    shell-scripts                            5 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 4 findings
+            Referenced file 'scripts/script-name.sh' does not exist
+            Referenced file '*-hook.sh' does not exist
+            Referenced file 'stop-*.sh' does not exist
+            Referenced file 'tests/validate-plugin.sh' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    skill-editing                            10 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 9 findings
+            Referenced file 'SKILL.md' does not exist
+            Referenced file 'references/...' does not exist
+            Referenced file 'scripts/set-locale.sh' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/feature1.md' does not exist
+            Referenced file 'references/feature1.md' does not exist
+            Referenced file '${CLAUDE_SKILL_DIR}/references/feature2.md' does not exist
+            Referenced file 'references/feature2.md' does not exist
+            Referenced file 'grep -c 'REVIEW_AUTOSTART' skills/*/SKILL.md' does not exist
+            Referenced file 'skills/harness-review/SKILL.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    skill-frontmatter-2.1.152-plus           6 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: 5 findings
+            Referenced file '2.1.152' does not exist
+            Referenced file '.claude-plugin/settings.json' does not exist
+            Referenced file '.claude/rules/hooks-2.1.152-plus.md' does not exist
+            Referenced file '.claude/rules/skill-editing.md' does not exist
+            Referenced file 'docs/upstream-update-snapshot-2026-05-27.md' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    tdd-paths                                3 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file 'scripts/detect-test-framework.sh' does not exist
+      [X] broken-references: Referenced file 'scripts/hook-handlers/tdd-enforce.sh' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    test-quality                             1 error, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    v3-architecture                          2 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file 'check-consistency.sh' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    version-drift                            3 errors, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [X] broken-references: Referenced file './scripts/sync-version.sh' does not exist
+      [X] broken-references: Referenced file 'scripts/sync-version.sh' does not exist
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [X] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+    versioning                               1 error, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+
+  Output Styles (1)
+  ────────────────────────────────────────────────────────
+    harness-ops                              1 error, 1 warning
+      [X] description-required: Required field 'description' is missing from frontmatter
+      [!] format-valid: No YAML frontmatter found — skill files should start with '---'
+      [!] yara-signatures: YARA scanning skipped: yara-python not installed. Install with: pip install yara-python
+      [+] skill-md-exists
+      [X] description-required
+      [+] description-quality
+      [X] format-valid
+      [+] token-budget
+      [+] broken-references
+      [+] duplicate-detection
+      [+] no-prompt-injection
+      [+] no-credential-access
+      [+] reverse-shell
+      [+] obfuscation
+      [+] data-exfiltration
+      [+] ast-behavioral
+      [+] taint-flow
+      [+] mcp-least-privilege
+      [+] mcp-tool-poisoning
+      [X] yara-signatures
+      [+] cve-lookup
+
+Uncategorized Files (discovered but no rules apply yet):
+────────────────────────────────────────────────────────────
+  .claude/memory/archive/Plans-2025-12-25.md
+  .claude/memory/archive/Plans-2025-12-26.md
+  .claude/memory/archive/Plans-2026-01-05.md
+  .claude/memory/archive/Plans-2026-01-08.md
+  .claude/memory/archive/Plans-2026-01-13.md
+  .claude/memory/archive/Plans-2026-01-15-evals-v3.md
+  .claude/memory/archive/Plans-2026-01-16-phase32.md
+  .claude/memory/archive/Plans-2026-01-16-phase33-34.md
+  .claude/memory/archive/Plans-2026-01-26-phase35.md
+  .claude/memory/archive/Plans-2026-01-31-pre-cleanup.md
+  .claude/memory/archive/Plans-2026-02-02.md
+  .claude/memory/archive/Plans-2026-02-05.md
+  .claude/memory/archive/Plans-2026-02-25-phase13-15.md
+  .claude/memory/archive/Plans-2026-03-02-pre-phase16.md
+  .claude/memory/archive/Plans-2026-03-08-phase17-24.md
+  .claude/memory/archive/Plans-2026-04-15-phase25-36-38.md
+  .claude/memory/archive/Plans-2026-04-15-phase39-40-41.0.md
+  .claude/memory/archive/Plans-2026-04-17-phase37-41-42-43.md
+  .claude/memory/archive/Plans-2026-04-19-phase44-46.md
+  .claude/memory/archive/Plans-2026-05-08-phase47-61.md
+  .claude/memory/archive/Plans-2026-05-29-phase63-79.md
+  .claude/memory/archive/Plans-2026-05-29-phase80-84.md
+  .claude/memory/archive/Plans-backup-20251223-224306.md
+  .claude/memory/archive/Plans-harness-ui-mcp-2025-01-02.md
+  .claude/memory/archive/Plans-legacy.md
+  skills/agent-browser/references/ai-snapshot-workflow.md
+  skills/agent-browser/references/browser-automation.md
+  skills/auth/references/authentication.md
+  skills/auth/references/payments.md
+  skills/ci/references/analyzing-failures.md
+  skills/ci/references/fixing-tests.md
+  skills/deploy/references/analytics.md
+  skills/deploy/references/deployment-setup.md
+  skills/deploy/references/health-checking.md
+  skills/generate-slide/references/slide-generator.md
+  skills/generate-slide/references/slide-quality-check.md
+  skills/generate-video/assets/backgrounds/backgrounds.json
+  skills/generate-video/assets/sounds/sounds.json
+  skills/generate-video/package.json
+  skills/generate-video/references/MIGRATION-11.2.md
+  skills/generate-video/references/analyzer.md
+  skills/generate-video/references/asset-customization.md
+  skills/generate-video/references/best-practices.md
+  skills/generate-video/references/direction-guide.md
+  skills/generate-video/references/generator.md
+  skills/generate-video/references/image-generator.md
+  skills/generate-video/references/image-patterns.md
+  skills/generate-video/references/image-quality-check.md
+  skills/generate-video/references/naming-conventions.md
+  skills/generate-video/references/planner.md
+  skills/generate-video/references/visual-effects.md
+  skills/generate-video/remotion/components/BackgroundLayer.tsx
+  skills/generate-video/remotion/components/EmphasisBox.tsx
+  skills/generate-video/remotion/components/ProgressIndicator.tsx
+  skills/generate-video/remotion/components/README.md
+  skills/generate-video/remotion/components/TransitionWrapper.tsx
+  skills/generate-video/remotion/components/index.ts
+  skills/generate-video/remotion/tsconfig.json
+  skills/generate-video/schemas/README.md
+  skills/generate-video/schemas/animation.schema.json
+  skills/generate-video/schemas/assets.manifest.schema.json
+  skills/generate-video/schemas/character.schema.json
+  skills/generate-video/schemas/direction.schema.json
+  skills/generate-video/schemas/emphasis.schema.json
+  skills/generate-video/schemas/examples/scenario-example.json
+  skills/generate-video/schemas/examples/scene-example.json
+  skills/generate-video/schemas/examples/video-script-example.json
+  skills/generate-video/schemas/examples/visual-patterns/comparison-example.json
+  skills/generate-video/schemas/examples/visual-patterns/concept-example.json
+  skills/generate-video/schemas/examples/visual-patterns/flow-example.json
+  skills/generate-video/schemas/examples/visual-patterns/highlight-example.json
+  skills/generate-video/schemas/scenario.schema.json
+  skills/generate-video/schemas/scene.schema.json
+  skills/generate-video/schemas/validate-schemas-basic.js
+  skills/generate-video/schemas/validate-schemas.js
+  skills/generate-video/schemas/video-script.schema.json
+  skills/generate-video/schemas/visual-patterns.schema.json
+  skills/generate-video/scripts/README.md
+  skills/generate-video/scripts/generate-schemas.js
+  skills/generate-video/scripts/load-assets.js
+  skills/generate-video/scripts/merge-scenes.js
+  skills/generate-video/scripts/render-video.js
+  skills/generate-video/scripts/template-registry.js
+  skills/generate-video/scripts/validate-scenario.js
+  skills/generate-video/scripts/validate-scene.js
+  skills/generate-video/scripts/validate-video.js
+  skills/generate-video/src/schemas/animation.ts
+  skills/generate-video/src/schemas/assets.manifest.ts
+  skills/generate-video/src/schemas/character.ts
+  skills/generate-video/src/schemas/direction.ts
+  skills/generate-video/src/schemas/emphasis.ts
+  skills/generate-video/src/schemas/index.ts
+  skills/generate-video/src/schemas/scenario.ts
+  skills/generate-video/src/schemas/scene.ts
+  skills/generate-video/src/schemas/video-script.ts
+  skills/generate-video/src/schemas/visual-patterns.ts
+  skills/generate-video/src/types/README.md
+  skills/generate-video/src/types/components.ts
+  skills/generate-video/src/types/index.ts
+  skills/generate-video/src/utils/README.md
+  skills/generate-video/src/utils/converters.js
+  skills/generate-video/src/utils/converters.ts
+  skills/generate-video/src/utils/index.ts
+  skills/generate-video/templates/image-prompts/comparison.txt
+  skills/generate-video/templates/image-prompts/concept.txt
+  skills/generate-video/templates/image-prompts/flow.txt
+  skills/generate-video/templates/image-prompts/highlight.txt
+  skills/generate-video/templates/intro-3min.json
+  skills/generate-video/templates/teaser-90s.json
+  skills/generate-video/tests/asset-loader.test.js
+  skills/generate-video/tests/character-schema.test.js
+  skills/generate-video/tests/converters.test.js
+  skills/generate-video/tests/determinism.test.js
+  skills/generate-video/tests/e2e/merge-e2e.test.js
+  skills/generate-video/tests/e2e/render.test.js
+  skills/generate-video/tests/fixtures/minimal-video-script.json
+  skills/generate-video/tests/merge-scenes.test.js
+  skills/generate-video/tests/schema-validation.test.js
+  skills/generate-video/tests/validation-integration.test.js
+  skills/generate-video/tests/visual-patterns.test.js
+  skills/gogcli-ops/agents/openai.yaml
+  skills/gogcli-ops/references/gogcli-cheatsheet.md
+  skills/gogcli-ops/scripts/gog_parse_url.py
+  skills/harness-accept/schemas/acceptance-context.v1.schema.json
+  skills/harness-loop/references/flow.md
+  skills/harness-plan/references/create.md
+  skills/harness-plan/references/planning-quality.md
+  skills/harness-plan/references/sync.md
+  skills/harness-plan-brief/schemas/plan-brief-context.v1.schema.json
+  skills/harness-progress/schemas/orchestration-ledger.v1.schema.json
+  skills/harness-progress/schemas/orchestration-scorecard.v1.schema.json
+  skills/harness-progress/schemas/orchestration-totals.v1.schema.json
+  skills/harness-progress/schemas/progress-snapshot.v1.schema.json
+  skills/harness-release/references/bump-detection.md
+  skills/harness-release/references/release-notes.md
+  skills/harness-release/references/version-files.md
+  skills/harness-review/references/code-review.md
+  skills/harness-review/references/codex-closeout.md
+  skills/harness-review/references/cursor-review.md
+  skills/harness-review/references/dual-review.md
+  skills/harness-review/references/governance.md
+  skills/harness-review/references/plan-review.md
+  skills/harness-review/references/scope-review.md
+  skills/harness-review/references/security-profile.md
+  skills/harness-review/references/team-debate.md
+  skills/harness-review/references/ui-rubric.md
+  skills/harness-review/references/vision-high-res-flow.md
+  skills/harness-work/references/completion-report.md
+  skills/harness-work/references/execution-modes.md
+  skills/harness-work/references/failure-reticketing.md
+  skills/harness-work/references/review-loop.md
+  skills/maintenance/references/cleanup.md
+  skills/memory/references/plans-merging.md
+  skills/memory/references/ssot-initialization.md
+  skills/memory/references/sync-project-specs.md
+  skills/memory/references/sync-ssot-from-memory.md
+  skills/memory/references/workflow-migration.md
+  skills/notebookLM/references/notebooklm-slides.md
+  skills/notebookLM/references/notebooklm-yaml.md
+  skills/principles/references/diff-aware-editing.md
+  skills/principles/references/general-principles.md
+  skills/principles/references/repo-context-reading.md
+  skills/principles/references/vibecoder-guide.md
+  skills/routing-rules.md
+  skills/session/references/session-control.md
+  skills/session/references/state-transition.md
+  skills/session-control/references/session-control.md
+  skills/session-state/references/state-transition.md
+  skills/ui/references/component-generation.md
+  skills/ui/references/feedback-forms.md
+  skills/ui/references/frontend-design.md
+  skills/ui/references/ui-skills.md
+  skills/workflow-guide/examples/typical-workflow.md
+  skills/workflow-guide/references/commands.md
+

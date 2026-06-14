@@ -34,15 +34,16 @@ def _compress_findings(diagnostics: list) -> list[str]:
 
     compressed: list[str] = []
     for rule_id, findings in by_rule.items():
-        icon = "X" if findings[0].severity.value == "error" else "!"
+        severity = findings[0].severity.value
+        label = "FAIL" if severity == "error" else "WARNING"
         short_id = _shorten_rule_id(rule_id)
         if len(findings) <= 2:
             for d in findings:
-                compressed.append(f"[{icon}] {short_id}: {d.message}")
+                compressed.append(f"  {label:<8} {short_id}: {d.message}")
         else:
-            compressed.append(f"[{icon}] {short_id}: {len(findings)} findings")
+            compressed.append(f"  {label:<8} {short_id}: {len(findings)} findings")
             for d in findings:
-                compressed.append(f"      {d.message}")
+                compressed.append(f"           {d.message}")
     return compressed
 
 
@@ -58,6 +59,14 @@ def format_terminal(
     lines.append(f"{'=' * 60}")
     lines.append(f"Components: {system.component_count}")
     lines.append(f"Total tokens: {system.budget.total_tokens}")
+    lines.append("")
+
+    lines.append("Legend:")
+    lines.append(f"{'─' * 60}")
+    lines.append("  PASS     Rule checked, no issues found")
+    lines.append("  FAIL     Rule checked, error found (must fix)")
+    lines.append("  WARNING  Rule checked, potential issue (should review)")
+    lines.append("  SKIP     Check was skipped (missing dependency or N/A)")
     lines.append("")
 
     lines.append("Token Budget:")
@@ -116,7 +125,7 @@ def format_terminal(
         lines.append("Findings:")
         lines.append(f"{'─' * 60}")
         for finding in system.findings:
-            lines.append(f"  [!] {finding}")
+            lines.append(f"  WARNING  {finding}")
 
     total_errors = sum(r.error_count for r in inspection_results)
     total_warnings = sum(r.warning_count for r in inspection_results)
@@ -160,9 +169,11 @@ def format_terminal(
 
                 if r.rules_run:
                     for rr in r.rules_run:
-                        icon = "+" if rr.passed else "X"
                         short_id = _shorten_rule_id(rr.rule_id)
-                        lines.append(f"      [{icon}] {short_id}")
+                        if rr.passed:
+                            lines.append(f"      PASS     {short_id}")
+                        else:
+                            lines.append(f"      FAIL     {short_id}")
 
     if system.uncategorized_files:
         lines.append("")
