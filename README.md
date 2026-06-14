@@ -58,10 +58,10 @@ claude --plugin-dir /path/to/harness-eval-lab
 ```
 
 After installing, these commands become available in `/` autocomplete:
-- `/eval-setup-lint` - fast static analysis, no LLM, CI-suitable
-- `/eval-setup-review` - full qualitative review with KEEP/REVIEW/REMOVE verdicts
-- `/eval-setup-security` - deep security audit with deterministic scan + semantic review
-- `/eval-skill <skill-name>` - deep-evaluate one skill in context
+- `/harness-eval-lab:eval-setup-lint` - fast static analysis, no LLM, CI-suitable
+- `/harness-eval-lab:eval-setup-review` - full qualitative review with KEEP/REVIEW/REMOVE verdicts
+- `/harness-eval-lab:eval-setup-security` - deep security audit with deterministic scan + semantic review
+- `/harness-eval-lab:eval-skill <skill-name>` - deep-evaluate one skill in context
 
 ## Usage
 
