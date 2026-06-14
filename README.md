@@ -47,7 +47,8 @@ Install directly from within Claude Code:
 
 ```
 /plugin marketplace add redhat-community-ai-tools/harness-eval-lab
-/plugin install harness-eval-lab
+/plugin install harness-eval-lab@harness-eval-lab
+/reload-plugins
 ```
 
 Or test locally during development:
