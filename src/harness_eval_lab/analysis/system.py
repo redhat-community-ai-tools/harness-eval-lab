@@ -28,6 +28,7 @@ class SystemReport:
     dependencies: DependencyReport
     context_utilization: ContextUtilizationReport
     findings: list[str] = field(default_factory=list)
+    uncategorized_files: list[str] = field(default_factory=list)
 
 
 def analyze_system(setup: Setup) -> SystemReport:
@@ -88,12 +89,17 @@ def analyze_system(setup: Setup) -> SystemReport:
                 f"before any skill loads."
             )
 
+    from harness_eval_lab.core.types import ComponentType as CT
+
+    uncategorized = [c.name for c in setup.by_type(CT.UNCATEGORIZED)]
+
     return SystemReport(
         setup_name=setup.name,
-        component_count=len(setup.components),
+        component_count=len([c for c in setup.components if c.component_type != CT.UNCATEGORIZED]),
         budget=budget,
         triggers=triggers,
         dependencies=dependencies,
         context_utilization=context_utilization,
         findings=findings,
+        uncategorized_files=uncategorized,
     )

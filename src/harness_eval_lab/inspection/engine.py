@@ -412,6 +412,57 @@ def lint_agent(
     )
 
 
+def lint_text_file(
+    file_path: str,
+    component_type: ComponentType,
+    config_rules: dict[str, str | list[Any]] | None = None,
+    scan_state: dict[str, Any] | None = None,
+) -> InspectionResult:
+    """Lint a generic text file (rule, output-style) using security rules."""
+    path = Path(file_path)
+    if not path.exists():
+        return _build_result(file_path, path.stem, 0, component_type.value, [], 0)
+
+    from harness_eval_lab.utils.tokens import count_tokens
+
+    raw_content = path.read_text(encoding="utf-8", errors="replace")
+    tokens = count_tokens(raw_content)
+
+    dummy_skill = ParsedSkill(
+        dir_path=str(path.parent),
+        dir_name=path.parent.name,
+        skill_md_path=file_path,
+        raw_content=raw_content,
+        frontmatter={},
+        raw_frontmatter="",
+        frontmatter_start_line=0,
+        body=raw_content,
+        body_start_line=1,
+        files=[path.name],
+        tokens=tokens,
+    )
+
+    rule_diags, suppression_count, rules_run = _run_rules(
+        ComponentType.SKILL,
+        file_path,
+        raw_content,
+        skill=dummy_skill,
+        target=dummy_skill,
+        config_rules=config_rules,
+        scan_state=scan_state,
+    )
+
+    return _build_result(
+        file_path,
+        path.stem,
+        tokens,
+        component_type.value,
+        rule_diags,
+        suppression_count,
+        rules_run,
+    )
+
+
 def inspect_setup(
     setup: Any,
     config_rules: dict[str, str | list[Any]] | None = None,
@@ -435,6 +486,12 @@ def inspect_setup(
         results.append(lint_hooks(comp.path, config_rules, scan_state=scan_state))
     for comp in setup.by_type(CT.AGENT):
         results.append(lint_agent(comp.path, config_rules, scan_state=scan_state))
+    for comp in setup.by_type(CT.RULE):
+        results.append(lint_text_file(comp.path, CT.RULE, config_rules, scan_state=scan_state))
+    for comp in setup.by_type(CT.OUTPUT_STYLE):
+        results.append(
+            lint_text_file(comp.path, CT.OUTPUT_STYLE, config_rules, scan_state=scan_state)
+        )
     return results
 
 

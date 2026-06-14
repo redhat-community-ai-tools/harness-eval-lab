@@ -35,6 +35,9 @@ def discover_setup(
     components.extend(_discover_hooks(root))
     components.extend(_discover_agents(root))
     components.extend(_discover_mcp_configs(root))
+    components.extend(_discover_rules(root))
+    components.extend(_discover_output_styles(root))
+    components.extend(_discover_uncategorized(root, components))
 
     fp = fingerprint_setup(path, user_config_dir=user_config_dir)
     total = sum(c.token_count for c in components)
@@ -186,3 +189,53 @@ def _discover_mcp_configs(root: Path) -> list[ParsedComponent]:
             seen_paths.add(c.path)
             deduped.append(c)
     return deduped
+
+
+def _discover_rules(root: Path) -> list[ParsedComponent]:
+    results = []
+    rules_dir = root / ".claude" / "rules"
+    if not rules_dir.is_dir():
+        return results
+    for f in sorted(rules_dir.rglob("*")):
+        if f.is_file() and f.suffix in (".md", ".yaml", ".yml"):
+            results.append(_parse_file(f, ComponentType.RULE, name=f.stem))
+    return results
+
+
+def _discover_output_styles(root: Path) -> list[ParsedComponent]:
+    results = []
+    styles_dir = root / ".claude" / "output-styles"
+    if not styles_dir.is_dir():
+        return results
+    for f in sorted(styles_dir.rglob("*")):
+        if f.is_file() and f.suffix in (".md", ".yaml", ".yml"):
+            results.append(_parse_file(f, ComponentType.OUTPUT_STYLE, name=f.stem))
+    return results
+
+
+def _discover_uncategorized(
+    root: Path, known_components: list[ParsedComponent]
+) -> list[ParsedComponent]:
+    known_paths = {str(Path(c.path).resolve()) for c in known_components}
+    results = []
+
+    scan_dirs = [root / ".claude", root / "skills", root / "commands"]
+
+    for scan_dir in scan_dirs:
+        if not scan_dir.is_dir():
+            continue
+        for f in sorted(scan_dir.rglob("*")):
+            if not f.is_file():
+                continue
+            if ".git" in f.parts or "__pycache__" in f.parts:
+                continue
+            resolved = str(f.resolve())
+            if resolved in known_paths:
+                continue
+            if f.name.startswith("."):
+                continue
+            results.append(
+                _parse_file(f, ComponentType.UNCATEGORIZED, name=str(f.relative_to(root)))
+            )
+
+    return results

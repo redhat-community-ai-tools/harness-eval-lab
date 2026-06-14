@@ -13,6 +13,9 @@ class ComponentType(StrEnum):
     HOOKS = "hooks"
     AGENT = "agent"
     MCP_CONFIG = "mcp_config"
+    RULE = "rule"
+    OUTPUT_STYLE = "output_style"
+    UNCATEGORIZED = "uncategorized"
 
 
 class ComponentScope(StrEnum):

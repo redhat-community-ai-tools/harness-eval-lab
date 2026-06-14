@@ -14,9 +14,11 @@ _TYPE_DISPLAY = {
     "hooks": "Hooks",
     "claude_md": "CLAUDE.md",
     "agent": "Agents",
+    "rule": "Rules",
+    "output_style": "Output Styles",
 }
 
-_TYPE_ORDER = ["skill", "command", "hooks", "claude_md", "agent"]
+_TYPE_ORDER = ["skill", "command", "hooks", "claude_md", "agent", "rule", "output_style"]
 
 
 def _shorten_rule_id(rule_id: str) -> str:
@@ -162,6 +164,13 @@ def format_terminal(
                         short_id = _shorten_rule_id(rr.rule_id)
                         lines.append(f"      [{icon}] {short_id}")
 
+    if system.uncategorized_files:
+        lines.append("")
+        lines.append("Uncategorized Files (discovered but no rules apply yet):")
+        lines.append(f"{'─' * 60}")
+        for f in system.uncategorized_files:
+            lines.append(f"  {f}")
+
     lines.append("")
     return "\n".join(lines)
 
@@ -252,4 +261,6 @@ def format_json(
         "findings": system.findings,
         "inspection": _build_json_inspection(inspection_results),
     }
+    if system.uncategorized_files:
+        output["uncategorized_files"] = system.uncategorized_files
     return json.dumps(output, indent=2)

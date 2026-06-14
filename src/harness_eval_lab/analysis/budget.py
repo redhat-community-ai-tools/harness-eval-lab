@@ -22,6 +22,7 @@ class BudgetReport:
 
 
 ALWAYS_LOADED_TYPES = {ComponentType.CLAUDE_MD, ComponentType.HOOKS}
+_EXCLUDED_FROM_BUDGET = {ComponentType.UNCATEGORIZED}
 
 
 def analyze_budget(setup: Setup) -> BudgetReport:
@@ -34,6 +35,8 @@ def analyze_budget(setup: Setup) -> BudgetReport:
     heaviest_tokens = 0
 
     for comp in setup.components:
+        if comp.component_type in _EXCLUDED_FROM_BUDGET:
+            continue
         type_key = comp.component_type.value
         by_type[type_key] = by_type.get(type_key, 0) + comp.token_count
         by_component.append((type_key, comp.name, comp.token_count))
