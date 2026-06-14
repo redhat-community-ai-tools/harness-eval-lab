@@ -78,24 +78,6 @@ def format_terminal(
             pct = tokens / system.budget.total_tokens * 100 if system.budget.total_tokens else 0
             lines.append(f"    {type_name:<12} {tokens:>6} tokens ({pct:.0f}%)")
 
-    if system.context_utilization.models:
-        lines.append("")
-        lines.append("Context Utilization:")
-        lines.append(f"{'─' * 60}")
-        lines.append(f"  Always-loaded: {system.context_utilization.always_loaded_tokens:,} tokens")
-        lines.append(f"  Peak (all loaded): {system.context_utilization.peak_tokens:,} tokens")
-        lines.append("")
-        lines.append(f"  {'Model':<25} {'Window':>10} {'Always':>8} {'Peak':>8} {'Left':>8}")
-        lines.append(f"  {'─' * 55}")
-        for mu in system.context_utilization.models:
-            flag = " (!)" if mu.warning else ""
-            lines.append(
-                f"  {mu.model:<25} {mu.context_window:>10,} "
-                f"{mu.always_loaded_pct:>7.1%} "
-                f"{mu.peak_load_pct:>7.1%} "
-                f"{mu.remaining_pct:>7.1%}{flag}"
-            )
-
     if system.triggers.skill_count > 0:
         lines.append("")
         lines.append("Trigger Analysis:")
@@ -149,9 +131,10 @@ def format_terminal(
         for r in inspection_results:
             grouped[r.target_type].append(r)
 
-        for type_key in _TYPE_ORDER:
-            if type_key not in grouped:
-                continue
+        all_type_keys = [k for k in _TYPE_ORDER if k in grouped]
+        all_type_keys += [k for k in grouped if k not in _TYPE_ORDER]
+
+        for type_key in all_type_keys:
             results = grouped[type_key]
             label = _TYPE_DISPLAY.get(type_key, type_key)
             lines.append("")
@@ -170,33 +153,14 @@ def format_terminal(
                         )
                     status = ", ".join(parts)
                     lines.append(f"    {r.target_name:<40} {status}")
-                    for line in _compress_findings(r.diagnostics):
-                        lines.append(f"      {line}")
+                    for cline in _compress_findings(r.diagnostics):
+                        lines.append(f"      {cline}")
 
-        for type_key in grouped:
-            if type_key not in _TYPE_ORDER:
-                results = grouped[type_key]
-                label = _TYPE_DISPLAY.get(type_key, type_key)
-                lines.append("")
-                lines.append(f"  {label} ({len(results)})")
-                lines.append(f"  {'─' * 56}")
-                for r in results:
-                    if not r.diagnostics:
-                        lines.append(f"    {r.target_name:<40} PASS")
-                    else:
-                        parts = []
-                        if r.error_count:
-                            parts.append(
-                                f"{r.error_count} error{'s' if r.error_count != 1 else ''}"
-                            )
-                        if r.warning_count:
-                            parts.append(
-                                f"{r.warning_count} warning{'s' if r.warning_count != 1 else ''}"
-                            )
-                        status = ", ".join(parts)
-                        lines.append(f"    {r.target_name:<40} {status}")
-                        for line in _compress_findings(r.diagnostics):
-                            lines.append(f"      {line}")
+                if r.rules_run:
+                    for rr in r.rules_run:
+                        icon = "+" if rr.passed else "X"
+                        short_id = _shorten_rule_id(rr.rule_id)
+                        lines.append(f"      [{icon}] {short_id}")
 
     lines.append("")
     return "\n".join(lines)
@@ -218,15 +182,23 @@ def _build_json_inspection(inspection_results: list[InspectionResult]) -> dict:
         },
     }
 
-    for type_key in _TYPE_ORDER:
-        if type_key not in grouped:
-            continue
+    all_type_keys = [k for k in _TYPE_ORDER if k in grouped]
+    all_type_keys += [k for k in grouped if k not in _TYPE_ORDER]
+
+    for type_key in all_type_keys:
         result[type_key] = [
             {
                 "name": r.target_name,
                 "status": "pass" if not r.diagnostics else "fail",
                 "errors": r.error_count,
                 "warnings": r.warning_count,
+                "rules": [
+                    {
+                        "rule": rr.rule_id,
+                        "result": "pass" if rr.passed else "fail",
+                    }
+                    for rr in r.rules_run
+                ],
                 "findings": [
                     {
                         "rule": d.rule_id,
@@ -238,26 +210,6 @@ def _build_json_inspection(inspection_results: list[InspectionResult]) -> dict:
             }
             for r in grouped[type_key]
         ]
-
-    for type_key in grouped:
-        if type_key not in _TYPE_ORDER:
-            result[type_key] = [
-                {
-                    "name": r.target_name,
-                    "status": "pass" if not r.diagnostics else "fail",
-                    "errors": r.error_count,
-                    "warnings": r.warning_count,
-                    "findings": [
-                        {
-                            "rule": d.rule_id,
-                            "severity": d.severity.value,
-                            "message": d.message,
-                        }
-                        for d in r.diagnostics
-                    ],
-                }
-                for r in grouped[type_key]
-            ]
 
     return result
 
@@ -277,21 +229,6 @@ def format_json(
             "always_loaded_ratio": round(system.budget.always_loaded_ratio, 2),
             "by_type": system.budget.by_type,
             "heaviest": system.budget.heaviest_component_name,
-        },
-        "context_utilization": {
-            "always_loaded_tokens": system.context_utilization.always_loaded_tokens,
-            "peak_tokens": system.context_utilization.peak_tokens,
-            "models": [
-                {
-                    "model": mu.model,
-                    "context_window": mu.context_window,
-                    "always_loaded_pct": round(mu.always_loaded_pct, 4),
-                    "peak_load_pct": round(mu.peak_load_pct, 4),
-                    "remaining_pct": round(mu.remaining_pct, 4),
-                    "warning": mu.warning,
-                }
-                for mu in system.context_utilization.models
-            ],
         },
         "triggers": {
             "skill_count": system.triggers.skill_count,

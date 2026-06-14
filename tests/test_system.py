@@ -151,7 +151,6 @@ class TestReportOutput:
         output = format_terminal(system, [])
         assert "Setup Assessment" in output
         assert "Token Budget" in output
-        assert "Context Utilization" in output
 
     def test_json_format(self, setup_a_path: str) -> None:
         import json
@@ -164,6 +163,4 @@ class TestReportOutput:
         output = format_json(system, [])
         parsed = json.loads(output)
         assert "budget" in parsed
-        assert "context_utilization" in parsed
-        assert "models" in parsed["context_utilization"]
         assert parsed["setup"] == "a"

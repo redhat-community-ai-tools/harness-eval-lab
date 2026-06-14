@@ -27,6 +27,7 @@ from harness_eval_lab.inspection.types import (
     Rule,
     RuleCategory,
     RuleContext,
+    RuleResult,
     Severity,
 )
 
@@ -151,9 +152,10 @@ def _run_rules(
     all_skills: list[ParsedSkill] | None = None,
     all_commands: list[ParsedCommand] | None = None,
     scan_state: dict[str, Any] | None = None,
-) -> tuple[list[Finding], int]:
-    """Run rules for a given target type. Returns (findings, suppression_count)."""
+) -> tuple[list[Finding], int, list[RuleResult]]:
+    """Run rules for a given target type. Returns (findings, suppression_count, rules_run)."""
     findings: list[Finding] = []
+    rules_run: list[RuleResult] = []
     suppression_counter = [0]
     suppressions = parse_suppressions(raw_content) if raw_content else {}
     config_rules = config_rules or {}
@@ -183,6 +185,8 @@ def _run_rules(
             continue
         severity, options = resolved
 
+        findings_before = len(findings)
+
         context = RuleContext(
             skill=dummy_skill,
             report=_make_report_fn(
@@ -205,7 +209,16 @@ def _run_rules(
         )
         rule.create(context)
 
-    return findings, suppression_counter[0]
+        passed = len(findings) == findings_before
+        rules_run.append(
+            RuleResult(
+                rule_id=rule.meta.id,
+                description=rule.meta.description,
+                passed=passed,
+            )
+        )
+
+    return findings, suppression_counter[0], rules_run
 
 
 def _build_result(
@@ -215,6 +228,7 @@ def _build_result(
     target_type: str,
     diagnostics: list[Finding],
     suppression_count: int,
+    rules_run: list[RuleResult] | None = None,
 ) -> InspectionResult:
     return InspectionResult(
         target_path=target_path,
@@ -222,6 +236,7 @@ def _build_result(
         tokens=tokens,
         target_type=target_type,
         diagnostics=diagnostics,
+        rules_run=rules_run or [],
         error_count=sum(1 for d in diagnostics if d.severity == Severity.ERROR),
         warning_count=sum(1 for d in diagnostics if d.severity == Severity.WARNING),
         info_count=sum(1 for d in diagnostics if d.severity == Severity.INFO),
@@ -243,7 +258,7 @@ def lint(
         category=skill.parse_errors[0] if skill.parse_errors else "structural",
     )
 
-    rule_diags, suppression_count = _run_rules(
+    rule_diags, suppression_count, rules_run = _run_rules(
         ComponentType.SKILL,
         skill.skill_md_path,
         skill.raw_content,
@@ -261,6 +276,7 @@ def lint(
         "skill",
         diagnostics,
         suppression_count,
+        rules_run,
     )
 
 
@@ -275,7 +291,7 @@ def lint_command(
     cmd = parse_command(command_path)
     diagnostics = _parse_errors_to_findings(cmd.parse_errors, cmd.command_md_path)
 
-    rule_diags, suppression_count = _run_rules(
+    rule_diags, suppression_count, rules_run = _run_rules(
         ComponentType.COMMAND,
         cmd.command_md_path,
         cmd.raw_content,
@@ -295,6 +311,7 @@ def lint_command(
         "command",
         diagnostics,
         suppression_count,
+        rules_run,
     )
 
 
@@ -308,7 +325,7 @@ def lint_claude_md(
     claude_md = parse_claude_md(file_path)
     diagnostics = _parse_errors_to_findings(claude_md.parse_errors, file_path)
 
-    rule_diags, suppression_count = _run_rules(
+    rule_diags, suppression_count, rules_run = _run_rules(
         ComponentType.CLAUDE_MD,
         file_path,
         claude_md.raw_content,
@@ -327,6 +344,7 @@ def lint_claude_md(
         "claude_md",
         diagnostics,
         suppression_count,
+        rules_run,
     )
 
 
@@ -339,7 +357,7 @@ def lint_hooks(
     hooks = parse_hooks(settings_path)
     diagnostics = _parse_errors_to_findings(hooks.parse_errors, settings_path)
 
-    rule_diags, suppression_count = _run_rules(
+    rule_diags, suppression_count, rules_run = _run_rules(
         ComponentType.HOOKS,
         settings_path,
         hooks.raw_content,
@@ -357,6 +375,7 @@ def lint_hooks(
         "hooks",
         diagnostics,
         suppression_count,
+        rules_run,
     )
 
 
@@ -370,7 +389,7 @@ def lint_agent(
     agent = parse_agent(agent_path)
     diagnostics = _parse_errors_to_findings(agent.parse_errors, agent.agent_md_path)
 
-    rule_diags, suppression_count = _run_rules(
+    rule_diags, suppression_count, rules_run = _run_rules(
         ComponentType.AGENT,
         agent.agent_md_path,
         agent.raw_content,
@@ -389,6 +408,7 @@ def lint_agent(
         "agent",
         diagnostics,
         suppression_count,
+        rules_run,
     )
 
 

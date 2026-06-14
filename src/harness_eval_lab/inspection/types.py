@@ -166,12 +166,20 @@ class RuleContext:
 
 
 @dataclass
+class RuleResult:
+    rule_id: str
+    description: str
+    passed: bool
+
+
+@dataclass
 class InspectionResult:
     target_path: str
     target_name: str
     tokens: int
     target_type: str = "skill"
     diagnostics: list[Finding] = field(default_factory=list)
+    rules_run: list[RuleResult] = field(default_factory=list)
     error_count: int = 0
     warning_count: int = 0
     info_count: int = 0
