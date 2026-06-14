@@ -232,15 +232,12 @@ def eval_setup_security(
     user_config: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
-    from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import SECURITY
     from harness_eval_lab.inspection.engine import inspect_setup
-    from harness_eval_lab.output.report import format_json, format_terminal
 
     target = Path(path)
     setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
     results = inspect_setup(setup, SECURITY)
-    system = analyze_system(setup)
 
     skip_rules = {"security/yara-signatures", "security/cve-lookup"}
     skip_notices: list[str] = []
@@ -305,13 +302,47 @@ def eval_setup_security(
             if result.issues:
                 rubric_results.append(result)
 
-    if fmt == "json":
-        import json as json_mod
+    total_errors = sum(r.error_count for r in results)
+    total_warnings = sum(r.warning_count for r in results)
+    total_semantic = sum(len(rr.issues) for rr in rubric_results)
+    components_with_findings = [r for r in results if r.diagnostics]
+    clean_count = len(results) - len(components_with_findings)
 
-        output = json_mod.loads(format_json(system, results))
-        output["security_scan"] = True
+    if total_errors == 0 and total_warnings == 0 and total_semantic == 0:
+        risk = "SAFE"
+    elif total_errors == 0:
+        risk = "CAUTION"
+    else:
+        risk = "UNSAFE"
+
+    if fmt == "json":
+        output = {
+            "security_scan": True,
+            "setup": setup.name,
+            "risk_assessment": risk,
+            "components_scanned": len(results),
+            "errors": total_errors,
+            "warnings": total_warnings,
+            "semantic_issues": total_semantic,
+            "findings": [
+                {
+                    "component": f"{r.target_type}/{r.target_name}",
+                    "errors": r.error_count,
+                    "warnings": r.warning_count,
+                    "details": [
+                        {
+                            "rule": d.rule_id,
+                            "severity": d.severity.value,
+                            "message": d.message,
+                        }
+                        for d in r.diagnostics
+                    ],
+                }
+                for r in components_with_findings
+            ],
+        }
         if skip_notices:
-            output["skip_notices"] = skip_notices
+            output["skipped_checks"] = skip_notices
         if rubric_results:
             output["semantic_review"] = [
                 {
@@ -334,13 +365,30 @@ def eval_setup_security(
         click.echo(f"\n{'=' * 60}")
         click.echo(f"Security Audit: {setup.name}")
         click.echo(f"{'=' * 60}")
-        click.echo(format_terminal(system, results))
+        click.echo(f"Components scanned: {len(results)}")
+        click.echo(f"Risk Assessment: {risk}")
+        click.echo(f"Errors: {total_errors} | Warnings: {total_warnings}")
+        click.echo("")
 
-        if skip_notices:
-            click.echo("Skipped Checks:")
+        if components_with_findings:
+            click.echo("Security Findings:")
             click.echo(f"{'─' * 60}")
-            for notice in skip_notices:
-                click.echo(f"  [~] {notice}")
+            for r in components_with_findings:
+                parts = []
+                if r.error_count:
+                    parts.append(f"{r.error_count} error{'s' if r.error_count != 1 else ''}")
+                if r.warning_count:
+                    parts.append(f"{r.warning_count} warning{'s' if r.warning_count != 1 else ''}")
+                status = ", ".join(parts)
+                click.echo(f"  {r.target_type}/{r.target_name:<36} {status}")
+                for d in r.diagnostics:
+                    sev = "FAIL" if d.severity.value == "error" else "WARNING"
+                    short_rule = d.rule_id.split("/", 1)[-1]
+                    click.echo(f"    {sev:<8} {short_rule}: {d.message}")
+            click.echo("")
+
+        if clean_count > 0:
+            click.echo(f"{clean_count}/{len(results)} components passed all security checks.")
             click.echo("")
 
         if rubric_results:
@@ -354,22 +402,15 @@ def eval_setup_security(
                     click.echo(f"      Fix: {issue.suggestion}")
             click.echo("")
 
-        total_errors = sum(r.error_count for r in results)
-        total_warnings = sum(r.warning_count for r in results)
-        total_semantic = sum(len(rr.issues) for rr in rubric_results)
+        if skip_notices:
+            click.echo("Skipped Checks:")
+            click.echo(f"{'─' * 60}")
+            for notice in skip_notices:
+                click.echo(f"  {notice}")
+            click.echo("")
 
-        if total_errors == 0 and total_warnings == 0 and total_semantic == 0:
-            click.echo("Risk Assessment: SAFE")
-        elif total_errors == 0:
-            click.echo("Risk Assessment: CAUTION")
-        else:
-            click.echo("Risk Assessment: UNSAFE")
-        click.echo("")
-
-    if fail_on_error:
-        total_errors = sum(r.error_count for r in results)
-        if total_errors > 0:
-            raise SystemExit(1)
+    if fail_on_error and total_errors > 0:
+        raise SystemExit(1)
 
 
 @cli.command("eval-skill")

@@ -2,7 +2,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["harness-eval-lab"]
 # ///
-"""Run security-focused setup assessment and output JSON results."""
+"""Run security-focused setup assessment and output security-only JSON."""
 
 import json
 import sys
@@ -13,32 +13,64 @@ def main() -> None:
     setup_path = sys.argv[1] if len(sys.argv) > 1 else "."
     user_config = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None
 
-    from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import SECURITY
     from harness_eval_lab.core.setup import discover_setup
     from harness_eval_lab.inspection.engine import inspect_setup
-    from harness_eval_lab.output.report import format_json
 
     setup = discover_setup(
         name=Path(setup_path).name, path=setup_path, user_config_dir=user_config
     )
     results = inspect_setup(setup, SECURITY)
-    system = analyze_system(setup)
 
-    output = json.loads(format_json(system, results))
-    output["security_scan"] = True
+    skip_rules = {"security/yara-signatures", "security/cve-lookup"}
+    skip_notices: list[str] = []
+    seen_skip: set[str] = set()
 
-    skip_notices = []
     for r in results:
         for d in r.diagnostics:
-            if d.severity.value == "info" and d.rule_id in (
-                "security/yara-signatures",
-                "security/cve-lookup",
-            ):
+            if d.rule_id in skip_rules and d.severity.value == "info" and d.message not in seen_skip:
+                seen_skip.add(d.message)
                 skip_notices.append(d.message)
 
+    findings = []
+    for r in results:
+        filtered = [
+            d for d in r.diagnostics if not (d.rule_id in skip_rules and d.severity.value == "info")
+        ]
+        if filtered:
+            findings.append(
+                {
+                    "component": f"{r.target_type}/{r.target_name}",
+                    "errors": sum(1 for d in filtered if d.severity.value == "error"),
+                    "warnings": sum(1 for d in filtered if d.severity.value == "warning"),
+                    "details": [
+                        {"rule": d.rule_id, "severity": d.severity.value, "message": d.message}
+                        for d in filtered
+                    ],
+                }
+            )
+
+    total_errors = sum(f["errors"] for f in findings)
+    total_warnings = sum(f["warnings"] for f in findings)
+
+    if total_errors == 0 and total_warnings == 0:
+        risk = "SAFE"
+    elif total_errors == 0:
+        risk = "CAUTION"
+    else:
+        risk = "UNSAFE"
+
+    output = {
+        "security_scan": True,
+        "setup": setup.name,
+        "risk_assessment": risk,
+        "components_scanned": len(results),
+        "errors": total_errors,
+        "warnings": total_warnings,
+        "findings": findings,
+    }
     if skip_notices:
-        output["skip_notices"] = skip_notices
+        output["skipped_checks"] = skip_notices
 
     print(json.dumps(output, indent=2))
 
