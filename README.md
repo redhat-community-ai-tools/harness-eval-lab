@@ -77,6 +77,12 @@ Install by adding the plugin directory, then use:
 - `/eval-setup-security` - deep security audit with deterministic scan + semantic review
 - `/eval-skill <skill-name>` - deep-evaluate one skill in context
 
+**Note on `/eval-setup-security`:** The YARA signature scanning check requires the `yara-python` package. If it is not installed, the YARA check will be skipped automatically and the report will note it was skipped. All other security checks run without extra dependencies. To enable YARA scanning, install it before running the command:
+
+```bash
+uv sync --extra security   # or: pip install yara-python
+```
+
 ## CLI Commands
 
 | Command | Description | Needs LLM? |
