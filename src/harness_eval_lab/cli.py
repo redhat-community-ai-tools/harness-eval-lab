@@ -242,14 +242,42 @@ def eval_setup_security(
     results = inspect_setup(setup, SECURITY)
     system = analyze_system(setup)
 
+    skip_rules = {"security/yara-signatures", "security/cve-lookup"}
     skip_notices: list[str] = []
+    seen_skip: set[str] = set()
     for r in results:
         for d in r.diagnostics:
             if (
-                d.rule_id in ("security/yara-signatures", "security/cve-lookup")
+                d.rule_id in skip_rules
                 and d.severity.value == "info"
+                and d.message not in seen_skip
             ):
+                seen_skip.add(d.message)
                 skip_notices.append(d.message)
+
+    from harness_eval_lab.inspection.types import InspectionResult
+
+    cleaned_results: list[InspectionResult] = []
+    for r in results:
+        filtered = [
+            d for d in r.diagnostics if not (d.rule_id in skip_rules and d.severity.value == "info")
+        ]
+        cleaned_results.append(
+            InspectionResult(
+                target_path=r.target_path,
+                target_name=r.target_name,
+                tokens=r.tokens,
+                target_type=r.target_type,
+                diagnostics=filtered,
+                rules_run=r.rules_run,
+                error_count=sum(1 for d in filtered if d.severity.value == "error"),
+                warning_count=sum(1 for d in filtered if d.severity.value == "warning"),
+                info_count=sum(1 for d in filtered if d.severity.value == "info"),
+                fixable_count=sum(1 for d in filtered if d.fix is not None),
+                suppression_count=r.suppression_count,
+            )
+        )
+    results = cleaned_results
 
     rubric_results = []
     if review:
