@@ -40,7 +40,7 @@ def cli() -> None:
 def eval_setup_lint(
     path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool, user_config: str | None
 ) -> None:
-    """Layer 1: 26 rules + system analysis. No LLM, deterministic, fast."""
+    """Layer 1: 39 rules + system analysis. No LLM, deterministic, fast."""
     from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import PRESETS
     from harness_eval_lab.inspection.engine import inspect_setup
@@ -199,6 +199,146 @@ def eval_setup_review(
         total_issues = sum(len(rr.issues) for rr in rubric_results)
         click.echo(f"{len(rubric_results)} components reviewed, {total_issues} rubric issues found")
         click.echo("")
+
+
+@cli.command("eval-setup-security")
+@click.argument("path", type=click.Path(exists=True))
+@click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
+@click.option(
+    "--review",
+    is_flag=True,
+    help="Also run LLM-based semantic security review (requires API key).",
+)
+@click.option("--provider", type=click.Choice(["gemini", "anthropic"]), default="gemini")
+@click.option("--model", default=None, help="LLM model for semantic security review.")
+@click.option(
+    "--fail-on-error",
+    is_flag=True,
+    help="Exit with code 1 if any errors found.",
+)
+@click.option(
+    "--user-config",
+    type=click.Path(),
+    default=None,
+    help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
+)
+def eval_setup_security(
+    path: str,
+    fmt: str,
+    review: bool,
+    provider: str,
+    model: str | None,
+    fail_on_error: bool,
+    user_config: str | None,
+) -> None:
+    """Deep security audit: all deterministic security rules + optional LLM review."""
+    from harness_eval_lab.analysis.system import analyze_system
+    from harness_eval_lab.config.presets import SECURITY
+    from harness_eval_lab.inspection.engine import inspect_setup
+    from harness_eval_lab.output.report import format_json, format_terminal
+
+    target = Path(path)
+    setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
+    results = inspect_setup(setup, SECURITY)
+    system = analyze_system(setup)
+
+    skip_notices: list[str] = []
+    for r in results:
+        for d in r.diagnostics:
+            if d.rule_id in ("security/yara-signatures", "security/cve-lookup") and d.severity.value == "info":
+                skip_notices.append(d.message)
+
+    rubric_results = []
+    if review:
+        from harness_eval_lab.rubric.dimensions import SECURITY_REVIEW_CATEGORIES
+        from harness_eval_lab.rubric.scorer import RubricChecker
+        from harness_eval_lab.utils.llm import create_client
+
+        client = create_client(provider, model)
+        checker = RubricChecker(client)
+
+        context_parts = [
+            f"[{c.component_type.value}] {c.name}: {c.content[:200]}" for c in setup.components
+        ]
+        context_text = "\n".join(context_parts)
+
+        for comp in setup.components:
+            click.echo(f"  Security review: {comp.component_type.value}/{comp.name}...", err=True)
+            result = checker.check(
+                component_type=comp.component_type.value,
+                component_name=comp.name,
+                content=comp.content,
+                context=context_text,
+                category_overrides=SECURITY_REVIEW_CATEGORIES,
+            )
+            if result.issues:
+                rubric_results.append(result)
+
+    if fmt == "json":
+        import json as json_mod
+
+        output = json_mod.loads(format_json(system, results))
+        output["security_scan"] = True
+        if skip_notices:
+            output["skip_notices"] = skip_notices
+        if rubric_results:
+            output["semantic_review"] = [
+                {
+                    "component": rr.component_name,
+                    "type": rr.component_type,
+                    "issues": [
+                        {
+                            "category": i.category,
+                            "description": i.description,
+                            "evidence": i.evidence,
+                            "suggestion": i.suggestion,
+                        }
+                        for i in rr.issues
+                    ],
+                }
+                for rr in rubric_results
+            ]
+        click.echo(json_mod.dumps(output, indent=2))
+    else:
+        click.echo(f"\n{'=' * 60}")
+        click.echo(f"Security Audit: {setup.name}")
+        click.echo(f"{'=' * 60}")
+        click.echo(format_terminal(system, results))
+
+        if skip_notices:
+            click.echo("Skipped Checks:")
+            click.echo(f"{'─' * 60}")
+            for notice in skip_notices:
+                click.echo(f"  [~] {notice}")
+            click.echo("")
+
+        if rubric_results:
+            click.echo("Semantic Security Review:")
+            click.echo(f"{'─' * 60}")
+            for rr in rubric_results:
+                click.echo(f"  {rr.component_type}/{rr.component_name}:")
+                for issue in rr.issues:
+                    click.echo(f"    [{issue.category}] {issue.description}")
+                    click.echo(f"      Evidence: {issue.evidence}")
+                    click.echo(f"      Fix: {issue.suggestion}")
+            click.echo("")
+
+        total_errors = sum(r.error_count for r in results)
+        total_warnings = sum(r.warning_count for r in results)
+        total_semantic = sum(len(rr.issues) for rr in rubric_results)
+
+        if total_errors == 0 and total_warnings == 0 and total_semantic == 0:
+            click.echo("Risk Assessment: SAFE")
+        elif total_errors == 0:
+            click.echo("Risk Assessment: CAUTION")
+        else:
+            click.echo("Risk Assessment: UNSAFE")
+        click.echo("")
+
+    if fail_on_error:
+        total_errors = sum(r.error_count for r in results)
+        if total_errors > 0:
+            raise SystemExit(1)
 
 
 @cli.command("eval-skill")
