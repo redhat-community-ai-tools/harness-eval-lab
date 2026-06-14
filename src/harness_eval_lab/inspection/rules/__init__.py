@@ -71,7 +71,11 @@ def register_all_rules() -> None:
 
     # Hooks rules
     from harness_eval_lab.inspection.rules.hooks.valid_structure import HooksValidStructure
+    from harness_eval_lab.inspection.rules.security.ast_behavioral import AstBehavioral
+    from harness_eval_lab.inspection.rules.security.cve_lookup import CveLookup
     from harness_eval_lab.inspection.rules.security.data_exfiltration import DataExfiltration
+    from harness_eval_lab.inspection.rules.security.mcp_least_privilege import McpLeastPrivilege
+    from harness_eval_lab.inspection.rules.security.mcp_tool_poisoning import McpToolPoisoning
     from harness_eval_lab.inspection.rules.security.no_credential_access import NoCredentialAccess
     from harness_eval_lab.inspection.rules.security.no_prompt_injection import NoPromptInjection
     from harness_eval_lab.inspection.rules.security.obfuscation_detection import (
@@ -80,6 +84,8 @@ def register_all_rules() -> None:
     from harness_eval_lab.inspection.rules.security.reverse_shell_detection import (
         ReverseShellDetection,
     )
+    from harness_eval_lab.inspection.rules.security.taint_tracking import TaintTracking
+    from harness_eval_lab.inspection.rules.security.yara_scan import YaraScan
     from harness_eval_lab.inspection.rules.structural.skill_md_exists import SkillMdExists
 
     for rule_cls in [
@@ -118,5 +124,11 @@ def register_all_rules() -> None:
         AgentReverseShellDetection,
         AgentObfuscationDetection,
         AgentDataExfiltration,
+        AstBehavioral,
+        TaintTracking,
+        McpLeastPrivilege,
+        McpToolPoisoning,
+        YaraScan,
+        CveLookup,
     ]:
         register_rule(rule_cls())

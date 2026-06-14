@@ -13,6 +13,10 @@ RECOMMENDED: dict[str, str] = {
     "security/reverse-shell": "error",
     "security/obfuscation": "error",
     "security/data-exfiltration": "error",
+    "security/ast-behavioral": "warning",
+    "security/taint-flow": "warning",
+    "security/mcp-least-privilege": "warning",
+    "security/mcp-tool-poisoning": "warning",
     # Command rules
     "command/no-prompt-injection": "error",
     "command/no-credential-access": "error",
@@ -41,6 +45,10 @@ STRICT: dict[str, str] = {
     "claude-md/exists": "error",
     "agent/disallowed-tools-parseable": "error",
     "agent/constraint-body-match": "error",
+    "security/ast-behavioral": "error",
+    "security/taint-flow": "error",
+    "security/mcp-least-privilege": "error",
+    "security/mcp-tool-poisoning": "error",
 }
 
 SECURITY: dict[str, str] = {
@@ -54,6 +62,14 @@ SECURITY: dict[str, str] = {
     "security/no-prompt-injection": "error",
     "security/no-credential-access": "error",
     "security/reverse-shell": "error",
+    "security/obfuscation": "error",
+    "security/data-exfiltration": "error",
+    "security/ast-behavioral": "error",
+    "security/taint-flow": "error",
+    "security/mcp-least-privilege": "error",
+    "security/mcp-tool-poisoning": "error",
+    "security/yara-signatures": "error",
+    "security/cve-lookup": "error",
     # Command security rules
     "command/no-prompt-injection": "error",
     "command/no-credential-access": "error",
@@ -92,6 +108,8 @@ PRE_WORKFLOW: dict[str, str] = {
     "command/no-prompt-injection": "error",
     "command/no-credential-access": "error",
     "command/reverse-shell": "error",
+    "security/ast-behavioral": "error",
+    "security/taint-flow": "error",
     "claude-md/exists": "off",
     "claude-md/skill-duplication": "off",
     "claude-md/generic-advice": "off",
