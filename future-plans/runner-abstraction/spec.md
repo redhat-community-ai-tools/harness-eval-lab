@@ -152,7 +152,7 @@ Alternatively, keep `CLAUDE_MD` as-is and treat it as "the component type for sy
 
 2. **Cursor `.mdc` frontmatter:** Cursor rule files use a frontmatter format with fields like `alwaysApply`, `globs`, and `description`. Should discoverers parse tool-specific frontmatter into a common schema, or pass it through as-is in the existing `frontmatter: dict` field on `ParsedComponent`?
 
-3. **Cross-tool redundancy detection:** If a project has both `CLAUDE.md` and `.github/copilot-instructions.md` with overlapping content, should the tool flag cross-tool redundancy? This could be valuable (catch copy-paste drift) but adds complexity to the analysis layer.
+3. **Cross-tool redundancy detection:** If a project has both `CLAUDE.md` and `.github/copilot-instructions.md` with overlapping content, should the tool flag cross-tool redundancy? This could be valuable (catch copy-paste drift) but adds complexity to the analysis pipeline.
 
 4. **Tool-specific rules:** Some rules only make sense for certain tools (e.g., Claude Code hook validation). Should rules declare which `tool_id` values they apply to, or should they operate on `ComponentType` alone and let the discoverer handle the mapping?
 

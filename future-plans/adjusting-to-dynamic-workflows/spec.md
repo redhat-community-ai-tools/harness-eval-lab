@@ -47,7 +47,7 @@ Four directions for adapting harness-eval-lab, ranging from near-term to ambitio
 ## Requirements
 
 1. Discover when a dynamic workflow is about to run (hook, API, or file watcher).
-2. Pre-flight check must reuse existing Layer 1 rules without duplication.
+2. Pre-flight check must reuse existing lint rules without duplication.
 3. Skills quality gate must validate individual skills against the existing rubric.
 4. Workflow evaluation (if built) must handle non-deterministic outputs gracefully.
 5. Impact measurement must integrate with the impact-dimension plan.

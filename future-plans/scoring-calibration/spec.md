@@ -5,7 +5,7 @@
 
 ## Problem
 
-When the plugin's Layer 2 (Claude scoring components on rubric dimensions) is implemented, users will see scores like "Redundancy: 4/5" or "Trigger quality: 2/5." If those scores don't match reality, users lose trust and ignore them.
+When the plugin's review scoring (Claude scoring components on rubric dimensions) is implemented, users will see scores like "Redundancy: 4/5" or "Trigger quality: 2/5." If those scores don't match reality, users lose trust and ignore them.
 
 Calibration means: when the tool says 4/5, a human looking at the same component would also say "that's good." When it says 2/5, a human would agree "that needs work."
 
@@ -15,7 +15,7 @@ Uncalibrated scores have two failure modes. Too generous: everything gets 4-5/5,
 
 A three-phase approach, starting cheap and increasing rigor over time.
 
-**Phase 1: Anchor examples.** When writing the Layer 2 rubric files (`rubric/skills-rubric.md`, etc.), include a concrete example for score levels 1, 3, and 5 for each dimension. These are short inline examples, not separate files. This directly improves scoring consistency by giving Claude examples to compare against.
+**Phase 1: Anchor examples.** When writing the review rubric files (`rubric/skills-rubric.md`, etc.), include a concrete example for score levels 1, 3, and 5 for each dimension. These are short inline examples, not separate files. This directly improves scoring consistency by giving Claude examples to compare against.
 
 **Phase 2: Ranking validation.** Create a `calibration/` directory in the repo with 5-10 sample setups (anonymized or synthetic) as fixture directories. Include a `rankings.json` with human-assigned rankings per dimension. Add a test that runs the tool on each setup and checks ranking correlation. Run this test whenever rubric descriptions change.
 
@@ -52,7 +52,7 @@ A three-phase approach, starting cheap and increasing rigor over time.
 
 ## Success criteria
 
-- Anchor examples are present for all rubric dimensions before Layer 2 launches.
+- Anchor examples are present for all rubric dimensions before review scoring launches.
 - Ranking validation test passes with Spearman correlation > 0.7 on the calibration set.
 - Score distribution across real evaluations follows a roughly normal shape (not clustered at extremes).
 - Rubric changes that break ranking correlation are caught by CI.

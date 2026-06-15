@@ -9,7 +9,7 @@ The tool can tell you a setup is well-structured, secure, and efficient. But non
 
 A setup can pass every rule, have perfect token distribution, and zero security issues, while every skill contains generic advice Claude already follows by default. The setup looks great on paper but does nothing. We need a way to measure whether the setup changes the agent's behavior for the better.
 
-This is the hardest problem in the project and the most valuable to solve. Layer 1 checks structure and syntax. Layer 2 gets closer with qualitative review. But the only way to know for sure is to test it empirically.
+This is the hardest problem in the project and the most valuable to solve. Lint checks structure and syntax. Review gets closer with qualitative evaluation. But the only way to know for sure is to test it empirically.
 
 ## Proposal
 
@@ -19,7 +19,7 @@ Use A/B probe tasks as the primary approach, with activation rate as a cheap pre
 
 **Skill activation rate (pre-screen):** For each skill, generate a prompt that should activate it and check if it does. Skills that never activate have zero impact regardless of content quality. Use this to skip expensive A/B tests on dead skills.
 
-**Differential analysis (complement):** Remove one component at a time and observe the effect on Layer 1 + Layer 2 scores. Good for identifying truly dead components but insufficient alone.
+**Differential analysis (complement):** Remove one component at a time and observe the effect on lint + review scores. Good for identifying truly dead components but insufficient alone.
 
 **Where it lives:** `src/harness_eval_lab/experiment/` (new package)
 

@@ -10,7 +10,7 @@ harness-eval-lab has 22 security rules covering prompt injection, credential exp
 Without benchmarks:
 - New rules ship without validated detection rates.
 - Regressions in pattern matching go unnoticed.
-- Users can't assess whether the security layer is thorough enough for their threat model.
+- Users can't assess whether the security checks are thorough enough for their threat model.
 - Claims about security coverage ("17 injection patterns") are feature-counts, not performance evidence.
 
 ## Proposal
@@ -101,7 +101,7 @@ benign/documentation/security_guide.md:
 
 ### Story 3: Demonstrate security coverage to adopters
 
-**Given** a potential user wants to know how thorough the security layer is
+**Given** a potential user wants to know how thorough the security scanning is
 **When** they check the benchmark report in the repository
 **Then** they see concrete detection rates per attack category, not just feature counts.
 
@@ -133,8 +133,8 @@ benign/documentation/security_guide.md:
 
 1. **Corpus sourcing:** Should malicious samples be real-world (scraped from public incidents) or synthetic (LLM-generated)? Real-world samples are more credible but harder to collect. A mix is likely best.
 
-2. **Evasion scoring:** Should evasion resistance be a separate metric or folded into per-rule TPR? Evasion variants test the same rules but with obfuscation layers, so they could be tracked as a sub-category.
+2. **Evasion scoring:** Should evasion resistance be a separate metric or folded into per-rule TPR? Evasion variants test the same rules but with obfuscation techniques, so they could be tracked as a sub-category.
 
-3. **Semantic review benchmarking:** The LLM-based semantic security review (layer 3) is non-deterministic. Should it be benchmarked separately with averaged results, or excluded from the deterministic benchmark suite?
+3. **Semantic review benchmarking:** The LLM-based semantic security review is non-deterministic. Should it be benchmarked separately with averaged results, or excluded from the deterministic benchmark suite?
 
 4. **Comparison with other tools:** Should the benchmark include runs of other security scanners (Semgrep, CodeQL) against the same corpus for comparison? This would be valuable for positioning but adds maintenance burden.

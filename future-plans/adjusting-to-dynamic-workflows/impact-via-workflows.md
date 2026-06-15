@@ -55,7 +55,7 @@ Workflow: measure-impact
 | What it measures | Task completion quality | Whether skills trigger | Effect on other dimensions |
 | Cost | High (9+ LLM calls) | Low (1 call per skill) | Low (rerun existing analysis) |
 | Accuracy | High (direct measurement) | Low (activation != help) | Medium (indirect) |
-| Requires | Workflow runtime | Skill trigger mechanism | Existing Layer 1 |
+| Requires | Workflow runtime | Skill trigger mechanism | Existing lint rules |
 | Determinism | Low | Medium | High |
 
 ## How to build it

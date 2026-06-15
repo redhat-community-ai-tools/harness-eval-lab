@@ -49,19 +49,19 @@ After a workflow completes, analyze its results: how many agents failed? How lon
 
 ### Approach 3: LLM-based review
 
-Send the workflow script to Claude and ask it to evaluate the orchestration quality. Similar to how Layer 2 evaluates skill quality.
+Send the workflow script to Claude and ask it to evaluate the orchestration quality. Similar to how eval-setup-review evaluates skill quality.
 
 **Trade-offs:**
 - Can judge semantic quality (are the prompts specific enough for this task?)
 - Non-deterministic
 - Costs money per evaluation
-- Could be part of the plugin's Layer 2 rather than a new Layer 1 rule category
+- Could be part of the plugin's review rather than a new lint rule category
 
 ## Recommended direction
 
 Start with **Approach 1 (static analysis)** for the mechanical checks (schema usage, error handling, fan-out count). These are the easiest to build and the most reliable.
 
-Add **Approach 3 (LLM review)** as part of the plugin's Layer 2 protocol: after running a workflow, Claude reviews the script for orchestration quality.
+Add **Approach 3 (LLM review)** as part of the plugin's review protocol: after running a workflow, Claude reviews the script for orchestration quality.
 
 **Approach 2** is valuable but depends on Claude Code exposing workflow traces, which is outside this tool's control.
 
