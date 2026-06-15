@@ -54,6 +54,9 @@ def register_all_rules() -> None:
     from harness_eval_lab.inspection.rules.commands.obfuscation_detection import (
         CommandObfuscationDetection,
     )
+    from harness_eval_lab.inspection.rules.commands.references_nonexistent_skill import (
+        CommandReferencesNonexistentSkill,
+    )
     from harness_eval_lab.inspection.rules.commands.reverse_shell_detection import (
         CommandReverseShellDetection,
     )
@@ -61,6 +64,7 @@ def register_all_rules() -> None:
     from harness_eval_lab.inspection.rules.commands.shadows_builtin import CommandShadowsBuiltin
     from harness_eval_lab.inspection.rules.commands.skill_overlap import CommandSkillOverlap
     from harness_eval_lab.inspection.rules.content.broken_references import BrokenReferences
+    from harness_eval_lab.inspection.rules.content.circular_references import CircularReferences
     from harness_eval_lab.inspection.rules.content.duplicate_detection import DuplicateDetection
     from harness_eval_lab.inspection.rules.content.token_budget import TokenBudget
     from harness_eval_lab.inspection.rules.frontmatter.description_quality import DescriptionQuality
@@ -95,6 +99,7 @@ def register_all_rules() -> None:
         FormatValid,
         TokenBudget,
         BrokenReferences,
+        CircularReferences,
         DuplicateDetection,
         NoPromptInjection,
         NoCredentialAccess,
@@ -111,6 +116,7 @@ def register_all_rules() -> None:
         CommandSkillOverlap,
         CommandShadowsBuiltin,
         CommandDuplicateDetection,
+        CommandReferencesNonexistentSkill,
         ClaudeMdExists,
         ClaudeMdSkillDuplication,
         ClaudeMdGenericAdvice,

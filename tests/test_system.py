@@ -1,4 +1,4 @@
-"""Tests for system-level analysis (Layer 3)."""
+"""Tests for system-level analysis."""
 
 from __future__ import annotations
 

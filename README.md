@@ -1,5 +1,10 @@
 # harness-eval-lab
 
+[![CI](https://github.com/redhat-community-ai-tools/harness-eval-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/redhat-community-ai-tools/harness-eval-lab/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-73%25-yellow)](https://github.com/redhat-community-ai-tools/harness-eval-lab)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
+
 Evaluate AI agent setups for best practices, redundancy, security, and cross-component issues.
 
 ## What it does
@@ -14,7 +19,7 @@ It checks whether each component follows Claude Code best practices, whether com
  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
  │ eval-setup-lint │  │ eval-setup-     │  │ eval-setup-     │  │ eval-skill      │
  │                 │  │ review          │  │ security        │  │                 │
- │ 39 rules        │  │ per-component   │  │ all security    │  │ deep-dive on    │
+ │ 43 rules        │  │ per-component   │  │ all security    │  │ deep-dive on    │
  │ system analysis │  │ rubrics         │  │ rules           │  │ one skill       │
  │ token budget    │  │ 21 cross-type   │  │ AST + taint     │  │ lint + rubric   │
  │ trigger overlap │  │ checks          │  │ YARA + CVE      │  │ + contextual    │
@@ -102,21 +107,21 @@ pip install yara-python
 
 | Skill | Description | Needs LLM? |
 |-------|-------------|------------|
-| `/eval-setup-lint` | 39 rules, system analysis. Fast, CI-suitable. | No |
+| `/eval-setup-lint` | 43 rules, system analysis. Fast, CI-suitable. | No |
 | `/eval-setup-review` | Per-component rubrics, 21 cross-type checks, KEEP/REVIEW/REMOVE verdicts. | Yes (Claude in-session) |
 | `/eval-setup-security` | Deterministic security scan + semantic security review with 4-check checklist. | Yes (Claude in-session) |
 | `/eval-skill` | Deep-evaluate one skill against rubric + contextual analysis. | Yes (Claude in-session) |
 
-## Inspection Rules (39)
+## Inspection Rules (43)
 
 | Category | Rules | What they check |
 |----------|-------|-----------------|
 | Structural | 1 | SKILL.md exists |
 | Frontmatter | 3 | Description required/quality (POV, use-case, length), format valid |
-| Content | 3 | Duplicate detection (TF-IDF), broken references, token budget |
+| Content | 4 | Duplicate detection (TF-IDF), broken references, circular references, token budget |
 | Security | 9 | Credential access, prompt injection (17 patterns), data exfiltration, obfuscation, reverse shells, AST behavioral analysis, taint tracking, MCP least-privilege, MCP tool poisoning |
 | Security (opt-in) | 2 | YARA signature scanning, CVE lookups via OSV.dev (only in `eval-setup-security`) |
-| Commands | 7 | Description, script exists, duplicates, credentials, injection, skill overlap, shadows built-in |
+| Commands | 8 | Description, script exists, duplicates, credentials, injection, skill overlap, shadows built-in, references nonexistent skill |
 | CLAUDE.md | 3 | Exists, skill duplication, generic advice detection |
 | Hooks | 1 | Structure validation, dangerous patterns |
 | Agents | 9 | Description, skills exist, tool format, constraint matching, credentials, injection, exfiltration, obfuscation, reverse shells |
@@ -143,6 +148,8 @@ Every plan doc has a **Status** at the top:
 | [runner-abstraction](future-plans/runner-abstraction/) | Evaluating setups for other agent tools (Cursor, Copilot, Windsurf) |
 | [impact-dimension](future-plans/impact-dimension/) | Measuring whether a setup actually helps the agent (A/B testing) |
 | [scoring-calibration](future-plans/scoring-calibration/) | Validating review accuracy against human judgment |
+| [sarif-output](future-plans/sarif-output/) | SARIF output format for GitHub code scanning (inline PR annotations, Security tab alerts) |
+| [security-benchmarks](future-plans/security-benchmarks/) | Benchmarking security rules against known-malicious and benign setups (TPR/FPR measurement) |
 | [setup-recommend](future-plans/setup-recommend/) | Recommending missing components based on project stack profiling |
 
 ## Contributing

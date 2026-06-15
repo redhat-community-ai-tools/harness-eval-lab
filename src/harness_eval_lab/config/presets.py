@@ -7,6 +7,7 @@ RECOMMENDED: dict[str, str] = {
     "frontmatter/format-valid": "warning",
     "content/token-budget": "warning",
     "content/broken-references": "error",
+    "content/circular-references": "warning",
     "content/duplicate-detection": "warning",
     "security/no-prompt-injection": "error",
     "security/no-credential-access": "error",
@@ -23,6 +24,7 @@ RECOMMENDED: dict[str, str] = {
     "command/reverse-shell": "error",
     "command/obfuscation": "error",
     "command/data-exfiltration": "error",
+    "command/references-nonexistent-skill": "warning",
     # CLAUDE.md rules
     "claude-md/exists": "warning",
     # Agent rules
@@ -39,6 +41,8 @@ RECOMMENDED: dict[str, str] = {
 
 STRICT: dict[str, str] = {
     **RECOMMENDED,
+    "content/circular-references": "error",
+    "command/references-nonexistent-skill": "error",
     "frontmatter/description-quality": "error",
     "frontmatter/format-valid": "error",
     "content/token-budget": "error",

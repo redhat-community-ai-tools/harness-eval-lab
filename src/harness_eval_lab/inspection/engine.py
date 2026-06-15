@@ -252,6 +252,8 @@ def lint(
     skill_path: str,
     config_rules: dict[str, str | list[Any]] | None = None,
     scan_state: dict[str, Any] | None = None,
+    all_skills: list[ParsedSkill] | None = None,
+    all_commands: list[ParsedCommand] | None = None,
 ) -> InspectionResult:
     """Lint a single skill directory or SKILL.md file."""
     skill = parse_skill(skill_path)
@@ -269,6 +271,8 @@ def lint(
         target=skill,
         config_rules=config_rules,
         scan_state=scan_state,
+        all_skills=all_skills,
+        all_commands=all_commands,
     )
     diagnostics.extend(rule_diags)
 
@@ -493,16 +497,53 @@ def inspect_setup(
 
     scan_state: dict[str, Any] = {}
     results: list[InspectionResult] = []
+
+    all_skills = [parse_skill(str(Path(comp.path).parent)) for comp in setup.by_type(CT.SKILL)]
+    all_commands = [
+        parse_command(
+            str(Path(comp.path).parent)
+            if Path(comp.path).is_dir() or Path(comp.path).name == "command.md"
+            else str(Path(comp.path))
+        )
+        for comp in setup.by_type(CT.COMMAND)
+    ]
+
     for comp in setup.by_type(CT.SKILL):
-        results.append(lint(str(Path(comp.path).parent), config_rules, scan_state=scan_state))
+        results.append(
+            lint(
+                str(Path(comp.path).parent),
+                config_rules,
+                scan_state=scan_state,
+                all_skills=all_skills,
+                all_commands=all_commands,
+            )
+        )
     for comp in setup.by_type(CT.COMMAND):
         cmd_path = Path(comp.path)
         if cmd_path.is_file() and cmd_path.name != "command.md":
-            results.append(lint_command(str(cmd_path), config_rules, scan_state=scan_state))
+            results.append(
+                lint_command(
+                    str(cmd_path),
+                    config_rules,
+                    all_skills=all_skills,
+                    all_commands=all_commands,
+                    scan_state=scan_state,
+                )
+            )
         else:
-            results.append(lint_command(str(cmd_path.parent), config_rules, scan_state=scan_state))
+            results.append(
+                lint_command(
+                    str(cmd_path.parent),
+                    config_rules,
+                    all_skills=all_skills,
+                    all_commands=all_commands,
+                    scan_state=scan_state,
+                )
+            )
     for comp in setup.by_type(CT.CLAUDE_MD):
-        results.append(lint_claude_md(comp.path, config_rules, scan_state=scan_state))
+        results.append(
+            lint_claude_md(comp.path, config_rules, all_skills=all_skills, scan_state=scan_state)
+        )
     for comp in setup.by_type(CT.HOOKS):
         results.append(lint_hooks(comp.path, config_rules, scan_state=scan_state))
     for comp in setup.by_type(CT.AGENT):

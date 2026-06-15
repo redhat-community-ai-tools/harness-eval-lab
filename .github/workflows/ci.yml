@@ -66,7 +66,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run tests with coverage
-        run: uv run pytest -v --cov=src --cov-report=term-missing
+        run: uv run pytest -v --cov=src --cov-report=term-missing --cov-fail-under=70
 
   dogfood:
     runs-on: ubuntu-latest

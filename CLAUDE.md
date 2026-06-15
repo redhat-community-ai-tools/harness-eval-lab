@@ -13,6 +13,12 @@ AI agent setup evaluation tool. See [`README.md`](README.md) for usage, features
 - See [`how-to-contribute.md`](how-to-contribute.md) for adding rules, plans, and PRs
 - See [`CHANGELOG.md`](CHANGELOG.md) for release history
 
+## Changelog
+
+Every PR that adds a feature, fixes a bug, or changes behavior must include a CHANGELOG.md entry under `[Unreleased]`. Add it in the appropriate subsection (Added, Changed, Fixed, Removed). One line per change.
+
+To cut a release: `uv run scripts/release.py minor` (or `patch`/`major`). This moves unreleased entries to a dated version, bumps pyproject.toml, commits, and tags.
+
 ## Before pushing
 
 The CI runs 4 jobs: lint, typecheck, test, dogfood. All must pass. Run this before pushing:
@@ -29,7 +35,7 @@ The most common CI failure is forgetting `ruff format`. The `ruff check` (lint r
   - `cli.py` - Click CLI (4 commands: eval-setup-lint, eval-setup-review, eval-setup-security, eval-skill)
   - `config/` - rule presets (recommended/strict/security/pre-workflow)
   - `core/` - setup discovery, fingerprinting, component types
-  - `inspection/` - static analysis: parsers, lint engine, 39 rules, suppression, auto-fix
+  - `inspection/` - static analysis: parsers, lint engine, 43 rules, suppression, auto-fix
   - `rubric/` - LLM-based issue detection; prompts in `rubric/prompts/`
   - `analysis/` - system-level analysis (budget, triggers, dependencies, context utilization)
   - `output/` - report generation (terminal + JSON)
