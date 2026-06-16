@@ -16,10 +16,10 @@ Ask the user: print the report in conversation, or write to a file?
 ## Step 2: Run Deterministic Security Scan
 
 ```bash
-harness-eval-lab eval-setup-security .
+setup-eval setup-eval-security .
 ```
 
-If `harness-eval-lab` is not installed, try `pip install harness-eval-lab` first.
+If `setup-eval` is not installed, try `pip install setup-eval` first.
 
 Read the output. Note which checks were skipped and why.
 

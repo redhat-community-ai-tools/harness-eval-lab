@@ -2,7 +2,7 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Install harness-eval-lab dependencies into an isolated venv.
+"""Install setup-eval dependencies into an isolated venv.
 
 Creates .harness-venv/ in the plugin data directory (if provided as argv[1])
 or at the project root. Installs the core dependencies from pyproject.toml.
@@ -67,7 +67,7 @@ def main():
     venv_python = _find_venv_python(venv_dir)
     if not venv_python or not _all_importable(venv_python, DEPS):
         print(
-            "harness-eval-lab: deps installed but some imports failed",
+            "setup-eval: deps installed but some imports failed",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -96,7 +96,7 @@ def _ensure_venv(venv_dir):
 
     uv = shutil.which("uv")
     if uv:
-        print(f"harness-eval-lab: creating venv with uv: {venv_dir}")
+        print(f"setup-eval: creating venv with uv: {venv_dir}")
         subprocess.run(
             [uv, "venv", str(venv_dir), "--seed", "--python", sys.executable],
             check=True,
@@ -110,7 +110,7 @@ def _ensure_venv(venv_dir):
             if not link.exists():
                 link.symlink_to(venv_py.name)
     else:
-        print(f"harness-eval-lab: creating venv: {venv_dir}")
+        print(f"setup-eval: creating venv: {venv_dir}")
         subprocess.run(
             [sys.executable, "-m", "venv", str(venv_dir)],
             check=True,
@@ -126,13 +126,13 @@ def _install_deps(venv_dir, specs):
 
     venv_python = _find_venv_python(venv_dir)
     if not venv_python:
-        print("harness-eval-lab: no python found in venv", file=sys.stderr)
+        print("setup-eval: no python found in venv", file=sys.stderr)
         sys.exit(1)
 
     uv = shutil.which("uv")
     venv_pip = venv_dir / "bin" / "pip"
 
-    print(f"harness-eval-lab: installing {', '.join(specs)}")
+    print(f"setup-eval: installing {', '.join(specs)}")
 
     if uv:
         result = subprocess.run(
@@ -154,7 +154,7 @@ def _install_deps(venv_dir, specs):
         )
 
     if result.returncode != 0:
-        print(f"harness-eval-lab: install failed: {result.stderr}", file=sys.stderr)
+        print(f"setup-eval: install failed: {result.stderr}", file=sys.stderr)
         sys.exit(1)
 
 

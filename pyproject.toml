@@ -1,6 +1,6 @@
 [project]
-name = "harness-eval-lab"
-version = "3.0.0"
+name = "setup-eval"
+version = "3.1.0"
 description = "Evaluate and compare AI agent setups through experiments, inspections, and rubric scoring."
 readme = "README.md"
 license = "Apache-2.0"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-harness-eval-lab = "harness_eval_lab.cli:cli"
+setup-eval = "harness_eval_lab.cli:cli"
 
 [project.optional-dependencies]
 llm = [

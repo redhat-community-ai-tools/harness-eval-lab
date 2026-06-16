@@ -1,5 +1,5 @@
 ---
-name: eval-setup-security
+name: setup-eval-security
 description: Deep security audit of the agent setup. Runs all deterministic security rules (prompt injection, credential access, data exfiltration, obfuscation, reverse shells, AST behavioral analysis, taint tracking, MCP permission analysis, tool poisoning, YARA signatures, CVE lookups) plus LLM-based semantic security review. Use when the user asks about security, safety, wants to audit their setup, or needs a pre-deployment security check.
 allowed-tools:
   - Bash
@@ -32,13 +32,13 @@ Wait for their answer before proceeding.
 Determine the setup path. If the user doesn't specify one, use the current working directory.
 
 ```bash
-uv run python skills/eval-setup-security/scripts/run_security_scan.py <setup-path>
+uv run python skills/setup-eval-security/scripts/run_security_scan.py <setup-path>
 ```
 
 If the user has a `~/.claude/` directory, pass it as the second argument:
 
 ```bash
-uv run python skills/eval-setup-security/scripts/run_security_scan.py <setup-path> ~/.claude
+uv run python skills/setup-eval-security/scripts/run_security_scan.py <setup-path> ~/.claude
 ```
 
 Read the JSON output. Note which checks were skipped and why.

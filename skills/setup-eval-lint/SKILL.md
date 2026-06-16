@@ -1,5 +1,5 @@
 ---
-name: eval-setup-lint
+name: setup-eval-lint
 description: Run deterministic static analysis on the full agent setup (CLAUDE.md, skills, commands, hooks, agents, MCP configs). 39 rules + system-level analysis (token budget, trigger overlaps, dependencies, context utilization). No LLM. Use when the user wants a fast lint check, CI gate, or structural health report.
 allowed-tools:
   - Bash
@@ -12,7 +12,7 @@ Run 39 deterministic rules + system-level analysis on the user's agent setup. No
 
 ## Hard Rules
 
-1. **This skill does NOT read files qualitatively.** It does NOT apply rubrics. It does NOT run cross-type checks. For that, use `/eval-setup-review`.
+1. **This skill does NOT read files qualitatively.** It does NOT apply rubrics. It does NOT run cross-type checks. For that, use `/setup-eval-review`.
 2. **Present the data, don't judge.** Report findings as-is. Don't add qualitative commentary.
 3. **If everything passes, say so clearly.** Don't manufacture problems.
 
@@ -31,13 +31,13 @@ Wait for their answer before proceeding.
 Determine the setup path. If the user doesn't specify one, use the current working directory.
 
 ```bash
-uv run python skills/eval-setup-lint/scripts/run_assessment.py <setup-path> recommended
+uv run python skills/setup-eval-lint/scripts/run_assessment.py <setup-path> recommended
 ```
 
 If the user has a `~/.claude/` directory, pass it as the third argument for user-level config discovery:
 
 ```bash
-uv run python skills/eval-setup-lint/scripts/run_assessment.py <setup-path> recommended ~/.claude
+uv run python skills/setup-eval-lint/scripts/run_assessment.py <setup-path> recommended ~/.claude
 ```
 
 Read the JSON output.
@@ -58,4 +58,4 @@ Record the timestamp of your first tool call in Step 2 and compute the exact dif
 
 **If the user chose terminal:** print the report in the conversation.
 
-**If the user chose file:** write the report as markdown to the path they specified (or suggest `eval-setup-lint-report.md` in the current directory). Tell them the file path when done.
+**If the user chose file:** write the report as markdown to the path they specified (or suggest `setup-eval-lint-report.md` in the current directory). Tell them the file path when done.

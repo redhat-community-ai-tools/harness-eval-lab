@@ -4,10 +4,10 @@ description: "Deep security audit of the agent setup. Deterministic security rul
 
 # Eval Setup Security
 
-Use the Skill tool to invoke `eval-setup-security` explicitly.
+Use the Skill tool to invoke `setup-eval-security` explicitly.
 
 Pass through any arguments from $ARGUMENTS (e.g., a specific path to evaluate).
 
 If the Skill tool is not available or the skill is not found, tell the user:
-- Check that `skills/eval-setup-security/SKILL.md` exists in the workspace
-- If not, reinstall the harness-eval-lab plugin
+- Check that `skills/setup-eval-security/SKILL.md` exists in the workspace
+- If not, reinstall the setup-eval plugin

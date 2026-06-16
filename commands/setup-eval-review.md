@@ -4,10 +4,10 @@ description: "Full qualitative review of the agent setup. Per-component rubrics,
 
 # Eval Setup Review
 
-Use the Skill tool to invoke `eval-setup-review` explicitly.
+Use the Skill tool to invoke `setup-eval-review` explicitly.
 
 Pass through any arguments from $ARGUMENTS (e.g., a specific path to evaluate).
 
 If the Skill tool is not available or the skill is not found, tell the user:
-- Check that `skills/eval-setup-review/SKILL.md` exists in the workspace
-- If not, reinstall the harness-eval-lab plugin
+- Check that `skills/setup-eval-review/SKILL.md` exists in the workspace
+- If not, reinstall the setup-eval plugin

@@ -1,4 +1,4 @@
-# harness-eval-lab
+# setup-eval
 
 [![CI](https://github.com/redhat-community-ai-tools/harness-eval-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/redhat-community-ai-tools/harness-eval-lab/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-73%25-yellow)](https://github.com/redhat-community-ai-tools/harness-eval-lab)
@@ -19,8 +19,8 @@ It checks whether each component follows best practices, whether components work
 
 ```
  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
- │ eval-setup-lint │  │ eval-setup-     │  │ eval-setup-     │  │ eval-skill      │
- │                 │  │ review          │  │ security        │  │                 │
+ │ setup-eval-lint │  │ setup-eval-     │  │ setup-eval-     │  │ setup-eval-     │
+ │                 │  │ review          │  │ security        │  │ skill           │
  │ 43 rules        │  │ per-component   │  │ all security    │  │ deep-dive on    │
  │ system analysis │  │ rubrics         │  │ rules           │  │ one skill       │
  │ token budget    │  │ 21 cross-type   │  │ AST + taint     │  │ lint + rubric   │
@@ -38,14 +38,14 @@ It checks whether each component follows best practices, whether components work
 ### From PyPI
 
 ```bash
-pip install harness-eval-lab
+pip install setup-eval
 ```
 
 ### From source
 
 ```bash
 git clone https://github.com/redhat-community-ai-tools/harness-eval-lab.git
-cd harness-eval-lab
+cd setup-eval
 uv sync
 ```
 
@@ -62,7 +62,7 @@ Install directly from within Claude Code:
 
 ```
 /plugin marketplace add redhat-community-ai-tools/harness-eval-lab
-/plugin install harness-eval-lab@harness-eval-lab
+/plugin install setup-eval@setup-eval
 /reload-plugins
 ```
 
@@ -73,49 +73,49 @@ Install directly from within Claude Code:
 Install the CLI:
 
 ```bash
-pip install harness-eval-lab
-harness-eval-lab eval-setup-lint /path/to/your/project
+pip install setup-eval
+setup-eval setup-eval-lint /path/to/your/project
 ```
 
 To use the commands inside Cursor, copy the `.cursor/commands/` directory from this repo into your project's `.cursor/commands/`. The 4 eval commands will appear in Cursor's command palette:
-- `eval-setup-lint` - fast static analysis (no LLM)
-- `eval-setup-review` - full LLM review
-- `eval-setup-security` - deep security audit
-- `eval-skill` - deep-evaluate one skill
+- `setup-eval-lint` - fast static analysis (no LLM)
+- `setup-eval-review` - full LLM review
+- `setup-eval-security` - deep security audit
+- `setup-eval-skill` - deep-evaluate one skill
 
 Or test locally during development:
 
 ```bash
-claude --plugin-dir /path/to/harness-eval-lab
+claude --plugin-dir /path/to/setup-eval
 ```
 
 After installing, these commands become available in `/` autocomplete:
-- `/harness-eval-lab:eval-setup-lint` - fast static analysis, no LLM, CI-suitable
-- `/harness-eval-lab:eval-setup-review` - full qualitative review with KEEP/REVIEW/REMOVE verdicts
-- `/harness-eval-lab:eval-setup-security` - deep security audit with deterministic scan + semantic review
-- `/harness-eval-lab:eval-skill <skill-name>` - deep-evaluate one skill in context
+- `/setup-eval:setup-eval-lint` - fast static analysis, no LLM, CI-suitable
+- `/setup-eval:setup-eval-review` - full qualitative review with KEEP/REVIEW/REMOVE verdicts
+- `/setup-eval:setup-eval-security` - deep security audit with deterministic scan + semantic review
+- `/setup-eval:eval-skill <skill-name>` - deep-evaluate one skill in context
 
 ## Usage
 
 ### CLI
 
 ```bash
-harness-eval-lab eval-setup-lint /path/to/project
-harness-eval-lab eval-setup-lint /path/to/project --preset strict --format json
-harness-eval-lab eval-setup-lint /path/to/project --fail-on-error
+setup-eval setup-eval-lint /path/to/project
+setup-eval setup-eval-lint /path/to/project --preset strict --format json
+setup-eval setup-eval-lint /path/to/project --fail-on-error
 
 export GEMINI_API_KEY=your-key  # or ANTHROPIC_API_KEY
-harness-eval-lab eval-setup-review /path/to/project
-harness-eval-lab eval-setup-review /path/to/project --provider anthropic --model claude-sonnet-4-20250514
+setup-eval setup-eval-review /path/to/project
+setup-eval setup-eval-review /path/to/project --provider anthropic --model claude-sonnet-4-20250514
 
-harness-eval-lab eval-setup-security /path/to/project
-harness-eval-lab eval-setup-security /path/to/project --review --provider gemini
+setup-eval setup-eval-security /path/to/project
+setup-eval setup-eval-security /path/to/project --review --provider gemini
 
-harness-eval-lab eval-skill /path/to/skills/my-skill --context /path/to/project
-harness-eval-lab eval-skill /path/to/skills/my-skill --context /path/to/project --rubric
+setup-eval eval-skill /path/to/skills/my-skill --context /path/to/project
+setup-eval eval-skill /path/to/skills/my-skill --context /path/to/project --rubric
 ```
 
-**Note on `/eval-setup-security`:** The YARA signature scanning check requires `yara-python`. If not installed, the YARA check is skipped automatically and the report notes it. All other security checks run without extra dependencies. To enable YARA scanning:
+**Note on `/setup-eval-security`:** The YARA signature scanning check requires `yara-python`. If not installed, the YARA check is skipped automatically and the report notes it. All other security checks run without extra dependencies. To enable YARA scanning:
 
 ```bash
 pip install yara-python
@@ -125,19 +125,19 @@ pip install yara-python
 
 | Command | Description | Needs LLM? |
 |---------|-------------|------------|
-| `eval-setup-lint` | 39 deterministic rules + system analysis (budget, triggers, deps, context utilization). | No |
-| `eval-setup-review` | Per-component rubric review, 21 cross-type checks, KEEP/REVIEW/REMOVE verdicts. | Yes (API key) |
-| `eval-setup-security` | All security rules + YARA + CVE lookups + optional LLM semantic review. | Optional (`--review`) |
-| `eval-skill` | Deep-evaluate a single skill individually and in context of the setup. | Optional (`--rubric`) |
+| `setup-eval-lint` | 39 deterministic rules + system analysis (budget, triggers, deps, context utilization). | No |
+| `setup-eval-review` | Per-component rubric review, 21 cross-type checks, KEEP/REVIEW/REMOVE verdicts. | Yes (API key) |
+| `setup-eval-security` | All security rules + YARA + CVE lookups + optional LLM semantic review. | Optional (`--review`) |
+| `setup-eval-skill` | Deep-evaluate a single skill individually and in context of the setup. | Optional (`--rubric`) |
 
 ## Plugin Skills
 
 | Skill | Description | Needs LLM? |
 |-------|-------------|------------|
-| `/eval-setup-lint` | 43 rules, system analysis. Fast, CI-suitable. | No |
-| `/eval-setup-review` | Per-component rubrics, 21 cross-type checks, KEEP/REVIEW/REMOVE verdicts. | Yes (Claude in-session) |
-| `/eval-setup-security` | Deterministic security scan + semantic security review with 4-check checklist. | Yes (Claude in-session) |
-| `/eval-skill` | Deep-evaluate one skill against rubric + contextual analysis. | Yes (Claude in-session) |
+| `/setup-eval-lint` | 43 rules, system analysis. Fast, CI-suitable. | No |
+| `/setup-eval-review` | Per-component rubrics, 21 cross-type checks, KEEP/REVIEW/REMOVE verdicts. | Yes (Claude in-session) |
+| `/setup-eval-security` | Deterministic security scan + semantic security review with 4-check checklist. | Yes (Claude in-session) |
+| `/setup-eval-skill` | Deep-evaluate one skill against rubric + contextual analysis. | Yes (Claude in-session) |
 
 ## Inspection Rules (43)
 
@@ -147,7 +147,7 @@ pip install yara-python
 | Frontmatter | 3 | Description required/quality (POV, use-case, length), format valid |
 | Content | 4 | Duplicate detection (TF-IDF), broken references, circular references, token budget |
 | Security | 9 | Credential access, prompt injection (17 patterns), data exfiltration, obfuscation, reverse shells, AST behavioral analysis, taint tracking, MCP least-privilege, MCP tool poisoning |
-| Security (opt-in) | 2 | YARA signature scanning, CVE lookups via OSV.dev (only in `eval-setup-security`) |
+| Security (opt-in) | 2 | YARA signature scanning, CVE lookups via OSV.dev (only in `setup-eval-security`) |
 | Commands | 8 | Description, script exists, duplicates, credentials, injection, skill overlap, shadows built-in, references nonexistent skill |
 | CLAUDE.md | 3 | Exists, skill duplication, generic advice detection |
 | Hooks | 1 | Structure validation, dangerous patterns |

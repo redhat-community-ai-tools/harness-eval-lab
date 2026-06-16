@@ -32,7 +32,7 @@ A dedicated `harness-eval-lab grade <skill-path>` command that produces a concis
 - Better developer experience than reading a raw scan output
 - Can include actionable fix suggestions
 - Doesn't enforce anything (advisory only)
-- Could be a different output format of `eval-skill` rather than a new command
+- Could be a different output format of `setup-eval-skill` rather than a new command
 
 ### Approach 3: Registry/marketplace integration
 
@@ -83,7 +83,7 @@ A reusable GitHub Action that teams can add to their repos:
 
 ### Report card format
 
-A compact output for `eval-skill` that answers three questions:
+A compact output for `setup-eval-skill` that answers three questions:
 1. Does it pass structural checks? (yes/no)
 2. Does it follow Anthropic's best practices? (yes/no, with specific violations)
 3. Is it ready to add to a setup? (yes/no, with a one-line reason)

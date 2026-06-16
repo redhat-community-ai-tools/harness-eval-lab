@@ -1,5 +1,5 @@
 {
-  "name": "harness-eval-lab",
+  "name": "setup-eval",
   "description": "Evaluate AI agent setups for best practices, redundancy, security, and cross-component issues.",
   "owner": {
     "name": "Benjamin Kapner",
@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "harness-eval-lab",
+      "name": "setup-eval",
       "description": "Evaluate AI agent setups for best practices, redundancy, security, and cross-component issues. 43 lint rules, per-component rubric review, deep security audit, and single-skill evaluation.",
       "author": {
         "name": "Benjamin Kapner"

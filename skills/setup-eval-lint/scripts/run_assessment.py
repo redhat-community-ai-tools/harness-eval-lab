@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["harness-eval-lab"]
+# dependencies = ["setup-eval"]
 # ///
 """Run full setup assessment and output JSON results."""
 

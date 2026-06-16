@@ -1,4 +1,4 @@
-"""Core types for harness-eval-lab."""
+"""Core types for setup-eval."""
 
 from __future__ import annotations
 

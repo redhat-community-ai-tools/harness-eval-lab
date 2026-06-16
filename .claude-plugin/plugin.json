@@ -1,7 +1,7 @@
 {
-  "name": "harness-eval-lab",
-  "displayName": "Harness Eval Lab",
-  "version": "0.2.0",
+  "name": "setup-eval",
+  "displayName": "Setup Eval",
+  "version": "3.1.0",
   "description": "Evaluate AI agent setups for best practices, redundancy, security, and cross-component issues.",
   "author": {
     "name": "Benjamin Kapner"
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/skills/eval-setup-lint/scripts/ensure_deps.py\" \"${CLAUDE_PLUGIN_DATA}\"",
+            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/skills/setup-eval-lint/scripts/ensure_deps.py\" \"${CLAUDE_PLUGIN_DATA}\"",
             "timeout": 30000
           }
         ]

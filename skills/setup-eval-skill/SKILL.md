@@ -1,5 +1,5 @@
 ---
-name: eval-skill
+name: setup-eval-skill
 description: Deep-evaluate a single skill with static analysis and qualitative issue detection, both individually and in context of the full setup. Use when the user wants to check if a specific skill is worth keeping, well-built, or redundant.
 allowed-tools:
   - Bash
@@ -38,7 +38,7 @@ Determine the skill path. If the user says a skill name, find it under `skills/<
 Determine the setup context path (usually the current working directory).
 
 ```bash
-uv run python skills/eval-skill/scripts/run_skill_eval.py <skill-path> <context-path> recommended
+uv run python skills/setup-eval-skill/scripts/run_skill_eval.py <skill-path> <context-path> recommended
 ```
 
 If no context path, pass `-` as the second argument.
@@ -93,4 +93,4 @@ Duration: [X minutes Y seconds]
 
 **If the user chose terminal:** print the report in the conversation.
 
-**If the user chose file:** write the report as markdown to the path they specified (or suggest `eval-skill-report.md` in the current directory). Tell them the file path when done.
+**If the user chose file:** write the report as markdown to the path they specified (or suggest `setup-eval-skill-report.md` in the current directory). Tell them the file path when done.

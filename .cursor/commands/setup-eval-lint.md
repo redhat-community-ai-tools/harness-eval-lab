@@ -9,15 +9,15 @@ Run 43 deterministic rules + system-level analysis on the agent setup. No LLM. F
 2. Run the lint command on the current project:
 
 ```bash
-harness-eval-lab eval-setup-lint .
+setup-eval setup-eval-lint .
 ```
 
-If `harness-eval-lab` is not installed, try `pip install harness-eval-lab` first.
+If `setup-eval` is not installed, try `pip install setup-eval` first.
 
 For JSON output (if the user prefers file output):
 
 ```bash
-harness-eval-lab eval-setup-lint . --format json
+setup-eval setup-eval-lint . --format json
 ```
 
 3. Present the report. Include all sections: inventory, token budget, trigger analysis, dependencies, findings, and inspection summary.

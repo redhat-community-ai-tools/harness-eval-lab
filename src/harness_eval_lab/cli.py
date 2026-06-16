@@ -1,4 +1,4 @@
-"""CLI entry point for harness-eval-lab."""
+"""CLI entry point for setup-eval."""
 
 from __future__ import annotations
 
@@ -12,12 +12,12 @@ from harness_eval_lab.core.types import ComponentType
 
 
 @click.group()
-@click.version_option()
+@click.version_option(package_name="setup-eval")
 def cli() -> None:
     """Evaluate AI agent setups."""
 
 
-@cli.command("eval-setup-lint")
+@cli.command("setup-eval-lint")
 @click.argument("path", type=click.Path(exists=True))
 @click.option(
     "--preset",
@@ -102,7 +102,7 @@ def eval_setup_lint(
             raise SystemExit(1)
 
 
-@cli.command("eval-setup-review")
+@cli.command("setup-eval-review")
 @click.argument("path", type=click.Path(exists=True))
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
 @click.option("--provider", type=click.Choice(["gemini", "anthropic"]), default="gemini")
@@ -201,7 +201,7 @@ def eval_setup_review(
         click.echo("")
 
 
-@cli.command("eval-setup-security")
+@cli.command("setup-eval-security")
 @click.argument("path", type=click.Path(exists=True))
 @click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
 @click.option(
@@ -413,7 +413,7 @@ def eval_setup_security(
         raise SystemExit(1)
 
 
-@cli.command("eval-skill")
+@cli.command("setup-eval-skill")
 @click.argument("skill_path", type=click.Path(exists=True))
 @click.option(
     "--context",

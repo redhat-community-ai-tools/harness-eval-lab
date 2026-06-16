@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["harness-eval-lab"]
+# dependencies = ["setup-eval"]
 # ///
 """Run security-focused setup assessment and output security-only JSON."""
 

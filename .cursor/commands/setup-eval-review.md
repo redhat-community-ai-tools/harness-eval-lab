@@ -17,10 +17,10 @@ Ask the user: print the report in conversation, or write to a file?
 Run the deterministic scan first to get structural data:
 
 ```bash
-harness-eval-lab eval-setup-lint . --format json
+setup-eval setup-eval-lint . --format json
 ```
 
-If `harness-eval-lab` is not installed, try `pip install harness-eval-lab` first.
+If `setup-eval` is not installed, try `pip install setup-eval` first.
 
 Read the JSON output. Use it as context for the qualitative review. Do NOT present the lint report separately.
 

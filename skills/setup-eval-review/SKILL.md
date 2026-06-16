@@ -1,5 +1,5 @@
 ---
-name: eval-setup-review
+name: setup-eval-review
 description: Full qualitative review of the agent setup. Reads every file, applies per-component rubrics, runs 21 cross-type optimization checks, and produces KEEP/REVIEW/REMOVE verdicts. Use when the user wants a deep review, redundancy check, or quality assessment of their setup.
 allowed-tools:
   - Bash
@@ -33,7 +33,7 @@ Wait for their answer before proceeding.
 Determine the setup path. If the user doesn't specify one, use the current working directory.
 
 ```bash
-uv run python skills/eval-setup-lint/scripts/run_assessment.py <setup-path> recommended
+uv run python skills/setup-eval-lint/scripts/run_assessment.py <setup-path> recommended
 ```
 
 Read the JSON output. This gives you per-component diagnostics, token budget, trigger overlaps, and dependency findings.
@@ -92,4 +92,4 @@ Compute this from the timestamp of your first tool call in Step 2 to the timesta
 
 **If the user chose terminal:** print the report in the conversation.
 
-**If the user chose file:** write the report as markdown to the path they specified (or suggest `eval-setup-review-report.md` in the current directory). Tell them the file path when done.
+**If the user chose file:** write the report as markdown to the path they specified (or suggest `setup-eval-review-report.md` in the current directory). Tell them the file path when done.

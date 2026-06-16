@@ -4,16 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-06-16
+
+### Changed
+- Renamed package from `harness-eval-lab` to `setup-eval` on PyPI (`pip install setup-eval`)
+- Renamed CLI entry point from `harness-eval-lab` to `setup-eval`
+- Renamed all commands: `eval-setup-lint` to `setup-eval-lint`, `eval-setup-review` to `setup-eval-review`, `eval-setup-security` to `setup-eval-security`, `eval-skill` to `setup-eval-skill`
+- Renamed plugin skill directories to match new command names
+- Cursor commands rewritten to use in-session LLM (no extra API key needed for review/security/skill)
+
 ## [3.0.0] - 2026-06-16
 
 ### Added
 - Cursor IDE support: discovers `.cursor/rules/*.mdc`, `.cursorrules`, `.cursor/commands/*.md`, `.cursor/skills/*/SKILL.md`, `.cursor/hooks.json`, `.cursor/mcp.json`
 - Multi-tool auto-detection: reports which tools a project uses (Claude Code, Cursor, or both)
-- 4 Cursor commands (`.cursor/commands/`): eval-setup-lint, eval-setup-review, eval-setup-security, eval-skill
+- 4 Cursor commands (`.cursor/commands/`): setup-eval-lint, setup-eval-review, setup-eval-security, setup-eval-skill
 - Component deduplication across tools (shared skills are not double-counted)
 - "Detected tools" shown in terminal and JSON output
 - Cursor file patterns added to fingerprinting for change detection
-- Published to PyPI: `pip install harness-eval-lab`
+- Published to PyPI: `pip install setup-eval`
 - 14 new tests for Cursor discovery and linting (153 total)
 
 ## [2.0.0] - 2026-06-15

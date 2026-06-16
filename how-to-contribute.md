@@ -1,11 +1,11 @@
 # How to Contribute
 
-This document explains how to add things to harness-eval-lab: new inspection rules, new future plans, and general contribution guidelines.
+This document explains how to add things to setup-eval: new inspection rules, new future plans, and general contribution guidelines.
 
 ## Setup
 
 ```bash
-cd harness-eval-lab
+cd setup-eval
 uv sync --extra dev
 uv run pre-commit install
 ```

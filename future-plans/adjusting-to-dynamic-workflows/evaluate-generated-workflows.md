@@ -49,7 +49,7 @@ After a workflow completes, analyze its results: how many agents failed? How lon
 
 ### Approach 3: LLM-based review
 
-Send the workflow script to Claude and ask it to evaluate the orchestration quality. Similar to how eval-setup-review evaluates skill quality.
+Send the workflow script to Claude and ask it to evaluate the orchestration quality. Similar to how setup-eval-review evaluates skill quality.
 
 **Trade-offs:**
 - Can judge semantic quality (are the prompts specific enough for this task?)
