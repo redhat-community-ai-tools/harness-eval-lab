@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-06-16
+
+### Added
+- Cursor IDE support: discovers `.cursor/rules/*.mdc`, `.cursorrules`, `.cursor/commands/*.md`, `.cursor/skills/*/SKILL.md`, `.cursor/hooks.json`, `.cursor/mcp.json`
+- Multi-tool auto-detection: reports which tools a project uses (Claude Code, Cursor, or both)
+- 4 Cursor commands (`.cursor/commands/`): eval-setup-lint, eval-setup-review, eval-setup-security, eval-skill
+- Component deduplication across tools (shared skills are not double-counted)
+- "Detected tools" shown in terminal and JSON output
+- Cursor file patterns added to fingerprinting for change detection
+- Published to PyPI: `pip install harness-eval-lab`
+- 14 new tests for Cursor discovery and linting (153 total)
+
 ## [2.0.0] - 2026-06-15
 
 ### Added

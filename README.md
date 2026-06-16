@@ -35,9 +35,17 @@ It checks whether each component follows best practices, whether components work
 
 ## Install
 
-### As a CLI tool
+### From PyPI
 
 ```bash
+pip install harness-eval-lab
+```
+
+### From source
+
+```bash
+git clone https://github.com/redhat-community-ai-tools/harness-eval-lab.git
+cd harness-eval-lab
 uv sync
 ```
 
@@ -62,16 +70,14 @@ Install directly from within Claude Code:
 
 ### For Cursor users
 
-Clone the repo and run the CLI:
+Install the CLI:
 
 ```bash
-git clone https://github.com/redhat-community-ai-tools/harness-eval-lab.git
-cd harness-eval-lab
-uv sync
-uv run harness-eval-lab eval-setup-lint /path/to/your/project
+pip install harness-eval-lab
+harness-eval-lab eval-setup-lint /path/to/your/project
 ```
 
-Cursor commands are also included. Copy the `.cursor/commands/` directory from this repo into your project's `.cursor/commands/` to get the 4 eval commands available in Cursor's command palette:
+To use the commands inside Cursor, copy the `.cursor/commands/` directory from this repo into your project's `.cursor/commands/`. The 4 eval commands will appear in Cursor's command palette:
 - `eval-setup-lint` - fast static analysis (no LLM)
 - `eval-setup-review` - full LLM review
 - `eval-setup-security` - deep security audit
