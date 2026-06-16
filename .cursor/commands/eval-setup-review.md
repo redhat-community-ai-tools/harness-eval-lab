@@ -1,38 +1,60 @@
 # Eval Setup Review
 
-Run LLM-based rubric review on the agent setup. Evaluates each component across specificity, redundancy, trigger quality, token efficiency, instruction clarity, and content quality. Produces KEEP/REVIEW/REMOVE verdicts.
+Full qualitative review of the agent setup. Read every file, evaluate quality, redundancy, and optimization opportunities. Produce KEEP/REVIEW/REMOVE verdicts per component.
 
-## Instructions
+## Hard Rules
 
-1. Check that an API key is available. The tool supports Gemini (default) or Anthropic:
+1. Never give a verdict without reading the files.
+2. Read before you judge. Read every file's actual content before assessing.
+3. Don't manufacture problems. If the setup is good, say so.
 
-```bash
-echo $GEMINI_API_KEY  # or $ANTHROPIC_API_KEY
-```
+## Step 1: Ask Output Preference
 
-If no key is set, ask the user to export one.
+Ask the user: print the report in conversation, or write to a file?
 
-2. Run the review command:
+## Step 2: Run Lint for Context
 
-```bash
-uv run harness-eval-lab eval-setup-review .
-```
-
-Or with Anthropic:
+Run the deterministic scan first to get structural data:
 
 ```bash
-uv run harness-eval-lab eval-setup-review . --provider anthropic
+harness-eval-lab eval-setup-lint . --format json
 ```
 
-3. Present the per-component review results. For each component, show:
-   - Component name and type
-   - Issues found (category, severity, evidence, suggestion)
-   - Summary verdict
+If `harness-eval-lab` is not installed, try `pip install harness-eval-lab` first.
 
-4. If the tool is not installed, tell the user to clone and set up:
+Read the JSON output. Use it as context for the qualitative review. Do NOT present the lint report separately.
 
-```bash
-git clone https://github.com/redhat-community-ai-tools/harness-eval-lab.git
-cd harness-eval-lab
-uv sync --extra llm
-```
+## Step 3: Read Actual Files
+
+Read the actual content of every component discovered: `.cursor/rules/*.mdc` files, `.cursorrules`, `.cursor/commands/*.md`, skill SKILL.md files (including reference files in subdirectories), and `.cursor/hooks.json`.
+
+## Step 4: Evaluate Each Component
+
+For each component, provide:
+- Lint results: list each rule that failed and explain WHY it failed in one sentence
+- A 2-3 sentence qualitative assessment (what it does, whether it adds value, whether it's well-built)
+- Issues found, citing specific content
+- Verdict: **KEEP**, **REVIEW**, or **REMOVE**
+
+Evaluate across these areas:
+- **Specificity**: does each component add value the AI doesn't already have? Would deleting it change behavior?
+- **Redundancy**: does it duplicate content from other components or the AI's default behavior?
+- **Trigger quality**: are descriptions specific enough to route correctly? Any overlapping triggers?
+- **Token efficiency**: are components under 500 lines? Is content split between main file and references?
+- **Instruction clarity**: contradictions, vague language, buried rules, orphaned conditionals?
+
+## Step 5: Cross-Component Optimization
+
+Check whether components should be transformed, merged, or removed:
+- Should any rule/skill be a hook instead?
+- Are two components redundant with each other?
+- Does any component duplicate what the AI already does by default?
+
+## Step 6: Produce the Report
+
+Include:
+1. Inventory table (component name, type, tokens)
+2. Token budget breakdown (always-loaded vs on-demand)
+3. Evaluation summary (headline verdict)
+4. Per-component analysis (lint + qualitative review + verdict)
+5. Numbered improvement suggestions
