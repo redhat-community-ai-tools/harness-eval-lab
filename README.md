@@ -17,12 +17,12 @@ Most tools test whether a skill produces correct output. This tool checks the se
 
 Four commands, same engine:
 
-| Command | What it does | Needs LLM? |
-|---------|-------------|------------|
-| `setup-eval-lint` | 43 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. | No |
-| `setup-eval-review` | Per-component rubric review, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes |
-| `setup-eval-security` | All security rules + YARA + CVE lookups + 4-check semantic review. SAFE/CAUTION/UNSAFE. | Optional |
-| `eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Optional |
+| Command | What it does | LLM in CLI | LLM in Claude Code / Cursor |
+|---------|-------------|-----------|----------------------------|
+| `setup-eval-lint` | 43 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. | No | No |
+| `setup-eval-review` | Per-component rubric review, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes (API key) | Yes (in-session) |
+| `setup-eval-security` | All security rules + YARA + CVE lookups + semantic review. SAFE/CAUTION/UNSAFE. | Scan: no. Semantic review: `--review` flag | Yes (in-session) |
+| `eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Lint: no. Rubric: `--rubric` flag | Yes (in-session) |
 
 ## Install
 
