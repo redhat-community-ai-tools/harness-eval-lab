@@ -9,20 +9,20 @@ import pytest
 from click.testing import CliRunner
 
 from harness_eval_lab.cli import cli
+from harness_eval_lab.core.setup import collect_setup_file_paths
 from harness_eval_lab.watch import (
     _build_filter,
-    _collect_watch_paths,
     _get_watch_directories,
     run_watch,
 )
 
 
-class TestCollectWatchPaths:
+class TestCollectSetupFilePaths:
     def test_finds_claude_md(self, tmp_path: Path) -> None:
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Instructions")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(claude_md.resolve()) in resolved
 
@@ -32,7 +32,7 @@ class TestCollectWatchPaths:
         skill_md = skill_dir / "SKILL.md"
         skill_md.write_text("---\nname: my-skill\n---\nBody")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(skill_md.resolve()) in resolved
 
@@ -42,7 +42,7 @@ class TestCollectWatchPaths:
         settings = claude_dir / "settings.json"
         settings.write_text("{}")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(settings.resolve()) in resolved
 
@@ -52,7 +52,7 @@ class TestCollectWatchPaths:
         agent_md = agents_dir / "reviewer.md"
         agent_md.write_text("# Reviewer agent")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(agent_md.resolve()) in resolved
 
@@ -60,7 +60,7 @@ class TestCollectWatchPaths:
         mcp = tmp_path / ".mcp.json"
         mcp.write_text("{}")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(mcp.resolve()) in resolved
 
@@ -70,7 +70,17 @@ class TestCollectWatchPaths:
         cmd_md = cmd_dir / "review.md"
         cmd_md.write_text("# Review command")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(cmd_md.resolve()) in resolved
+
+    def test_finds_subdir_commands(self, tmp_path: Path) -> None:
+        cmd_dir = tmp_path / "commands" / "my-cmd"
+        cmd_dir.mkdir(parents=True)
+        cmd_md = cmd_dir / "command.md"
+        cmd_md.write_text("# My command")
+
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(cmd_md.resolve()) in resolved
 
@@ -78,7 +88,7 @@ class TestCollectWatchPaths:
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Instructions")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         # Each path should appear only once
         assert len(resolved) == len(set(resolved))
@@ -89,7 +99,7 @@ class TestCollectWatchPaths:
         rule_md = rules_dir / "my-rule.md"
         rule_md.write_text("# Rule")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(rule_md.resolve()) in resolved
 
@@ -99,7 +109,7 @@ class TestCollectWatchPaths:
         style_md = styles_dir / "concise.md"
         style_md.write_text("# Style")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(style_md.resolve()) in resolved
 
@@ -109,7 +119,7 @@ class TestCollectWatchPaths:
         skill_md = skill_dir / "SKILL.md"
         skill_md.write_text("---\nname: test\n---\nBody")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(skill_md.resolve()) in resolved
 
@@ -119,7 +129,7 @@ class TestCollectWatchPaths:
         hooks = cursor_dir / "hooks.json"
         hooks.write_text("{}")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(hooks.resolve()) in resolved
 
@@ -129,13 +139,42 @@ class TestCollectWatchPaths:
         mcp = cursor_dir / "mcp.json"
         mcp.write_text("{}")
 
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         resolved = [str(p.resolve()) for p in paths]
         assert str(mcp.resolve()) in resolved
 
     def test_empty_directory(self, tmp_path: Path) -> None:
-        paths = _collect_watch_paths(tmp_path)
+        paths = collect_setup_file_paths(tmp_path)
         assert paths == []
+
+    def test_finds_user_global_claude_md(self, tmp_path: Path) -> None:
+        """User-global CLAUDE.md is included when user_config_dir is provided."""
+        user_dir = tmp_path / "user-config"
+        user_dir.mkdir()
+        user_claude = user_dir / "CLAUDE.md"
+        user_claude.write_text("# User global config")
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        paths = collect_setup_file_paths(project_root, user_config_dir=user_dir)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(user_claude.resolve()) in resolved
+
+    def test_finds_user_project_claude_md(self, tmp_path: Path) -> None:
+        """User-project CLAUDE.md is included when user_config_dir is provided."""
+        user_dir = tmp_path / "user-config"
+        project_dir = user_dir / "projects" / "my-project"
+        project_dir.mkdir(parents=True)
+        project_claude = project_dir / "CLAUDE.md"
+        project_claude.write_text("# User project config")
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        paths = collect_setup_file_paths(project_root, user_config_dir=user_dir)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(project_claude.resolve()) in resolved
 
 
 class TestBuildFilter:

@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 
 import click
 
+from harness_eval_lab.core.setup import collect_setup_file_paths
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -15,111 +17,6 @@ if TYPE_CHECKING:
 
 # Debounce window in milliseconds
 DEBOUNCE_MS = 300
-
-
-def _collect_watch_paths(root: Path) -> list[Path]:
-    """Collect all paths that discover_setup() would scan.
-
-    This mirrors the file patterns from ``discover_setup`` so that watch mode
-    triggers on the same files the linter inspects.  If new patterns are added
-    to ``discover_setup``, they should be added here as well.
-    """
-    paths: list[Path] = []
-
-    # CLAUDE.md files
-    for pattern in ["CLAUDE.md", "**/CLAUDE.md"]:
-        for f in sorted(root.glob(pattern)):
-            if f.is_file():
-                paths.append(f)
-
-    # Skills
-    for skills_dir in [root / "skills", root / ".claude" / "skills"]:
-        if skills_dir.is_dir():
-            for f in sorted(skills_dir.rglob("SKILL.md")):
-                paths.append(f)
-
-    # Commands — match discover_setup patterns: top-level *.md and subdir command.md
-    for commands_dir in [root / "commands", root / ".claude" / "commands"]:
-        if commands_dir.is_dir():
-            for f in sorted(commands_dir.iterdir()):
-                if f.is_file() and f.suffix == ".md":
-                    paths.append(f)
-            for f in sorted(commands_dir.glob("*/command.md")):
-                if f.is_file():
-                    paths.append(f)
-
-    # Settings / hooks
-    settings = root / ".claude" / "settings.json"
-    if settings.is_file():
-        paths.append(settings)
-
-    # Agents
-    agents_dir = root / ".claude" / "agents"
-    if agents_dir.is_dir():
-        for f in sorted(agents_dir.glob("*.md")):
-            paths.append(f)
-
-    # Rules
-    rules_dir = root / ".claude" / "rules"
-    if rules_dir.is_dir():
-        for ext in ("*.md", "*.yaml", "*.yml"):
-            for f in sorted(rules_dir.rglob(ext)):
-                paths.append(f)
-
-    # Output styles
-    output_styles_dir = root / ".claude" / "output-styles"
-    if output_styles_dir.is_dir():
-        for ext in ("*.md", "*.yaml", "*.yml"):
-            for f in sorted(output_styles_dir.rglob(ext)):
-                paths.append(f)
-
-    # MCP configs
-    for pattern in [".mcp.json", "**/.mcp.json"]:
-        for f in sorted(root.glob(pattern)):
-            if f.is_file():
-                paths.append(f)
-
-    # Cursor rules / commands
-    cursor_rules = root / ".cursor" / "rules"
-    if cursor_rules.is_dir():
-        for f in sorted(cursor_rules.rglob("*.mdc")):
-            paths.append(f)
-
-    for f in sorted(root.rglob(".cursorrules")):
-        if f.is_file() and ".git" not in f.parts:
-            paths.append(f)
-
-    cursor_commands = root / ".cursor" / "commands"
-    if cursor_commands.is_dir():
-        for f in sorted(cursor_commands.iterdir()):
-            if f.is_file() and f.suffix == ".md":
-                paths.append(f)
-
-    # Cursor skills
-    cursor_skills = root / ".cursor" / "skills"
-    if cursor_skills.is_dir():
-        for f in sorted(cursor_skills.rglob("SKILL.md")):
-            paths.append(f)
-
-    # Cursor hooks / MCP
-    cursor_hooks = root / ".cursor" / "hooks.json"
-    if cursor_hooks.is_file():
-        paths.append(cursor_hooks)
-
-    cursor_mcp = root / ".cursor" / "mcp.json"
-    if cursor_mcp.is_file():
-        paths.append(cursor_mcp)
-
-    # Deduplicate while preserving order
-    seen: set[str] = set()
-    unique: list[Path] = []
-    for p in paths:
-        resolved = str(p.resolve())
-        if resolved not in seen:
-            seen.add(resolved)
-            unique.append(p)
-
-    return unique
 
 
 def _get_watch_directories(paths: list[Path]) -> set[Path]:
@@ -167,7 +64,8 @@ def run_watch(
         from watchfiles import watch
     except ImportError as err:
         raise click.ClickException(
-            "Watch mode requires the 'watchfiles' package. Install it with: pip install watchfiles"
+            "Watch mode requires the 'watchfiles' package. "
+            "Install it with: pip install 'setup-eval[watch]'"
         ) from err
 
     from harness_eval_lab.analysis.system import analyze_system
@@ -182,7 +80,8 @@ def run_watch(
 
     config_rules = PRESETS.get(preset, {})
 
-    watch_paths = _collect_watch_paths(root)
+    user_config_path = Path(user_config) if user_config else None
+    watch_paths = collect_setup_file_paths(root, user_config_dir=user_config_path)
     watch_dirs = _get_watch_directories(watch_paths)
 
     if not watch_dirs:

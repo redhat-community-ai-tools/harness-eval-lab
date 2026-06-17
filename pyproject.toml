@@ -14,13 +14,15 @@ dependencies = [
     "google-genai>=1.0",
     "anthropic>=0.40",
     "python-dotenv>=1.0",
-    "watchfiles>=1.0",
 ]
 
 [project.scripts]
 setup-eval = "harness_eval_lab.cli:cli"
 
 [project.optional-dependencies]
+watch = [
+    "watchfiles>=1.0",
+]
 yara = [
     "yara-python>=4.0",
 ]
