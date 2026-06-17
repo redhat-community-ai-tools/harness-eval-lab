@@ -294,9 +294,17 @@ class TestRunWatch:
 
     def test_raises_on_empty_directory(self, tmp_path: Path) -> None:
         """run_watch raises ClickException when no setup files are found."""
+        import types
+
         import click
 
-        with pytest.raises(click.exceptions.ClickException, match="No agent setup files found"):
+        fake_watchfiles = types.ModuleType("watchfiles")
+        fake_watchfiles.watch = lambda *a, **kw: iter([])  # type: ignore[attr-defined]
+
+        with (
+            patch.dict("sys.modules", {"watchfiles": fake_watchfiles}),
+            pytest.raises(click.exceptions.ClickException, match="No agent setup files found"),
+        ):
             run_watch(
                 path=str(tmp_path),
                 preset="recommended",

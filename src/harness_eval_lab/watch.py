@@ -60,6 +60,10 @@ def run_watch(
         user_config: Optional user config directory.
         debounce_ms: Debounce window in milliseconds.
     """
+    root = Path(path)
+    if not root.is_dir():
+        raise click.ClickException(f"'{path}' is not a directory. Watch mode requires a directory.")
+
     try:
         from watchfiles import watch
     except ImportError as err:
@@ -73,10 +77,6 @@ def run_watch(
     from harness_eval_lab.core.setup import discover_setup
     from harness_eval_lab.inspection.engine import inspect_setup
     from harness_eval_lab.output.report import format_json, format_terminal
-
-    root = Path(path)
-    if not root.is_dir():
-        raise click.ClickException(f"'{path}' is not a directory. Watch mode requires a directory.")
 
     config_rules = PRESETS.get(preset, {})
 
