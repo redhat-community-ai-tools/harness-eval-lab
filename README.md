@@ -5,17 +5,11 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 
-Evaluate AI agent setups for best practices, redundancy, security, and cross-component issues.
+Evaluate AI code agent setups for best practices, redundancy, security, and cross-component issues.
 
-Works with **Claude Code** and **Cursor**. Auto-detects which tool(s) a project uses.
+Available as a **CLI tool**, a **Claude Code plugin**, and **Cursor commands**.
 
-## Install
-
-```bash
-pip install setup-eval
-```
-
-For YARA malware signature scanning, add: `pip install setup-eval[yara]`
+Supports Claude Code and Cursor projects. Auto-detects which tool(s) a project uses.
 
 ## What it does
 
@@ -30,14 +24,16 @@ Four commands, same engine:
 | `setup-eval-security` | All security rules + YARA + CVE lookups + 4-check semantic review. SAFE/CAUTION/UNSAFE. | Optional |
 | `eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Optional |
 
-## How to use it
+## Install
 
-### CLI
+### CLI tool
+
+Install from PyPI and run from the terminal:
 
 ```bash
-setup-eval setup-eval-lint .
-setup-eval setup-eval-lint . --preset strict --format json --fail-on-error
+pip install setup-eval
 
+setup-eval setup-eval-lint .
 setup-eval setup-eval-review . --provider gemini
 setup-eval setup-eval-security . --review
 setup-eval eval-skill ./skills/my-skill --context . --rubric
@@ -45,7 +41,11 @@ setup-eval eval-skill ./skills/my-skill --context . --rubric
 
 Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for review/security/skill commands.
 
-### Claude Code (plugin)
+For YARA malware signature scanning, add: `pip install setup-eval[yara]`
+
+### Claude Code plugin
+
+No pip install needed. Install directly from within Claude Code:
 
 ```
 /plugin marketplace add redhat-community-ai-tools/harness-eval-lab
@@ -53,17 +53,31 @@ Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for review/security/skill comma
 /reload-plugins
 ```
 
-After installing, use from the `/` menu: `/setup-eval:setup-eval-lint`, `/setup-eval:setup-eval-review`, `/setup-eval:setup-eval-security`, `/setup-eval:eval-skill`. No API key needed; Claude evaluates in-session.
+The 4 commands appear in the `/` menu:
+- `/setup-eval:setup-eval-lint`
+- `/setup-eval:setup-eval-review`
+- `/setup-eval:setup-eval-security`
+- `/setup-eval:eval-skill`
+
+No API key needed. Claude evaluates in-session.
 
 **Updating:** Re-run the install command to get the latest rules.
 
-### Cursor
+### Cursor commands
+
+Requires the CLI tool installed first (Cursor commands call it for the deterministic scan):
 
 ```bash
 pip install setup-eval
 ```
 
-Copy `.cursor/commands/` from [this repo](https://github.com/redhat-community-ai-tools/harness-eval-lab) into your project. The 4 commands appear in Cursor's command palette: `/setup-eval-lint`, `/setup-eval-review`, `/setup-eval-security`, `/eval-skill`. No API key needed; Cursor evaluates in-session.
+Then copy `.cursor/commands/` from [this repo](https://github.com/redhat-community-ai-tools/harness-eval-lab) into your project. The 4 commands appear in Cursor's command palette:
+- `/setup-eval-lint`
+- `/setup-eval-review`
+- `/setup-eval-security`
+- `/eval-skill`
+
+No API key needed for review/security/skill. Cursor evaluates in-session.
 
 ## Inspection Rules (43)
 
