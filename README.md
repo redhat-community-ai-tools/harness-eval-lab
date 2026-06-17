@@ -41,19 +41,21 @@ It checks whether each component follows best practices, whether components work
 pip install setup-eval
 ```
 
+Optional extras:
+
+```bash
+pip install setup-eval[llm]       # LLM support (for review and eval-skill --rubric)
+pip install setup-eval[security]  # YARA signature scanning (for security audit)
+pip install setup-eval[llm,security]  # Both
+```
+
 ### From source
 
 ```bash
 git clone https://github.com/redhat-community-ai-tools/harness-eval-lab.git
-cd setup-eval
+cd harness-eval-lab
 uv sync
-```
-
-Optional extras:
-
-```bash
-uv sync --extra llm       # LLM support (for review CLI and eval-skill --rubric)
-uv sync --extra security  # YARA signature scanning (for security)
+uv sync --extra llm --extra security  # Optional: LLM + YARA support
 ```
 
 ### As a Claude Code plugin
@@ -118,7 +120,7 @@ setup-eval eval-skill /path/to/skills/my-skill --context /path/to/project --rubr
 **Note on `/setup-eval-security`:** The YARA signature scanning check requires `yara-python`. If not installed, the YARA check is skipped automatically and the report notes it. All other security checks run without extra dependencies. To enable YARA scanning:
 
 ```bash
-pip install yara-python
+pip install setup-eval[security]
 ```
 
 ## CLI Commands

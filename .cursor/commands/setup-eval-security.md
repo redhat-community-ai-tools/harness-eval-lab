@@ -21,6 +21,14 @@ setup-eval setup-eval-security .
 
 If `setup-eval` is not installed, try `pip install setup-eval` first.
 
+For YARA signature scanning (malware, cryptominers, attack tools), install with:
+
+```bash
+pip install setup-eval[security]
+```
+
+Without this, YARA checks are skipped automatically and noted in the report.
+
 Read the output. Note which checks were skipped and why.
 
 ## Step 3: Read Flagged Components
