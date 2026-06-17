@@ -10,7 +10,7 @@ AI agent setup evaluation tool. See [`README.md`](README.md) for usage, features
 - Format: `uv run ruff format src/ tests/`
 - Format check (dry run): `uv run ruff format --check src/ tests/`
 - Type check: `uv run mypy src/`
-- See [`how-to-contribute.md`](how-to-contribute.md) for adding rules, plans, and PRs
+- See [`CONTRIBUTING.md`](CONTRIBUTING.md) for adding rules, plans, and PRs
 - See [`CHANGELOG.md`](CHANGELOG.md) for release history
 
 ## Changelog
@@ -32,7 +32,7 @@ The most common CI failure is forgetting `ruff format`. The `ruff check` (lint r
 ## Project structure
 
 - `src/harness_eval_lab/` - main package
-  - `cli.py` - Click CLI (4 commands: setup-eval-lint, setup-eval-review, setup-eval-security, setup-eval-skill)
+  - `cli.py` - Click CLI (4 commands: setup-eval-lint, setup-eval-review, setup-eval-security, eval-skill)
   - `config/` - rule presets (recommended/strict/security/pre-workflow)
   - `core/` - setup discovery, fingerprinting, component types
   - `inspection/` - static analysis: parsers, lint engine, 43 rules, suppression, auto-fix
@@ -53,5 +53,5 @@ The most common CI failure is forgetting `ruff format`. The `ruff check` (lint r
 - Cross-component state in rules uses `context.scan_state`, not module-level variables
 - Tests go in `tests/` mirroring the source structure
 - LLM prompts live in `src/harness_eval_lab/rubric/prompts/` as markdown files, not inline strings
-- `skills/setup-eval-skill/rubric/skills-rubric.md` is a symlink to `skills/setup-eval-review/rubric/skills-rubric.md`; edit the source, not the link
+- `skills/eval-skill/rubric/skills-rubric.md` is a symlink to `skills/setup-eval-review/rubric/skills-rubric.md`; edit the source, not the link
 - YARA and CVE rules only run in the `security` preset (used by `setup-eval-security`), never in lint

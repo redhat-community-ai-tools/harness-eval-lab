@@ -4,12 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.1.2] - 2026-06-17
+
+### Changed
+- Renamed `setup-eval-skill` command to `eval-skill` across CLI, Claude Code plugin, and Cursor
+- Renamed `how-to-contribute.md` to `CONTRIBUTING.md` (standard convention)
+- LLM dependencies (anthropic, google-genai) now included in default install (no separate extras)
+- Simplified README (removed duplication, fixed inconsistencies)
+
+### Added
+- `SECURITY.md` with vulnerability reporting instructions
+- `py.typed` marker for type checking support
+- PyPI version badge in README
+
 ## [3.1.0] - 2026-06-16
 
 ### Changed
 - Renamed package from `harness-eval-lab` to `setup-eval` on PyPI (`pip install setup-eval`)
 - Renamed CLI entry point from `harness-eval-lab` to `setup-eval`
-- Renamed all commands: `eval-setup-lint` to `setup-eval-lint`, `eval-setup-review` to `setup-eval-review`, `eval-setup-security` to `setup-eval-security`, `eval-skill` to `setup-eval-skill`
+- Renamed all commands: `eval-setup-lint` to `setup-eval-lint`, `eval-setup-review` to `setup-eval-review`, `eval-setup-security` to `setup-eval-security`, `eval-skill` to `eval-skill`
 - Renamed plugin skill directories to match new command names
 - Cursor commands rewritten to use in-session LLM (no extra API key needed for review/security/skill)
 
@@ -18,7 +31,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Cursor IDE support: discovers `.cursor/rules/*.mdc`, `.cursorrules`, `.cursor/commands/*.md`, `.cursor/skills/*/SKILL.md`, `.cursor/hooks.json`, `.cursor/mcp.json`
 - Multi-tool auto-detection: reports which tools a project uses (Claude Code, Cursor, or both)
-- 4 Cursor commands (`.cursor/commands/`): setup-eval-lint, setup-eval-review, setup-eval-security, setup-eval-skill
+- 4 Cursor commands (`.cursor/commands/`): setup-eval-lint, setup-eval-review, setup-eval-security, eval-skill
 - Component deduplication across tools (shared skills are not double-counted)
 - "Detected tools" shown in terminal and JSON output
 - Cursor file patterns added to fingerprinting for change detection

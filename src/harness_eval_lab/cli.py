@@ -413,7 +413,7 @@ def eval_setup_security(
         raise SystemExit(1)
 
 
-@cli.command("setup-eval-skill")
+@cli.command("eval-skill")
 @click.argument("skill_path", type=click.Path(exists=True))
 @click.option(
     "--context",

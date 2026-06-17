@@ -44,7 +44,7 @@ def test_rule(rule_id, fixture, should_fire):
 **Coverage targets per area:**
 
 - **Unit tests for each rule (26 rules x 3 minimum = 78 tests):** Positive case (rule fires when it should), negative case (rule stays silent on clean input), edge case (tricky input like patterns inside code blocks).
-- **CLI integration tests:** Use Click's `CliRunner` to test `scan`, `eval-setup`, `setup-eval-skill` end-to-end against fixture directories. Assert on exit codes, key output strings, and JSON structure.
+- **CLI integration tests:** Use Click's `CliRunner` to test `scan`, `eval-setup`, `eval-skill` end-to-end against fixture directories. Assert on exit codes, key output strings, and JSON structure.
 - **System analysis tests:** Test budget, trigger, and dependency analyzers with known inputs. Verify always-loaded ratio calculation, overlap detection thresholds, broken reference detection.
 
 Rules that warrant extra coverage: `no-prompt-injection` (17 patterns, code block detection, example detection), `duplicate-detection` (scan_state handling, threshold boundary), `token-budget` (adaptive budget calculation, line count).

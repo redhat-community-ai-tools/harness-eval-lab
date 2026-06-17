@@ -28,7 +28,7 @@ Four commands, same engine:
 | `setup-eval-lint` | 43 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. | No |
 | `setup-eval-review` | Per-component rubric review, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes |
 | `setup-eval-security` | All security rules + YARA + CVE lookups + 4-check semantic review. SAFE/CAUTION/UNSAFE. | Optional |
-| `setup-eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Optional |
+| `eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Optional |
 
 ## How to use it
 
@@ -40,7 +40,7 @@ setup-eval setup-eval-lint . --preset strict --format json --fail-on-error
 
 setup-eval setup-eval-review . --provider gemini
 setup-eval setup-eval-security . --review
-setup-eval setup-eval-skill ./skills/my-skill --context . --rubric
+setup-eval eval-skill ./skills/my-skill --context . --rubric
 ```
 
 Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for review/security/skill commands.
@@ -53,7 +53,7 @@ Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for review/security/skill comma
 /reload-plugins
 ```
 
-After installing, use from the `/` menu: `/setup-eval:setup-eval-lint`, `/setup-eval:setup-eval-review`, `/setup-eval:setup-eval-security`, `/setup-eval:setup-eval-skill`. No API key needed; Claude evaluates in-session.
+After installing, use from the `/` menu: `/setup-eval:setup-eval-lint`, `/setup-eval:setup-eval-review`, `/setup-eval:setup-eval-security`, `/setup-eval:eval-skill`. No API key needed; Claude evaluates in-session.
 
 **Updating:** Re-run the install command to get the latest rules.
 
@@ -63,7 +63,7 @@ After installing, use from the `/` menu: `/setup-eval:setup-eval-lint`, `/setup-
 pip install setup-eval
 ```
 
-Copy `.cursor/commands/` from [this repo](https://github.com/redhat-community-ai-tools/harness-eval-lab) into your project. The 4 commands appear in Cursor's command palette: `/setup-eval-lint`, `/setup-eval-review`, `/setup-eval-security`, `/setup-eval-skill`. No API key needed; Cursor evaluates in-session.
+Copy `.cursor/commands/` from [this repo](https://github.com/redhat-community-ai-tools/harness-eval-lab) into your project. The 4 commands appear in Cursor's command palette: `/setup-eval-lint`, `/setup-eval-review`, `/setup-eval-security`, `/eval-skill`. No API key needed; Cursor evaluates in-session.
 
 ## Inspection Rules (43)
 
@@ -83,7 +83,7 @@ Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.
 
 ## Contributing
 
-See [`how-to-contribute.md`](how-to-contribute.md) for adding rules and submitting PRs.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for adding rules and submitting PRs.
 
 ## Changelog
 
