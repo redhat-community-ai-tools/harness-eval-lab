@@ -18,7 +18,12 @@ DEBOUNCE_MS = 300
 
 
 def _collect_watch_paths(root: Path) -> list[Path]:
-    """Collect all paths that discover_setup() would scan."""
+    """Collect all paths that discover_setup() would scan.
+
+    This mirrors the file patterns from ``discover_setup`` so that watch mode
+    triggers on the same files the linter inspects.  If new patterns are added
+    to ``discover_setup``, they should be added here as well.
+    """
     paths: list[Path] = []
 
     # CLAUDE.md files
@@ -33,11 +38,15 @@ def _collect_watch_paths(root: Path) -> list[Path]:
             for f in sorted(skills_dir.rglob("SKILL.md")):
                 paths.append(f)
 
-    # Commands
+    # Commands — match discover_setup patterns: top-level *.md and subdir command.md
     for commands_dir in [root / "commands", root / ".claude" / "commands"]:
         if commands_dir.is_dir():
-            for f in sorted(commands_dir.rglob("*.md")):
-                paths.append(f)
+            for f in sorted(commands_dir.iterdir()):
+                if f.is_file() and f.suffix == ".md":
+                    paths.append(f)
+            for f in sorted(commands_dir.glob("*/command.md")):
+                if f.is_file():
+                    paths.append(f)
 
     # Settings / hooks
     settings = root / ".claude" / "settings.json"
@@ -49,6 +58,20 @@ def _collect_watch_paths(root: Path) -> list[Path]:
     if agents_dir.is_dir():
         for f in sorted(agents_dir.glob("*.md")):
             paths.append(f)
+
+    # Rules
+    rules_dir = root / ".claude" / "rules"
+    if rules_dir.is_dir():
+        for ext in ("*.md", "*.yaml", "*.yml"):
+            for f in sorted(rules_dir.rglob(ext)):
+                paths.append(f)
+
+    # Output styles
+    output_styles_dir = root / ".claude" / "output-styles"
+    if output_styles_dir.is_dir():
+        for ext in ("*.md", "*.yaml", "*.yml"):
+            for f in sorted(output_styles_dir.rglob(ext)):
+                paths.append(f)
 
     # MCP configs
     for pattern in [".mcp.json", "**/.mcp.json"]:
@@ -71,6 +94,21 @@ def _collect_watch_paths(root: Path) -> list[Path]:
         for f in sorted(cursor_commands.iterdir()):
             if f.is_file() and f.suffix == ".md":
                 paths.append(f)
+
+    # Cursor skills
+    cursor_skills = root / ".cursor" / "skills"
+    if cursor_skills.is_dir():
+        for f in sorted(cursor_skills.rglob("SKILL.md")):
+            paths.append(f)
+
+    # Cursor hooks / MCP
+    cursor_hooks = root / ".cursor" / "hooks.json"
+    if cursor_hooks.is_file():
+        paths.append(cursor_hooks)
+
+    cursor_mcp = root / ".cursor" / "mcp.json"
+    if cursor_mcp.is_file():
+        paths.append(cursor_mcp)
 
     # Deduplicate while preserving order
     seen: set[str] = set()
@@ -139,6 +177,9 @@ def run_watch(
     from harness_eval_lab.output.report import format_json, format_terminal
 
     root = Path(path)
+    if not root.is_dir():
+        raise click.ClickException(f"'{path}' is not a directory. Watch mode requires a directory.")
+
     config_rules = PRESETS.get(preset, {})
 
     watch_paths = _collect_watch_paths(root)
@@ -163,7 +204,11 @@ def run_watch(
     click.echo(f"👀 Watching {len(watch_paths)} files for changes... (Ctrl+C to stop)\n")
     _run_lint()
 
-    # Watch loop
+    # Watch loop.
+    # NOTE: The watched file set and directories are fixed for the lifetime of
+    # the iterator.  If new setup files are created after watch mode starts they
+    # will not be picked up — the user must restart watch mode.  Restarting the
+    # iterator on every change would be more complex and risk missed events.
     watch_filter = _build_filter(watch_paths)
 
     try:
@@ -180,9 +225,6 @@ def run_watch(
             _clear_terminal()
             timestamp = time.strftime("%H:%M:%S")
             click.echo(f"👀 [{timestamp}] Change detected: {changed_list}\n")
-
-            # Refresh watch paths in case new files were added
-            watch_paths = _collect_watch_paths(root)
 
             try:
                 _run_lint()

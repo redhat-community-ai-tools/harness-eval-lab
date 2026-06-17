@@ -10,6 +10,7 @@ from click.testing import CliRunner
 
 from harness_eval_lab.cli import cli
 from harness_eval_lab.watch import (
+    _build_filter,
     _collect_watch_paths,
     _get_watch_directories,
     run_watch,
@@ -82,9 +83,81 @@ class TestCollectWatchPaths:
         # Each path should appear only once
         assert len(resolved) == len(set(resolved))
 
+    def test_finds_rules(self, tmp_path: Path) -> None:
+        rules_dir = tmp_path / ".claude" / "rules"
+        rules_dir.mkdir(parents=True)
+        rule_md = rules_dir / "my-rule.md"
+        rule_md.write_text("# Rule")
+
+        paths = _collect_watch_paths(tmp_path)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(rule_md.resolve()) in resolved
+
+    def test_finds_output_styles(self, tmp_path: Path) -> None:
+        styles_dir = tmp_path / ".claude" / "output-styles"
+        styles_dir.mkdir(parents=True)
+        style_md = styles_dir / "concise.md"
+        style_md.write_text("# Style")
+
+        paths = _collect_watch_paths(tmp_path)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(style_md.resolve()) in resolved
+
+    def test_finds_cursor_skills(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / ".cursor" / "skills" / "my-skill"
+        skill_dir.mkdir(parents=True)
+        skill_md = skill_dir / "SKILL.md"
+        skill_md.write_text("---\nname: test\n---\nBody")
+
+        paths = _collect_watch_paths(tmp_path)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(skill_md.resolve()) in resolved
+
+    def test_finds_cursor_hooks(self, tmp_path: Path) -> None:
+        cursor_dir = tmp_path / ".cursor"
+        cursor_dir.mkdir(exist_ok=True)
+        hooks = cursor_dir / "hooks.json"
+        hooks.write_text("{}")
+
+        paths = _collect_watch_paths(tmp_path)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(hooks.resolve()) in resolved
+
+    def test_finds_cursor_mcp(self, tmp_path: Path) -> None:
+        cursor_dir = tmp_path / ".cursor"
+        cursor_dir.mkdir(exist_ok=True)
+        mcp = cursor_dir / "mcp.json"
+        mcp.write_text("{}")
+
+        paths = _collect_watch_paths(tmp_path)
+        resolved = [str(p.resolve()) for p in paths]
+        assert str(mcp.resolve()) in resolved
+
     def test_empty_directory(self, tmp_path: Path) -> None:
         paths = _collect_watch_paths(tmp_path)
         assert paths == []
+
+
+class TestBuildFilter:
+    def test_accepts_watched_file(self, tmp_path: Path) -> None:
+        watched = tmp_path / "CLAUDE.md"
+        watched.write_text("# Test")
+        filt = _build_filter([watched])
+        # watchfiles passes (Change, str) tuples; Change is an enum but
+        # _build_filter only uses the path, so we can pass any value.
+        assert filt("modified", str(watched.resolve())) is True
+
+    def test_rejects_unwatched_file(self, tmp_path: Path) -> None:
+        watched = tmp_path / "CLAUDE.md"
+        watched.write_text("# Test")
+        other = tmp_path / "README.md"
+        other.write_text("# Other")
+        filt = _build_filter([watched])
+        assert filt("modified", str(other.resolve())) is False
+
+    def test_empty_watch_list(self, tmp_path: Path) -> None:
+        filt = _build_filter([])
+        assert filt("modified", str(tmp_path / "anything.md")) is False
 
 
 class TestGetWatchDirectories:
@@ -129,6 +202,40 @@ class TestCLIWatchFlag:
                 )
 
 
+class TestCLIWatchWithIncompatibleFlags:
+    def test_watch_with_fix_warns(self) -> None:
+        """Using --watch with --fix prints a warning."""
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            Path("CLAUDE.md").write_text("# Test")
+            with patch("harness_eval_lab.watch.run_watch"):
+                result = runner.invoke(
+                    cli,
+                    ["setup-eval-lint", ".", "--watch", "--fix"],
+                )
+                assert result.exit_code == 0
+                assert (
+                    "--fix is ignored in watch mode" in result.output
+                    or "--fix is ignored in watch mode" in (result.stderr or "")
+                )
+
+    def test_watch_with_fail_on_error_warns(self) -> None:
+        """Using --watch with --fail-on-error prints a warning."""
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            Path("CLAUDE.md").write_text("# Test")
+            with patch("harness_eval_lab.watch.run_watch"):
+                result = runner.invoke(
+                    cli,
+                    ["setup-eval-lint", ".", "--watch", "--fail-on-error"],
+                )
+                assert result.exit_code == 0
+                assert (
+                    "--fail-on-error is ignored in watch mode" in result.output
+                    or "--fail-on-error is ignored in watch mode" in (result.stderr or "")
+                )
+
+
 class TestRunWatch:
     def test_raises_without_watchfiles(self, tmp_path: Path) -> None:
         """run_watch raises ClickException when watchfiles is not installed."""
@@ -153,6 +260,20 @@ class TestRunWatch:
         with pytest.raises(click.exceptions.ClickException, match="No agent setup files found"):
             run_watch(
                 path=str(tmp_path),
+                preset="recommended",
+                fmt="terminal",
+                user_config=None,
+            )
+
+    def test_raises_on_file_path(self, tmp_path: Path) -> None:
+        """run_watch raises ClickException when given a file instead of a directory."""
+        import click
+
+        f = tmp_path / "CLAUDE.md"
+        f.write_text("# Test")
+        with pytest.raises(click.exceptions.ClickException, match="not a directory"):
+            run_watch(
+                path=str(f),
                 preset="recommended",
                 fmt="terminal",
                 user_config=None,
