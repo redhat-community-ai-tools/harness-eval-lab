@@ -22,6 +22,7 @@ class RubricIssue:
     evidence: str
     suggestion: str
     severity: str = "warning"
+    impact: str = ""
 
 
 @dataclass

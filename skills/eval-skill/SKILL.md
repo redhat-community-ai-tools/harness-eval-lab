@@ -88,8 +88,11 @@ The report must include:
 At the very end:
 
 ```
+Evaluated with: setup-eval v{version} (claude-code-plugin)
 Duration: [X minutes Y seconds]
 ```
+
+Get `{version}` by running: `uv run python -c "import importlib.metadata; print(importlib.metadata.version('setup-eval'))"`
 
 **If the user chose terminal:** print the report in the conversation.
 

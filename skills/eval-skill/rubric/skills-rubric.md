@@ -1,1 +1,1 @@
-../../eval-setup-review/rubric/skills-rubric.md
+../../setup-eval-review/rubric/skills-rubric.md

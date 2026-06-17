@@ -6,10 +6,13 @@ import json
 import re
 
 from harness_eval_lab.rubric.dimensions import CATEGORIES_BY_TYPE
-from harness_eval_lab.rubric.prompts import SYSTEM_PROMPT, build_issue_prompt
+from harness_eval_lab.rubric.prompts import SYSTEM_PROMPT, build_batch_prompt, build_issue_prompt
 from harness_eval_lab.rubric.types import IssueCategory, RubricIssue, RubricResult
 from harness_eval_lab.utils.llm import LLMClient
 
+_ISSUE_WITH_IMPACT_RE = re.compile(
+    r"ISSUE:\s*(.+?)\s*\|\s*CATEGORY:\s*(\S+)\s*\|\s*SEVERITY:\s*(\S+)\s*\|\s*EVIDENCE:\s*(.+?)\s*\|\s*SUGGESTION:\s*(.+?)\s*\|\s*IMPACT:\s*(.+)"
+)
 _ISSUE_RE = re.compile(
     r"ISSUE:\s*(.+?)\s*\|\s*CATEGORY:\s*(\S+)\s*\|\s*SEVERITY:\s*(\S+)\s*\|\s*EVIDENCE:\s*(.+?)\s*\|\s*SUGGESTION:\s*(.+)"
 )
@@ -25,6 +28,10 @@ _JSON_BLOCK_RE = re.compile(r"```json\s*\n(.*?)\n\s*```", re.DOTALL)
 class RubricChecker:
     def __init__(self, client: LLMClient) -> None:
         self.client = client
+
+    def _ensure_client_safe(self) -> None:
+        if hasattr(self.client, "_ensure_client"):
+            self.client._ensure_client()  # type: ignore[union-attr]
 
     def check(
         self,
@@ -52,6 +59,75 @@ class RubricChecker:
 
         response = self.client.generate(SYSTEM_PROMPT, prompt)
         return self._parse_response(response, component_name, component_type)
+
+    def check_batch(
+        self,
+        components: list[tuple[str, str, str]],
+        context: str | None = None,
+        category_overrides: list[IssueCategory] | None = None,
+    ) -> list[RubricResult]:
+        if len(components) == 1:
+            ct, cn, cc = components[0]
+            return [self.check(ct, cn, cc, context, category_overrides)]
+
+        first_type = components[0][0]
+        categories = category_overrides or CATEGORIES_BY_TYPE.get(first_type, [])
+        if not categories:
+            return [RubricResult(component_name=cn, component_type=ct) for ct, cn, _ in components]
+
+        prompt = build_batch_prompt(components, categories, context)
+        response = self.client.generate(SYSTEM_PROMPT, prompt)
+        return self._parse_batch_response(response, components)
+
+    def _parse_batch_response(
+        self,
+        response: str,
+        components: list[tuple[str, str, str]],
+    ) -> list[RubricResult]:
+        json_str = self._extract_json_string(response)
+        if json_str is not None:
+            try:
+                data = json.loads(json_str)
+                if isinstance(data, list) and len(data) == len(components):
+                    results = []
+                    for i, item in enumerate(data):
+                        if not isinstance(item, dict):
+                            ct, cn, _ = components[i]
+                            results.append(RubricResult(component_name=cn, component_type=ct))
+                            continue
+                        ct, cn, _ = components[i]
+                        result = self._parse_single_json(item, cn, ct)
+                        results.append(result)
+                    return results
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+        return [self.check(ct, cn, cc) for ct, cn, cc in components]
+
+    def _parse_single_json(
+        self, data: dict[str, object], component_name: str, component_type: str
+    ) -> RubricResult:
+        issues: list[RubricIssue] = []
+        for item in data.get("issues", []):
+            if not isinstance(item, dict):
+                continue
+            issues.append(
+                RubricIssue(
+                    description=str(item.get("description", "")),
+                    category=str(item.get("category", "")),
+                    severity=str(item.get("severity", "warning")).lower(),
+                    evidence=str(item.get("evidence", "")),
+                    suggestion=str(item.get("suggestion", "")),
+                    impact=str(item.get("impact", "")),
+                )
+            )
+        return RubricResult(
+            component_name=component_name,
+            component_type=component_type,
+            issues=issues,
+            summary=str(data.get("summary", "")),
+            verdict=str(data.get("verdict", "")),
+        )
 
     def _parse_response(
         self,
@@ -95,6 +171,7 @@ class RubricChecker:
                     severity=str(item.get("severity", "warning")).lower(),
                     evidence=str(item.get("evidence", "")),
                     suggestion=str(item.get("suggestion", "")),
+                    impact=str(item.get("impact", "")),
                 )
             )
 
@@ -136,6 +213,20 @@ class RubricChecker:
 
         for line in response.strip().split("\n"):
             line = line.strip()
+
+            impact_match = _ISSUE_WITH_IMPACT_RE.match(line)
+            if impact_match:
+                issues.append(
+                    RubricIssue(
+                        description=impact_match.group(1).strip(),
+                        category=impact_match.group(2).strip(),
+                        severity=impact_match.group(3).strip().lower(),
+                        evidence=impact_match.group(4).strip(),
+                        suggestion=impact_match.group(5).strip(),
+                        impact=impact_match.group(6).strip(),
+                    )
+                )
+                continue
 
             issue_match = _ISSUE_RE.match(line)
             if issue_match:

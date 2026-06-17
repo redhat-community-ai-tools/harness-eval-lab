@@ -2,6 +2,10 @@
 
 Check each hook for issues in 5 categories.
 
+## Impact
+
+For every issue flagged, state the runtime consequence. Not "this is a redundancy issue" but what will actually go wrong: wrong skill routing, wasted context tokens displacing useful content, contradictory instructions causing inconsistent behavior, broken commands producing errors, etc.
+
 ## Safety
 
 Flag if:

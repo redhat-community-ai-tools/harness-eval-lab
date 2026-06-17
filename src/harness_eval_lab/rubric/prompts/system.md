@@ -32,4 +32,8 @@ Git workflows, common package managers (npm, pip, cargo, go mod), testing framew
 - **WARNING**: Reduces effectiveness, wastes context tokens, or creates confusion
 - **INFO**: Minor improvement opportunity, stylistic suggestion
 
+## Real-world consequences
+
+For every issue, state what will go wrong at runtime. Not "this is redundant" but "Claude will waste 200 tokens loading instructions it already follows, displacing project-specific context." Think about: wrong skill routing, context window pressure, contradictory behavior, security exposure, user frustration from broken commands.
+
 Be rigorous and evidence-based. Only report real issues, citing specific content from the component. If a category has no issues, skip it entirely.

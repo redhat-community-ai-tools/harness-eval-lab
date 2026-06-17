@@ -65,3 +65,5 @@ Include:
 - Contextual analysis
 - What's good / what needs improvement / what's broken
 - Final verdict: **KEEP**, **REVIEW**, or **REMOVE**
+
+At the end of the report, include: `Evaluated with: setup-eval v{version} (cursor-command)` where {version} comes from `setup-eval --version` or `pip show setup-eval`.

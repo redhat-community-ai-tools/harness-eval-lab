@@ -49,6 +49,8 @@ For each component, evaluate these 4 security checks:
 
 For each check, report: **CLEAN** or **FLAG** with evidence.
 
+For each FLAG finding, describe a concrete attack scenario: who could exploit this, how, and what they would gain.
+
 ## Step 5: Produce the Report
 
 Include:
@@ -57,3 +59,5 @@ Include:
 3. Semantic review findings (per-component checklist results)
 4. Skip notices (if YARA or CVE dependencies are missing)
 5. Risk assessment: **SAFE** / **CAUTION** / **UNSAFE**
+
+At the end of the report, include: `Evaluated with: setup-eval v{version} (cursor-command)` where {version} comes from `setup-eval --version` or `pip show setup-eval`.

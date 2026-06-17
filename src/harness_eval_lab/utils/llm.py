@@ -14,6 +14,9 @@ class GeminiClient:
     def __init__(self, model: str = "gemini-2.0-flash") -> None:
         self.model = model
         self._client: object | None = None
+        self.calls_total: int = 0
+        self.calls_succeeded: int = 0
+        self.provider_name: str = "gemini"
 
     def _ensure_client(self) -> None:
         if self._client is not None:
@@ -33,6 +36,7 @@ class GeminiClient:
         self._ensure_client()
         from google.genai import types
 
+        self.calls_total += 1
         response = self._client.models.generate_content(  # type: ignore[union-attr]
             model=self.model,
             contents=prompt,
@@ -41,6 +45,7 @@ class GeminiClient:
                 temperature=0.2,
             ),
         )
+        self.calls_succeeded += 1
         return response.text or ""
 
 
@@ -48,6 +53,9 @@ class AnthropicClient:
     def __init__(self, model: str = "claude-sonnet-4-20250514") -> None:
         self.model = model
         self._client: object | None = None
+        self.calls_total: int = 0
+        self.calls_succeeded: int = 0
+        self.provider_name: str = "anthropic"
 
     def _ensure_client(self) -> None:
         if self._client is not None:
@@ -65,12 +73,14 @@ class AnthropicClient:
 
     def generate(self, system: str, prompt: str) -> str:
         self._ensure_client()
+        self.calls_total += 1
         response = self._client.messages.create(  # type: ignore[union-attr]
             model=self.model,
             max_tokens=2048,
             system=system,
             messages=[{"role": "user", "content": prompt}],
         )
+        self.calls_succeeded += 1
         return response.content[0].text
 
 

@@ -19,6 +19,10 @@ drops. Analyzes source and test files to identify untested branches,
 edge cases, and missing integration tests.
 ```
 
+## Impact
+
+For every issue flagged, state the runtime consequence. Not "this is a redundancy issue" but what will actually go wrong: wrong skill routing, wasted context tokens displacing useful content, contradictory instructions causing inconsistent behavior, broken commands producing errors, etc.
+
 ## Specificity
 
 Flag if:

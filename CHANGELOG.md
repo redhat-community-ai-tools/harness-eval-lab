@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-06-17
+
+### Added
+- Impact field on rubric issues: states concrete runtime consequence for each finding
+- Attack scenarios required for security review FLAG findings
+- Evaluation metadata in all command outputs (version, duration, components, LLM call info)
+- Parallel LLM calls in review and security commands (ThreadPoolExecutor, max 4 workers)
+- Batch evaluation for small components (up to 3 per LLM call)
+- Multi-tool expansion future plan (Codex, Cline, Gemini CLI, Windsurf file patterns)
+- `EvalMetadata` dataclass for structured metadata output
+- Batch prompt template for grouped component evaluation
+- LLM client call counters (total/succeeded) for metadata tracking
+
+### Changed
+- JSON output includes `impact`, `verdict`, and `metadata` fields
+- LLM prompt (issue-template.md) requests impact for each issue
+- Security review rubric requires concrete attack scenarios for FLAG findings
+- All review rubric files include impact guidance sections
+- All SKILL.md files and Cursor commands include metadata footer instructions
+
+### Fixed
+- Broken symlink in `skills/eval-skill/rubric/skills-rubric.md` (pointed to old directory name)
+
 ## [3.1.2] - 2026-06-17
 
 ### Changed

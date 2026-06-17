@@ -42,6 +42,7 @@ Evaluate across these areas:
 - **Trigger quality**: are descriptions specific enough to route correctly? Any overlapping triggers?
 - **Token efficiency**: are components under 500 lines? Is content split between main file and references?
 - **Instruction clarity**: contradictions, vague language, buried rules, orphaned conditionals?
+- **Impact**: for each issue, what will go wrong at runtime if this isn't fixed?
 
 ## Step 5: Cross-Component Optimization
 
@@ -58,3 +59,5 @@ Include:
 3. Evaluation summary (headline verdict)
 4. Per-component analysis (lint + qualitative review + verdict)
 5. Numbered improvement suggestions
+
+At the end of the report, include: `Evaluated with: setup-eval v{version} (cursor-command)` where {version} comes from `setup-eval --version` or `pip show setup-eval`.

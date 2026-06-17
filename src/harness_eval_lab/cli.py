@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json as json_mod
+import time
 from pathlib import Path
 
 import click
 
 from harness_eval_lab.core.setup import discover_setup
 from harness_eval_lab.core.types import ComponentType
+from harness_eval_lab.output.metadata import EvalMetadata
+from harness_eval_lab.rubric.types import RubricResult
 
 
 @click.group()
@@ -41,6 +44,7 @@ def eval_setup_lint(
     path: str, preset: str, fmt: str, fix: bool, fail_on_error: bool, user_config: str | None
 ) -> None:
     """Lint: 39 rules + system analysis. No LLM, deterministic, fast."""
+    t0 = time.monotonic()
     from harness_eval_lab.analysis.system import analyze_system
     from harness_eval_lab.config.presets import PRESETS
     from harness_eval_lab.inspection.engine import inspect_setup
@@ -55,27 +59,50 @@ def eval_setup_lint(
         results = inspect_setup(setup, config_rules)
         system = analyze_system(setup)
 
+        metadata = EvalMetadata(
+            version=EvalMetadata.get_version(),
+            duration_seconds=time.monotonic() - t0,
+            components_scanned=len(results),
+            rules_checked=sum(len(r.rules_run) for r in results),
+            invocation_source="cli",
+        )
+
         if fmt == "json":
-            click.echo(format_json(system, results))
+            json_out = format_json(system, results)
+            data = json_mod.loads(json_out)
+            data["metadata"] = metadata.to_dict()
+            click.echo(json_mod.dumps(data, indent=2))
         else:
             click.echo(format_terminal(system, results))
+            click.echo(metadata.format_terminal())
     else:
         results = _inspect_single_file(target, config_rules)
 
+        metadata = EvalMetadata(
+            version=EvalMetadata.get_version(),
+            duration_seconds=time.monotonic() - t0,
+            components_scanned=len(results),
+            rules_checked=sum(len(r.rules_run) for r in results),
+            invocation_source="cli",
+        )
+
         if fmt == "json":
-            output = [
-                {
-                    "target": f"{r.target_type}/{r.target_name}",
-                    "tokens": r.tokens,
-                    "errors": r.error_count,
-                    "warnings": r.warning_count,
-                    "findings": [
-                        {"rule": d.rule_id, "severity": d.severity.value, "message": d.message}
-                        for d in r.diagnostics
-                    ],
-                }
-                for r in results
-            ]
+            output = {
+                "results": [
+                    {
+                        "target": f"{r.target_type}/{r.target_name}",
+                        "tokens": r.tokens,
+                        "errors": r.error_count,
+                        "warnings": r.warning_count,
+                        "findings": [
+                            {"rule": d.rule_id, "severity": d.severity.value, "message": d.message}
+                            for d in r.diagnostics
+                        ],
+                    }
+                    for r in results
+                ],
+                "metadata": metadata.to_dict(),
+            }
             click.echo(json_mod.dumps(output, indent=2))
         else:
             total_errors = sum(r.error_count for r in results)
@@ -89,6 +116,7 @@ def eval_setup_lint(
             click.echo(
                 f"\n{len(results)} components scanned, {total_errors} errors, {total_warnings} warnings"
             )
+            click.echo(metadata.format_terminal())
 
     if fix:
         all_findings = [d for r in results for d in r.diagnostics]
@@ -117,6 +145,7 @@ def eval_setup_review(
     path: str, fmt: str, provider: str, model: str | None, user_config: str | None
 ) -> None:
     """Review: LLM rubric scoring per component. Requires API key in environment."""
+    t0 = time.monotonic()
     from harness_eval_lab.rubric.scorer import RubricChecker
     from harness_eval_lab.utils.llm import create_client
 
@@ -138,19 +167,64 @@ def eval_setup_review(
         ComponentType.AGENT: "agent",
     }
 
-    rubric_results = []
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    from harness_eval_lab.utils.tokens import count_tokens
+
+    reviewable = []
     for comp in setup.components:
         comp_type_str = component_type_map.get(comp.component_type)
-        if not comp_type_str:
-            continue
-        click.echo(f"  Reviewing {comp.component_type.value}/{comp.name}...", err=True)
-        result = checker.check(
-            component_type=comp_type_str,
-            component_name=comp.name,
-            content=comp.content,
-            context=context_text,
-        )
-        rubric_results.append(result)
+        if comp_type_str:
+            reviewable.append((comp_type_str, comp.name, comp.content))
+
+    small: list[tuple[str, str, str]] = []
+    large: list[tuple[str, str, str]] = []
+    for item in reviewable:
+        if count_tokens(item[2]) < 500:
+            small.append(item)
+        else:
+            large.append(item)
+
+    batches: list[list[tuple[str, str, str]]] = []
+    for i in range(0, len(small), 3):
+        batches.append(small[i : i + 3])
+    for item in large:
+        batches.append([item])
+
+    checker._ensure_client_safe()
+    click.echo(f"  Reviewing {len(reviewable)} components ({len(batches)} batches)...", err=True)
+
+    rubric_results: list[RubricResult] = []
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        future_map = {}
+        for batch in batches:
+            if len(batch) == 1:
+                ct, cn, cc = batch[0]
+                future = executor.submit(checker.check, ct, cn, cc, context_text)
+            else:
+                future = executor.submit(checker.check_batch, batch, context_text)  # type: ignore[arg-type]
+            future_map[future] = batch
+
+        for future in as_completed(future_map):
+            result = future.result()
+            if isinstance(result, list):
+                rubric_results.extend(result)
+            else:
+                rubric_results.append(result)
+
+    comp_order = {comp.name: i for i, comp in enumerate(setup.components)}
+    rubric_results.sort(key=lambda r: comp_order.get(r.component_name, 999))
+
+    metadata = EvalMetadata(
+        version=EvalMetadata.get_version(),
+        duration_seconds=time.monotonic() - t0,
+        components_scanned=len(rubric_results),
+        invocation_source="cli",
+        provider=provider,
+        model=client.model,  # type: ignore[attr-defined]
+        llm_calls_total=client.calls_total,  # type: ignore[attr-defined]
+        llm_calls_succeeded=client.calls_succeeded,  # type: ignore[attr-defined]
+    )
 
     if fmt == "json":
         output = {
@@ -166,13 +240,16 @@ def eval_setup_review(
                             "description": i.description,
                             "evidence": i.evidence,
                             "suggestion": i.suggestion,
+                            "impact": i.impact,
                         }
                         for i in rr.issues
                     ],
                     "summary": rr.summary,
+                    "verdict": rr.verdict,
                 }
                 for rr in rubric_results
             ],
+            "metadata": metadata.to_dict(),
         }
         click.echo(json_mod.dumps(output, indent=2))
     else:
@@ -190,6 +267,8 @@ def eval_setup_review(
                     click.echo(f"    [{issue.category}] {issue.description}")
                     click.echo(f"      Evidence: {issue.evidence}")
                     click.echo(f"      Fix: {issue.suggestion}")
+                    if issue.impact:
+                        click.echo(f"      Impact: {issue.impact}")
             else:
                 click.echo(f"  {rr.component_type}/{rr.component_name}: no issues")
             if rr.summary:
@@ -198,6 +277,7 @@ def eval_setup_review(
 
         total_issues = sum(len(rr.issues) for rr in rubric_results)
         click.echo(f"{len(rubric_results)} components reviewed, {total_issues} rubric issues found")
+        click.echo(metadata.format_terminal())
         click.echo("")
 
 
@@ -232,6 +312,7 @@ def eval_setup_security(
     user_config: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
+    t0 = time.monotonic()
     from harness_eval_lab.config.presets import SECURITY
     from harness_eval_lab.inspection.engine import inspect_setup
 
@@ -278,29 +359,42 @@ def eval_setup_security(
 
     rubric_results = []
     if review:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         from harness_eval_lab.rubric.dimensions import SECURITY_REVIEW_CATEGORIES
         from harness_eval_lab.rubric.scorer import RubricChecker
         from harness_eval_lab.utils.llm import create_client
 
         client = create_client(provider, model)
         checker = RubricChecker(client)
+        checker._ensure_client_safe()
 
         context_parts = [
             f"[{c.component_type.value}] {c.name}: {c.content[:200]}" for c in setup.components
         ]
         context_text = "\n".join(context_parts)
 
-        for comp in setup.components:
-            click.echo(f"  Security review: {comp.component_type.value}/{comp.name}...", err=True)
-            result = checker.check(
-                component_type=comp.component_type.value,
-                component_name=comp.name,
-                content=comp.content,
-                context=context_text,
-                category_overrides=SECURITY_REVIEW_CATEGORIES,
-            )
-            if result.issues:
-                rubric_results.append(result)
+        click.echo(f"  Security review: {len(setup.components)} components...", err=True)
+
+        all_sec_results: list[RubricResult] = []
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {
+                executor.submit(
+                    checker.check,
+                    comp.component_type.value,
+                    comp.name,
+                    comp.content,
+                    context_text,
+                    SECURITY_REVIEW_CATEGORIES,
+                ): comp
+                for comp in setup.components
+            }
+            for future in as_completed(futures):
+                all_sec_results.append(future.result())
+
+        for rr in all_sec_results:
+            if rr.issues:
+                rubric_results.append(rr)
 
     total_errors = sum(r.error_count for r in results)
     total_warnings = sum(r.warning_count for r in results)
@@ -314,6 +408,18 @@ def eval_setup_security(
         risk = "CAUTION"
     else:
         risk = "UNSAFE"
+
+    sec_metadata = EvalMetadata(
+        version=EvalMetadata.get_version(),
+        duration_seconds=time.monotonic() - t0,
+        components_scanned=len(results),
+        invocation_source="cli",
+    )
+    if review:
+        sec_metadata.provider = provider
+        sec_metadata.model = client.model  # type: ignore[attr-defined]
+        sec_metadata.llm_calls_total = client.calls_total  # type: ignore[attr-defined]
+        sec_metadata.llm_calls_succeeded = client.calls_succeeded  # type: ignore[attr-defined]
 
     if fmt == "json":
         output = {
@@ -341,6 +447,7 @@ def eval_setup_security(
                 for r in components_with_findings
             ],
         }
+        output["metadata"] = sec_metadata.to_dict()
         if skip_notices:
             output["skipped_checks"] = skip_notices
         if rubric_results:
@@ -354,6 +461,7 @@ def eval_setup_security(
                             "description": i.description,
                             "evidence": i.evidence,
                             "suggestion": i.suggestion,
+                            "impact": i.impact,
                         }
                         for i in rr.issues
                     ],
@@ -400,6 +508,8 @@ def eval_setup_security(
                     click.echo(f"    [{issue.category}] {issue.description}")
                     click.echo(f"      Evidence: {issue.evidence}")
                     click.echo(f"      Fix: {issue.suggestion}")
+                    if issue.impact:
+                        click.echo(f"      Impact: {issue.impact}")
             click.echo("")
 
         if skip_notices:
@@ -408,6 +518,9 @@ def eval_setup_security(
             for notice in skip_notices:
                 click.echo(f"  {notice}")
             click.echo("")
+
+        click.echo(sec_metadata.format_terminal())
+        click.echo("")
 
     if fail_on_error and total_errors > 0:
         raise SystemExit(1)
@@ -450,6 +563,7 @@ def eval_skill(
     user_config: str | None,
 ) -> None:
     """Deep-evaluate a single skill, individually and in context of the setup."""
+    t0 = time.monotonic()
     from harness_eval_lab.config.presets import PRESETS
     from harness_eval_lab.inspection.engine import lint
     from harness_eval_lab.inspection.parsers import parse_skill
@@ -492,6 +606,19 @@ def eval_skill(
             context=context_text,
         )
 
+    skill_metadata = EvalMetadata(
+        version=EvalMetadata.get_version(),
+        duration_seconds=time.monotonic() - t0,
+        components_scanned=1,
+        rules_checked=len(result.rules_run),
+        invocation_source="cli",
+    )
+    if run_rubric and rubric_result:
+        skill_metadata.provider = provider
+        skill_metadata.model = client.model  # type: ignore[attr-defined]
+        skill_metadata.llm_calls_total = client.calls_total  # type: ignore[attr-defined]
+        skill_metadata.llm_calls_succeeded = client.calls_succeeded  # type: ignore[attr-defined]
+
     if fmt == "json":
         output: dict = {
             "skill": skill.dir_name,
@@ -503,6 +630,7 @@ def eval_skill(
                 for d in result.diagnostics
             ],
         }
+        output["metadata"] = skill_metadata.to_dict()
         if context_findings:
             output["context_findings"] = context_findings
         if rubric_result:
@@ -514,10 +642,12 @@ def eval_skill(
                         "evidence": i.evidence,
                         "suggestion": i.suggestion,
                         "severity": i.severity,
+                        "impact": i.impact,
                     }
                     for i in rubric_result.issues
                 ],
                 "summary": rubric_result.summary,
+                "verdict": rubric_result.verdict,
             }
         click.echo(json_mod.dumps(output, indent=2))
     else:
@@ -554,11 +684,14 @@ def eval_skill(
                     click.echo(f"  [{issue.category}] {issue.description}")
                     click.echo(f"    Evidence: {issue.evidence}")
                     click.echo(f"    Fix: {issue.suggestion}")
+                    if issue.impact:
+                        click.echo(f"    Impact: {issue.impact}")
             else:
                 click.echo("\nRubric: No issues found.")
             if rubric_result.summary:
                 click.echo(f"\n  Summary: {rubric_result.summary}")
 
+        click.echo(skill_metadata.format_terminal())
         click.echo("")
 
 

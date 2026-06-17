@@ -4,6 +4,10 @@ Check each command for issues in 7 categories. For clean commands, use a compact
 
 Note: In Claude Code, commands have been merged into the skills system. A command is now a skill with `disable-model-invocation: true` (user triggers it with /name, Claude never auto-invokes). When reviewing commands, consider whether each one belongs in this category or should be a skill with auto-invocation.
 
+## Impact
+
+For every issue flagged, state the runtime consequence. Not "this is a redundancy issue" but what will actually go wrong: wrong skill routing, wasted context tokens displacing useful content, contradictory instructions causing inconsistent behavior, broken commands producing errors, etc.
+
 ## Description quality
 
 Flag if:

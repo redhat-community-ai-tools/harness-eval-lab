@@ -21,3 +21,5 @@ setup-eval setup-eval-lint . --format json
 ```
 
 3. Present the report. Include all sections: inventory, token budget, trigger analysis, dependencies, findings, and inspection summary.
+
+At the end of the report, include: `Evaluated with: setup-eval v{version} (cursor-command)` where {version} comes from `setup-eval --version` or `pip show setup-eval`.
