@@ -41,7 +41,7 @@ setup-eval eval-skill ./skills/my-skill --context . --rubric
 
 Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for review/security/skill commands.
 
-For YARA malware signature scanning, add: `pip install setup-eval[yara]`
+`setup-eval-security` supports optional YARA malware signature scanning. To enable it: `pip install setup-eval[yara]`
 
 ### Claude Code plugin
 
