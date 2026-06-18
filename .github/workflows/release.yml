@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  release:
+    if: >-
+      github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && github.event.comment.user.type != 'Bot'
+        && startsWith(github.event.comment.body, '/release ')
+        && (
+          github.event.comment.author_association == 'OWNER'
+          || github.event.comment.author_association == 'MEMBER'
+          || github.event.comment.author_association == 'COLLABORATOR'
+        )
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.issue.number }}
+      REPO: ${{ github.repository }}
+      COMMENT_BODY: ${{ github.event.comment.body }}
+    steps:
+      - name: Check PR is merged
+        run: |
+          set -euo pipefail
+          STATE=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json state,mergedAt --jq '.state')
+          MERGED=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergedAt --jq '.mergedAt')
+          if [ "$STATE" != "MERGED" ] || [ "$MERGED" = "null" ] || [ -z "$MERGED" ]; then
+            gh pr comment "$PR_NUMBER" --repo "$REPO" \
+              --body "Release failed: this PR is not merged."
+            exit 1
+          fi
+
+      - name: Parse bump type
+        id: parse
+        run: |
+          set -euo pipefail
+          BUMP=$(echo "$COMMENT_BODY" | sed -n 's|^/release \(patch\|minor\|major\).*|\1|p')
+          if [ -z "$BUMP" ]; then
+            gh pr comment "$PR_NUMBER" --repo "$REPO" \
+              --body "Release failed: invalid command. Use \`/release patch\`, \`/release minor\`, or \`/release major\`."
+            exit 1
+          fi
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Check for unreleased changes
+        run: |
+          set -euo pipefail
+          UNRELEASED=$(sed -n '/^## \[Unreleased\]/,/^## \[/{/^## \[Unreleased\]/d;/^## \[/d;p}' CHANGELOG.md | grep -v '^$' || true)
+          if [ -z "$UNRELEASED" ]; then
+            gh pr comment "$PR_NUMBER" --repo "$REPO" \
+              --body "Release skipped: no unreleased changes in CHANGELOG.md."
+            exit 1
+          fi
+
+      - name: Check tag does not exist
+        run: |
+          set -euo pipefail
+          CURRENT=$(grep -m1 '^version' pyproject.toml | sed 's/.*"\(.*\)"/\1/')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          BUMP="${{ steps.parse.outputs.bump }}"
+          if [ "$BUMP" = "major" ]; then
+            NEW_VERSION="$((MAJOR + 1)).0.0"
+          elif [ "$BUMP" = "minor" ]; then
+            NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
+          else
+            NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          fi
+          TAG="v${NEW_VERSION}"
+          if git tag -l "$TAG" | grep -q "$TAG"; then
+            gh pr comment "$PR_NUMBER" --repo "$REPO" \
+              --body "Release skipped: tag \`$TAG\` already exists."
+            exit 1
+          fi
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_ENV"
+          echo "tag=$TAG" >> "$GITHUB_ENV"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release script
+        run: uv run scripts/release.py ${{ steps.parse.outputs.bump }}
+
+      - name: Push release
+        run: git push origin main --tags
+
+      - name: Comment success
+        if: success()
+        run: |
+          gh pr comment "$PR_NUMBER" --repo "$REPO" \
+            --body "Released \`${{ env.tag }}\`. PyPI publish workflow triggered."
+
+      - name: Comment failure
+        if: failure()
+        run: |
+          gh pr comment "$PR_NUMBER" --repo "$REPO" \
+            --body "Release failed. Check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
