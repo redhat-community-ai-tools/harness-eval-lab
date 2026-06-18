@@ -31,6 +31,7 @@ jobs:
       COMMENT_BODY: ${{ github.event.comment.body }}
     steps:
       - name: Check PR is merged
+        id: check-merged
         run: |
           set -euo pipefail
           STATE=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json state,mergedAt --jq '.state')
@@ -38,6 +39,7 @@ jobs:
           if [ "$STATE" != "MERGED" ] || [ "$MERGED" = "null" ] || [ -z "$MERGED" ]; then
             gh pr comment "$PR_NUMBER" --repo "$REPO" \
               --body "Release failed: this PR is not merged."
+            echo "handled=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
@@ -49,6 +51,7 @@ jobs:
           if [ -z "$BUMP" ]; then
             gh pr comment "$PR_NUMBER" --repo "$REPO" \
               --body "Release failed: invalid command. Use \`/release patch\`, \`/release minor\`, or \`/release major\`."
+            echo "handled=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
           echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
@@ -61,16 +64,19 @@ jobs:
           fetch-tags: true
 
       - name: Check for unreleased changes
+        id: check-unreleased
         run: |
           set -euo pipefail
           UNRELEASED=$(sed -n '/^## \[Unreleased\]/,/^## \[/{/^## \[Unreleased\]/d;/^## \[/d;p}' CHANGELOG.md | grep -v '^$' || true)
           if [ -z "$UNRELEASED" ]; then
             gh pr comment "$PR_NUMBER" --repo "$REPO" \
               --body "Release skipped: no unreleased changes in CHANGELOG.md."
+            echo "handled=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
       - name: Check tag does not exist
+        id: check-tag
         run: |
           set -euo pipefail
           CURRENT=$(grep -m1 '^version' pyproject.toml | sed 's/.*"\(.*\)"/\1/')
@@ -87,6 +93,7 @@ jobs:
           if git tag -l "$TAG" | grep -q "$TAG"; then
             gh pr comment "$PR_NUMBER" --repo "$REPO" \
               --body "Release skipped: tag \`$TAG\` already exists."
+            echo "handled=true" >> "$GITHUB_OUTPUT"
             exit 1
           fi
           echo "new_version=$NEW_VERSION" >> "$GITHUB_ENV"
@@ -116,7 +123,12 @@ jobs:
             --body "Released \`${{ env.tag }}\`. PyPI publish workflow triggered."
 
       - name: Comment failure
-        if: failure()
+        if: >-
+          failure()
+            && steps.check-merged.outputs.handled != 'true'
+            && steps.parse.outputs.handled != 'true'
+            && steps.check-unreleased.outputs.handled != 'true'
+            && steps.check-tag.outputs.handled != 'true'
         run: |
           gh pr comment "$PR_NUMBER" --repo "$REPO" \
             --body "Release failed. Check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
