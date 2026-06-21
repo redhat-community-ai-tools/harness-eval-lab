@@ -24,6 +24,7 @@ Respond with a JSON block. Wrap it in ```json ... ``` fences.
       "description": "short description of the issue",
       "category": "category_name",
       "severity": "error|warning|info",
+      "confidence": "high|medium|low",
       "evidence": "cite specific content from the component",
       "suggestion": "concrete fix",
       "impact": "what will go wrong at runtime if this isn't fixed"
@@ -37,6 +38,13 @@ Respond with a JSON block. Wrap it in ```json ... ``` fences.
 If there are no issues, return an empty `"issues"` array.
 
 VERDICT meanings: KEEP = solid, no significant issues. REVIEW = has issues worth fixing. REMOVE = actively harmful or pure noise.
+
+### Confidence field
+
+Rate how certain you are that each issue is a real problem (not a false positive):
+- **high**: you are confident this is a genuine issue that will cause problems
+- **medium**: this looks like an issue but you are not fully certain (e.g., missing context, ambiguous intent)
+- **low**: this might be a false positive, but it is worth flagging for human review
 
 ### Impact field
 
@@ -65,8 +73,8 @@ JSON example (issues found):
 ```json
 {{
   "issues": [
-    {{"description": "Restates default git knowledge", "category": "redundancy", "severity": "warning", "evidence": "Always commit with descriptive messages", "suggestion": "Remove; Claude already writes descriptive commit messages", "impact": "Wastes ~200 tokens every session loading instructions Claude already follows, displacing project-specific context"}},
-    {{"description": "References nonexistent script", "category": "script_integrity", "severity": "error", "evidence": "Run ./scripts/deploy.sh but file does not exist", "suggestion": "Create the script or remove the reference", "impact": "Command will fail every time a user invokes it, producing an error instead of the expected deployment"}}
+    {{"description": "Restates default git knowledge", "category": "redundancy", "severity": "warning", "confidence": "high", "evidence": "Always commit with descriptive messages", "suggestion": "Remove; Claude already writes descriptive commit messages", "impact": "Wastes ~200 tokens every session loading instructions Claude already follows, displacing project-specific context"}},
+    {{"description": "References nonexistent script", "category": "script_integrity", "severity": "error", "confidence": "high", "evidence": "Run ./scripts/deploy.sh but file does not exist", "suggestion": "Create the script or remove the reference", "impact": "Command will fail every time a user invokes it, producing an error instead of the expected deployment"}}
   ],
   "summary": "Useful command with two fixable issues; worth keeping after corrections.",
   "verdict": "REVIEW"

@@ -23,6 +23,7 @@ class RubricIssue:
     suggestion: str
     severity: str = "warning"
     impact: str = ""
+    confidence: float | None = None
 
 
 @dataclass

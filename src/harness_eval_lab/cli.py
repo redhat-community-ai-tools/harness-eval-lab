@@ -262,6 +262,7 @@ def eval_setup_review(
                             "evidence": i.evidence,
                             "suggestion": i.suggestion,
                             "impact": i.impact,
+                            **({"confidence": i.confidence} if i.confidence is not None else {}),
                         }
                         for i in rr.issues
                     ],
@@ -285,7 +286,10 @@ def eval_setup_review(
             if rr.issues:
                 click.echo(f"  {rr.component_type}/{rr.component_name}:")
                 for issue in rr.issues:
-                    click.echo(f"    [{issue.category}] {issue.description}")
+                    conf = ""
+                    if issue.confidence is not None:
+                        conf = f" (confidence: {issue.confidence:.0%})"
+                    click.echo(f"    [{issue.category}] {issue.description}{conf}")
                     click.echo(f"      Evidence: {issue.evidence}")
                     click.echo(f"      Fix: {issue.suggestion}")
                     if issue.impact:

@@ -19,10 +19,22 @@ _ISSUE_RE = re.compile(
 _ISSUE_RE_LEGACY = re.compile(
     r"ISSUE:\s*(.+?)\s*\|\s*CATEGORY:\s*(\S+)\s*\|\s*EVIDENCE:\s*(.+?)\s*\|\s*SUGGESTION:\s*(.+)"
 )
+_CONFIDENCE_LABEL_MAP = {"high": 0.9, "medium": 0.6, "low": 0.3}
 _SUMMARY_RE = re.compile(r"SUMMARY:\s*(.+)")
 _VERDICT_RE = re.compile(r"VERDICT:\s*(\S+)")
 
 _JSON_BLOCK_RE = re.compile(r"```json\s*\n(.*?)\n\s*```", re.DOTALL)
+
+
+def _parse_confidence(value: object) -> float | None:
+    """Parse a confidence value from LLM output (string label or numeric)."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return max(0.0, min(1.0, float(value)))
+    if isinstance(value, str):
+        return _CONFIDENCE_LABEL_MAP.get(value.strip().lower())
+    return None
 
 
 class RubricChecker:
@@ -119,6 +131,7 @@ class RubricChecker:
                     evidence=str(item.get("evidence", "")),
                     suggestion=str(item.get("suggestion", "")),
                     impact=str(item.get("impact", "")),
+                    confidence=_parse_confidence(item.get("confidence")),
                 )
             )
         return RubricResult(
@@ -172,6 +185,7 @@ class RubricChecker:
                     evidence=str(item.get("evidence", "")),
                     suggestion=str(item.get("suggestion", "")),
                     impact=str(item.get("impact", "")),
+                    confidence=_parse_confidence(item.get("confidence")),
                 )
             )
 
