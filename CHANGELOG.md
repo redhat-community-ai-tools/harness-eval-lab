@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Fuzzy matching for rule IDs: suppression comments, preset configs, and registry lookups now warn with "Did you mean?" suggestions when a rule ID doesn't match any registered rule
 - Tool-aware rule filtering: rules can declare `tools=("claude",)` or `tools=("cursor",)` to only run for matching components
 - `source_tool` field on `ParsedComponent` and `RuleContext` to track whether a component came from `.claude/` or `.cursor/`
 - Cursor-aware budget analysis: respects `alwaysApply` frontmatter in `.mdc` files instead of treating all Cursor rules as always-loaded

@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import logging
+from difflib import get_close_matches
+
 from harness_eval_lab.inspection.types import Rule, RuleCategory
+
+logger = logging.getLogger(__name__)
 
 _registry: dict[str, Rule] = {}
 
@@ -21,6 +26,11 @@ def get_rules_by_category(category: RuleCategory) -> list[Rule]:
 
 def get_rule(rule_id: str) -> Rule | None:
     return _registry.get(rule_id)
+
+
+def suggest_rule_id(rule_id: str) -> list[str]:
+    """Return similar rule IDs for a non-matching ID."""
+    return get_close_matches(rule_id, _registry.keys(), n=3, cutoff=0.6)
 
 
 def clear_rules() -> None:

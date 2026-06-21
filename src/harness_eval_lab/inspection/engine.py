@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -15,7 +16,7 @@ from harness_eval_lab.inspection.parsers import (
     parse_hooks,
     parse_skill,
 )
-from harness_eval_lab.inspection.registry import get_all_rules
+from harness_eval_lab.inspection.registry import get_all_rules, suggest_rule_id
 from harness_eval_lab.inspection.suppression import is_suppressed, parse_suppressions
 from harness_eval_lab.inspection.types import (
     Finding,
@@ -30,6 +31,8 @@ from harness_eval_lab.inspection.types import (
     RuleResult,
     Severity,
 )
+
+logger = logging.getLogger(__name__)
 
 _INTERPOLATION_RE = re.compile(r"\{\{(\w+)\}\}")
 
@@ -161,7 +164,7 @@ def _run_rules(
     findings: list[Finding] = []
     rules_run: list[RuleResult] = []
     suppression_counter = [0]
-    suppressions = parse_suppressions(raw_content) if raw_content else {}
+    suppressions = parse_suppressions(raw_content, file_path=file_path) if raw_content else {}
     config_rules = config_rules or {}
     scan_state = scan_state if scan_state is not None else {}
 
@@ -509,12 +512,36 @@ def lint_text_file(
     )
 
 
+_warned_config_rules: set[str] = set()
+
+
+def _warn_unknown_config_rules(config_rules: dict[str, str | list[Any]]) -> None:
+    """Log warnings for rule IDs in config that don't match any registered rule."""
+    all_rule_ids = {r.meta.id for r in get_all_rules()}
+    for rule_id in config_rules:
+        if rule_id in all_rule_ids or rule_id in _warned_config_rules:
+            continue
+        _warned_config_rules.add(rule_id)
+        suggestions = suggest_rule_id(rule_id)
+        if suggestions:
+            logger.warning(
+                "Config references unknown rule '%s'. Did you mean: %s?",
+                rule_id,
+                ", ".join(suggestions),
+            )
+        else:
+            logger.warning("Config references unknown rule '%s'.", rule_id)
+
+
 def inspect_setup(
     setup: Any,
     config_rules: dict[str, str | list[Any]] | None = None,
 ) -> list[InspectionResult]:
     """Run inspection on all components in a setup."""
     from harness_eval_lab.core.types import ComponentType as CT
+
+    if config_rules:
+        _warn_unknown_config_rules(config_rules)
 
     scan_state: dict[str, Any] = {}
     results: list[InspectionResult] = []
