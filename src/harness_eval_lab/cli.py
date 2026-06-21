@@ -40,6 +40,11 @@ def cli() -> None:
     help="Watch files for changes and re-run lint automatically.",
 )
 @click.option(
+    "--score",
+    is_flag=True,
+    help="Output a composite health score (JSON).",
+)
+@click.option(
     "--user-config",
     type=click.Path(),
     default=None,
@@ -52,6 +57,7 @@ def eval_setup_lint(
     fix: bool,
     fail_on_error: bool,
     watch: bool,
+    score: bool,
     user_config: str | None,
 ) -> None:
     """Lint: 39 rules + system analysis. No LLM, deterministic, fast."""
@@ -138,6 +144,12 @@ def eval_setup_lint(
                 f"\n{len(results)} components scanned, {total_errors} errors, {total_warnings} warnings"
             )
             click.echo(metadata.format_terminal())
+
+    if score:
+        from harness_eval_lab.output.scoring import compute_score, score_to_json
+
+        score_report = compute_score(results)
+        click.echo(score_to_json(score_report))
 
     if fix:
         all_findings = [d for r in results for d in r.diagnostics]
@@ -714,6 +726,39 @@ def eval_skill(
 
         click.echo(skill_metadata.format_terminal())
         click.echo("")
+
+
+@cli.command("compare")
+@click.argument("before_json", type=click.Path(exists=True))
+@click.argument("after_json", type=click.Path(exists=True))
+@click.option(
+    "--threshold",
+    type=float,
+    default=0.8,
+    help="Minimum composite score to pass (default: 0.8).",
+)
+@click.option("--format", "fmt", type=click.Choice(["markdown", "json"]), default="markdown")
+def compare(before_json: str, after_json: str, threshold: float, fmt: str) -> None:
+    """Compare two score reports and detect regressions."""
+    from harness_eval_lab.output.scoring import compare_scores, score_from_json
+
+    before = score_from_json(Path(before_json).read_text())
+    after = score_from_json(Path(after_json).read_text())
+
+    passed, report = compare_scores(before, after, threshold)
+
+    if fmt == "json":
+        click.echo(
+            json_mod.dumps(
+                {"passed": passed, "before": before.composite, "after": after.composite},
+                indent=2,
+            )
+        )
+    else:
+        click.echo(report)
+
+    if not passed:
+        raise SystemExit(1)
 
 
 def _inspect_single_file(target, config_rules):
