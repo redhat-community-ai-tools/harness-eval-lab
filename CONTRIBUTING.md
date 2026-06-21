@@ -16,7 +16,7 @@ uv run pre-commit install
 uv run ruff format src/ tests/ && uv run ruff check src/ tests/ && uv run pytest tests/ -q
 ```
 
-All three must pass. Commits that fail `ruff check` will be rejected by pre-commit hooks.
+All three must pass. Commits that fail `ruff check` or `ruff format` will be rejected by pre-commit hooks.
 
 ## Adding a new inspection rule
 
