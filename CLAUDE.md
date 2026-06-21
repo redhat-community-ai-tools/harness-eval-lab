@@ -27,7 +27,7 @@ The CI runs 4 jobs: lint, typecheck, test, dogfood. All must pass. Run this befo
 uv run ruff format src/ tests/ && uv run ruff check src/ tests/ && uv run pytest tests/ -q
 ```
 
-The most common CI failure is forgetting `ruff format`. The `ruff check` (lint rules) and `ruff format` (code style) are separate checks. Both must pass.
+All three must pass. The most common CI failure is forgetting `ruff format`. The `ruff check` (lint rules) and `ruff format` (code style) are separate checks.
 
 ## Project structure
 
