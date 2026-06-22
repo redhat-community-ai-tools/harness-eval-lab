@@ -12,7 +12,7 @@ For each component, answer all 4 checks below. Use this exact format:
   4. Permission scope:          [CLEAN/FLAG] - [evidence or "none"]
 ```
 
-If all 4 are CLEAN, collapse to a single line: `[type]/[name]: CLEAN (all 4 checks passed)`
+If all 4 are CLEAN, collapse to a single line: `[type]/[name]: CLEAN (anti-jailbreak, semantic attacks, description-behavior match, permission scope)`
 
 ---
 
