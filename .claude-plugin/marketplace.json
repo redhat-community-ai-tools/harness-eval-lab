@@ -13,10 +13,7 @@
         "name": "Benjamin Kapner"
       },
       "category": "development",
-      "source": {
-        "source": "github",
-        "repo": "redhat-community-ai-tools/harness-eval-lab"
-      },
+      "source": ".",
       "homepage": "https://github.com/redhat-community-ai-tools/harness-eval-lab"
     }
   ]
