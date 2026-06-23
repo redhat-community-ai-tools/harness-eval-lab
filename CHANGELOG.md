@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-06-23
+
 ### Added
 - Fuzzy matching for rule IDs: suppression comments, preset configs, and registry lookups now warn with "Did you mean?" suggestions when a rule ID doesn't match any registered rule
 - Tool-aware rule filtering: rules can declare `tools=("claude",)` or `tools=("cursor",)` to only run for matching components
