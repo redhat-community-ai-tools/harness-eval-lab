@@ -54,7 +54,7 @@ def eval_setup_lint(
     watch: bool,
     user_config: str | None,
 ) -> None:
-    """Lint: 39 rules + system analysis. No LLM, deterministic, fast."""
+    """Lint: 43 rules + system analysis. No LLM, deterministic, fast."""
     if watch:
         from harness_eval_lab.watch import run_watch
 

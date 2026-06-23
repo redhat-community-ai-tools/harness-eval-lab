@@ -26,6 +26,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
 CHANGELOG = ROOT / "CHANGELOG.md"
+PLUGIN_MANIFESTS = [
+    ROOT / ".claude-plugin" / "marketplace.json",
+    ROOT / ".claude-plugin" / "plugin.json",
+]
 
 
 def read_current_version() -> str:
@@ -115,6 +119,23 @@ def update_changelog(new_version: str, dry_run: bool) -> bool:
     return True
 
 
+def update_plugin_manifests(new_version: str, dry_run: bool) -> None:
+    for manifest in PLUGIN_MANIFESTS:
+        if not manifest.exists():
+            continue
+        text = manifest.read_text()
+        updated = re.sub(
+            r'"version"\s*:\s*"[^"]+"',
+            f'"version": "{new_version}"',
+            text,
+            count=1,
+        )
+        if dry_run:
+            print(f"  [dry-run] Would update {manifest.name} version to {new_version}")
+            continue
+        manifest.write_text(updated)
+
+
 def git_commit_and_tag(new_version: str, dry_run: bool) -> None:
     tag = f"v{new_version}"
     msg = f"release: {tag}"
@@ -124,8 +145,13 @@ def git_commit_and_tag(new_version: str, dry_run: bool) -> None:
         print(f"  [dry-run] Would create tag: {tag}")
         return
 
+    files_to_add = [str(PYPROJECT), str(CHANGELOG)]
+    for manifest in PLUGIN_MANIFESTS:
+        if manifest.exists():
+            files_to_add.append(str(manifest))
+
     subprocess.run(
-        ["git", "add", str(PYPROJECT), str(CHANGELOG)],
+        ["git", "add", *files_to_add],
         cwd=ROOT,
         check=True,
     )
@@ -140,7 +166,7 @@ def git_commit_and_tag(new_version: str, dry_run: bool) -> None:
         check=True,
     )
     print(f"\n  Committed and tagged {tag}.")
-    print(f"  Push with: git push origin main --tags")
+    print("  Push with: git push origin main --tags")
 
 
 def main() -> None:
@@ -165,14 +191,17 @@ def main() -> None:
     print("2. Updating CHANGELOG.md...")
     changelog_updated = update_changelog(new_version, args.dry_run)
 
+    print("3. Updating plugin manifests...")
+    update_plugin_manifests(new_version, args.dry_run)
+
     if not changelog_updated and not args.dry_run:
         print("\n  Warning: No changelog entries moved. Consider adding entries before releasing.")
 
     if not args.no_commit:
-        print("3. Committing and tagging...")
+        print("4. Committing and tagging...")
         git_commit_and_tag(new_version, args.dry_run)
     else:
-        print("3. Skipping git commit/tag (--no-commit).")
+        print("4. Skipping git commit/tag (--no-commit).")
 
     print("\nDone.")
 
