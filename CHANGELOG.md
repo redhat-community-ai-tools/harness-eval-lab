@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Comprehensive tests for `content/broken-references` rule: valid links, URL skipping, anchor skipping, template variable skipping, glob skipping, inline code references, deduplication (7 new test cases)
+
 ## [3.5.0] - 2026-06-23
 
 ### Added

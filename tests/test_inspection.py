@@ -186,6 +186,84 @@ class TestContentRules:
         rule_ids = {d.rule_id for d in result.diagnostics}
         assert "content/broken-references" in rule_ids
 
+    def test_broken_reference_valid_link(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "valid-ref"
+        skill_dir.mkdir()
+        (skill_dir / "guide.md").write_text("# Guide")
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: valid-ref\ndescription: Skill with valid ref\n---\n\n"
+            "See [guide](guide.md) for details."
+        )
+        result = lint(str(skill_dir))
+        broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
+        assert len(broken) == 0
+
+    def test_broken_reference_skips_urls(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "url-ref"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: url-ref\ndescription: Skill with URL ref\n---\n\n"
+            "See [docs](https://example.com/guide) and [http](http://example.com)."
+        )
+        result = lint(str(skill_dir))
+        broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
+        assert len(broken) == 0
+
+    def test_broken_reference_skips_anchors(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "anchor-ref"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: anchor-ref\ndescription: Skill with anchor ref\n---\n\n"
+            "See [section](#configuration) for details."
+        )
+        result = lint(str(skill_dir))
+        broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
+        assert len(broken) == 0
+
+    def test_broken_reference_skips_templates(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "template-ref"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: template-ref\ndescription: Skill with template ref\n---\n\n"
+            "See [config](${DOCS_PATH}/config.md) for details."
+        )
+        result = lint(str(skill_dir))
+        broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
+        assert len(broken) == 0
+
+    def test_broken_reference_skips_globs(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "glob-ref"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: glob-ref\ndescription: Skill with glob ref\n---\n\n"
+            "Match files with `*.py` pattern."
+        )
+        result = lint(str(skill_dir))
+        broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
+        assert len(broken) == 0
+
+    def test_broken_reference_inline_code(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "inline-ref"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: inline-ref\ndescription: Skill with inline code ref\n---\n\n"
+            "Edit `config.yaml` to change settings."
+        )
+        result = lint(str(skill_dir))
+        broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
+        assert len(broken) == 1
+
+    def test_broken_reference_deduplication(self, tmp_path: Path) -> None:
+        skill_dir = tmp_path / "dedup-ref"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: dedup-ref\ndescription: Skill with duplicate refs\n---\n\n"
+            "See [a](missing.md) and [b](missing.md) for details."
+        )
+        result = lint(str(skill_dir))
+        broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
+        assert len(broken) == 1
+
 
 class TestFrontmatterRules:
     def test_missing_description(self, tmp_path: Path) -> None:
