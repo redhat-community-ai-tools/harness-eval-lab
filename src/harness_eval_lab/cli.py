@@ -392,6 +392,7 @@ def eval_setup_security(
     results = inspect_setup(setup, SECURITY)
 
     skip_rules = {"security/yara-signatures", "security/cve-lookup"}
+    non_security_rules = {"parser", "frontmatter/format-valid"}
     skip_notices: list[str] = []
     seen_skip: set[str] = set()
     for r in results:
@@ -409,7 +410,10 @@ def eval_setup_security(
     cleaned_results: list[InspectionResult] = []
     for r in results:
         filtered = [
-            d for d in r.diagnostics if not (d.rule_id in skip_rules and d.severity.value == "info")
+            d
+            for d in r.diagnostics
+            if not (d.rule_id in skip_rules and d.severity.value == "info")
+            and d.rule_id not in non_security_rules
         ]
         cleaned_results.append(
             InspectionResult(

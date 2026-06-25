@@ -150,13 +150,14 @@ def _analyze_file(py_path: Path, context: RuleContext, skill_md_path: str) -> No
             else:
                 context.report(
                     ReportDescriptor(
-                        message_id="ast_dangerous_call",
+                        message_id="ast_subprocess_dynamic",
                         data={
                             "call": call_name,
                             "file": rel_path,
                             "line": str(line),
                         },
                         location=Location(file=skill_md_path, start_line=line),
+                        severity_override=Severity.WARNING,
                     )
                 )
         elif call_name == "getattr" and len(node.args) >= 2:
@@ -185,6 +186,7 @@ class AstBehavioral:
         messages={
             "ast_dangerous_call": "{{file}}:{{line}} calls {{call}}, which can execute arbitrary code.",
             "ast_subprocess_hardcoded": "{{file}}:{{line}} calls {{call}} with hardcoded arguments. Review if this is intentional.",
+            "ast_subprocess_dynamic": "{{file}}:{{line}} calls {{call}} with dynamic arguments. Verify inputs are not user-controlled.",
             "ast_dynamic_import": "{{file}}:{{line}} uses {{call}}, which can load arbitrary modules.",
             "ast_exec_chain": "{{file}}:{{line}} calls {{call}} with a dynamic source (decoded/fetched data), a high-risk execution chain.",
         },

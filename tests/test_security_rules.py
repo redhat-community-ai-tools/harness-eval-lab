@@ -354,7 +354,7 @@ class TestSubprocessHardcodedDetection:
         assert ast_findings[0].severity.value == "warning"
         assert "hardcoded" in ast_findings[0].message
 
-    def test_dynamic_subprocess_is_error(self, skill_dir: Path) -> None:
+    def test_dynamic_subprocess_is_warning(self, skill_dir: Path) -> None:
         _write_skill(
             skill_dir,
             py_content=("import subprocess, sys\nsubprocess.run(sys.argv[1:])\n"),
@@ -362,9 +362,10 @@ class TestSubprocessHardcodedDetection:
         result = lint(str(skill_dir), SECURITY)
         ast_findings = [d for d in result.diagnostics if d.rule_id == "security/ast-behavioral"]
         assert len(ast_findings) >= 1
-        assert ast_findings[0].severity.value == "error"
+        assert ast_findings[0].severity.value == "warning"
+        assert "dynamic" in ast_findings[0].message
 
-    def test_shell_true_is_error(self, skill_dir: Path) -> None:
+    def test_shell_true_is_warning(self, skill_dir: Path) -> None:
         _write_skill(
             skill_dir,
             py_content=('import subprocess\nsubprocess.run("ls -la", shell=True)\n'),
@@ -372,7 +373,7 @@ class TestSubprocessHardcodedDetection:
         result = lint(str(skill_dir), SECURITY)
         ast_findings = [d for d in result.diagnostics if d.rule_id == "security/ast-behavioral"]
         assert len(ast_findings) >= 1
-        assert ast_findings[0].severity.value == "error"
+        assert ast_findings[0].severity.value == "warning"
 
 
 class TestCveSeverityMapping:
