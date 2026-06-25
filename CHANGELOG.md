@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.6.1] - 2026-06-26
+
+### Fixed
+- UNKNOWN CVE severity now defaults to WARNING instead of ERROR (previously fell through to preset default)
+- Subprocess calls with dynamic arguments downgraded from ERROR to WARNING (subprocess is a capability, not a vulnerability; only exec chains with decoded/fetched data remain ERROR)
+- Parse errors (YAML frontmatter failures) excluded from security scan results (structural defects, not security findings)
+
 ## [3.6.0] - 2026-06-25
 
 ### Added
