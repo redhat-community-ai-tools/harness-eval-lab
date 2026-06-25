@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-06-25
+
 ### Added
 - LLM-based adjudication of scanner findings: when `--review` is enabled, each deterministic finding is classified as CONFIRMED, FALSE_POSITIVE, or DOWNGRADED before the risk assessment is computed
 - `AdjudicatedFinding` type with `is_confirmed`, `is_false_positive`, and `effective_severity` properties
