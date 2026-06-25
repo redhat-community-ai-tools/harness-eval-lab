@@ -182,8 +182,9 @@ class CveLookup:
                 "HIGH": Severity.ERROR,
                 "MEDIUM": Severity.WARNING,
                 "LOW": Severity.INFO,
+                "UNKNOWN": Severity.WARNING,
             }
-            sev_override = sev_map.get(vuln["severity"])
+            sev_override = sev_map.get(vuln["severity"], Severity.WARNING)
 
             context.report(
                 ReportDescriptor(
