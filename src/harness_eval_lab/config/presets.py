@@ -37,6 +37,12 @@ RECOMMENDED: dict[str, str] = {
     "agent/reverse-shell": "error",
     "agent/obfuscation": "error",
     "agent/data-exfiltration": "error",
+    # Quality rules
+    "quality/imprecise-instruction": "warning",
+    "quality/redundant-guidance": "warning",
+    "quality/unfinished-content": "warning",
+    "quality/example-gap": "info",
+    "quality/stale-references": "warning",
 }
 
 STRICT: dict[str, str] = {
@@ -53,6 +59,12 @@ STRICT: dict[str, str] = {
     "security/taint-flow": "error",
     "security/mcp-least-privilege": "error",
     "security/mcp-tool-poisoning": "error",
+    # Quality rules
+    "quality/imprecise-instruction": "error",
+    "quality/redundant-guidance": "error",
+    "quality/unfinished-content": "error",
+    "quality/example-gap": "warning",
+    "quality/stale-references": "error",
 }
 
 SECURITY: dict[str, str] = {
@@ -92,6 +104,12 @@ SECURITY: dict[str, str] = {
     "agent/reverse-shell": "error",
     "agent/obfuscation": "error",
     "agent/data-exfiltration": "error",
+    # Quality rules
+    "quality/imprecise-instruction": "off",
+    "quality/redundant-guidance": "off",
+    "quality/unfinished-content": "off",
+    "quality/example-gap": "off",
+    "quality/stale-references": "off",
 }
 
 PRE_WORKFLOW: dict[str, str] = {
@@ -127,6 +145,12 @@ PRE_WORKFLOW: dict[str, str] = {
     "agent/reverse-shell": "error",
     "agent/obfuscation": "error",
     "agent/data-exfiltration": "error",
+    # Quality rules
+    "quality/imprecise-instruction": "off",
+    "quality/redundant-guidance": "off",
+    "quality/unfinished-content": "off",
+    "quality/example-gap": "off",
+    "quality/stale-references": "off",
 }
 
 PRESETS: dict[str, dict[str, str]] = {
