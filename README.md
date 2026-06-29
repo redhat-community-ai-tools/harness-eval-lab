@@ -96,6 +96,23 @@ No API key needed for review/security/skill. Cursor evaluates in-session.
 
 Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.
 
+## Privacy and Data Handling
+
+`setup-eval` reads files from your project directory to analyze your AI agent setup. Here is what happens with your data in each mode:
+
+| Command | Sends data externally? | What is sent | Where |
+|---------|----------------------|--------------|-------|
+| `setup-eval-lint` | No | Nothing. Fully offline. | N/A |
+| `setup-eval-review` | Yes (CLI only) | Code snippets from your setup files | Gemini or Anthropic API (your choice via `--provider`) |
+| `setup-eval-security` | Scan: No. `--review`: Yes (CLI only) | Code snippets from flagged files | Gemini or Anthropic API |
+| `eval-skill` | Lint: No. `--rubric`: Yes (CLI only) | The skill content being evaluated | Gemini or Anthropic API |
+
+When used as a **Claude Code plugin**, review/security/eval-skill commands use the existing Claude session. No additional API calls are made.
+
+When used as **Cursor commands**, the evaluation happens in the Cursor session. No additional API calls are made.
+
+**File access:** The tool only reads files within the project directory you point it at. Path traversal protections prevent reading files outside the project boundary.
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for adding rules and submitting PRs.
