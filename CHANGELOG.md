@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.6.2] - 2026-06-29
+
+### Added
+- Path traversal protection: `safe_join()` and `is_within()` utilities prevent file references and auto-fixes from escaping the project directory
+- 12 tests for path safety covering traversal, symlink escape, and absolute path injection
+- Gitleaks and Bandit pre-commit hooks for secret scanning and Python security analysis
+- Incident response plan in SECURITY.md (contain, assess, yank, notify, remediate, post-mortem)
+- Privacy and data handling section in README documenting what each command sends externally
+- CODEOWNERS: both @Benkapner and @csoceanu required for review (2 approvals), with stricter ownership rules for release-critical files
+
+### Fixed
+- Broken references rule now rejects path traversal attempts instead of following them
+- Command script-exists rule now rejects path traversal in script references
+- Auto-fixer validates file paths stay within project root before writing
+
 ## [3.6.1] - 2026-06-26
 
 ### Fixed

@@ -39,7 +39,7 @@ All three must pass. The most common CI failure is forgetting `ruff format`. The
   - `rubric/` - LLM-based issue detection; prompts in `rubric/prompts/`
   - `analysis/` - system-level analysis (budget, triggers, dependencies, context utilization)
   - `output/` - report generation (terminal + JSON)
-  - `utils/` - token counting, TF-IDF similarity, frontmatter parsing, LLM client
+  - `utils/` - token counting, TF-IDF similarity, frontmatter parsing, LLM client, path safety
 - `skills/` - plugin skills with SKILL.md + rubric files + scripts
 - `tests/` - pytest test suite with fixtures
 - `future-plans/` - planned improvements in structured spec format
@@ -55,3 +55,4 @@ All three must pass. The most common CI failure is forgetting `ruff format`. The
 - LLM prompts live in `src/harness_eval_lab/rubric/prompts/` as markdown files, not inline strings
 - `skills/eval-skill/rubric/skills-rubric.md` is a symlink to `skills/setup-eval-review/rubric/skills-rubric.md`; edit the source, not the link
 - YARA and CVE rules only run in the `security` preset (used by `setup-eval-security`), never in lint
+- Rules that resolve file paths from user content must use `safe_join()` from `utils.paths` to prevent path traversal; never join untrusted paths with raw `/` or `Path()`

@@ -11,6 +11,7 @@ from harness_eval_lab.inspection.types import (
     RuleMeta,
     Severity,
 )
+from harness_eval_lab.utils.paths import safe_join
 
 _FILE_REF_PATTERNS = [
     re.compile(r"\[.*?\]\(([^)]+)\)"),  # markdown links [text](path)
@@ -76,8 +77,8 @@ class BrokenReferences:
                         continue
                     checked.add(ref)
 
-                    ref_path = skill_dir / ref
-                    if not ref_path.exists():
+                    ref_path = safe_join(skill_dir, ref)
+                    if ref_path is None or not ref_path.exists():
                         context.report(
                             ReportDescriptor(
                                 message_id="broken_ref",

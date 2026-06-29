@@ -18,6 +18,8 @@ uv run ruff format src/ tests/ && uv run ruff check src/ tests/ && uv run pytest
 
 All three must pass. Commits that fail `ruff check` or `ruff format` will be rejected by pre-commit hooks.
 
+Pre-commit also runs **gitleaks** (secret scanning) and **bandit** (Python security analysis). If gitleaks blocks your commit, you likely have a hardcoded credential or API key that needs to be moved to an environment variable.
+
 ## Adding a new inspection rule
 
 A rule is a Python class that checks one specific thing about one component type. Each rule lives in its own file.

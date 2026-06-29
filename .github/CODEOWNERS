@@ -1,1 +1,7 @@
-* @Benkapner
+# Default: both maintainers must review
+* @Benkapner @csoceanu
+
+# Release-critical files require both maintainers
+pyproject.toml @Benkapner @csoceanu
+.github/workflows/publish.yml @Benkapner @csoceanu
+scripts/release.py @Benkapner @csoceanu

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from harness_eval_lab.inspection.types import Finding
+from harness_eval_lab.utils.paths import is_within
 
 
 @dataclass
@@ -13,7 +14,7 @@ class FixResult:
     rule_ids: list[str]
 
 
-def apply_fixes(diagnostics: list[Finding]) -> list[FixResult]:
+def apply_fixes(diagnostics: list[Finding], project_root: Path | None = None) -> list[FixResult]:
     """Apply auto-fixes for diagnostics that have fix information.
 
     Groups fixes by file, applies in reverse line order to preserve line numbers.
@@ -30,6 +31,8 @@ def apply_fixes(diagnostics: list[Finding]) -> list[FixResult]:
     for file_path, diags in by_file.items():
         path = Path(file_path)
         if not path.exists():
+            continue
+        if project_root is not None and not is_within(path, project_root):
             continue
 
         content = path.read_text()
