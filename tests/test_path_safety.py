@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from harness_eval_lab.utils.paths import is_within, safe_join
 
 
