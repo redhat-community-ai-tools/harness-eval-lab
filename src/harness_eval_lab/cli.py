@@ -191,7 +191,7 @@ def eval_setup_lint(
 
     if fix:
         all_findings = [d for r in results for d in r.diagnostics]
-        fix_results = apply_fixes(all_findings)
+        fix_results = apply_fixes(all_findings, project_root=Path(path).resolve())
         for fr in fix_results:
             click.echo(f"Fixed {fr.fixes_applied} issues in {fr.file_path}")
 

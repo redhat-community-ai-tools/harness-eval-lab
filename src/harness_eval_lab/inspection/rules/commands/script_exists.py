@@ -11,6 +11,7 @@ from harness_eval_lab.inspection.types import (
     RuleMeta,
     Severity,
 )
+from harness_eval_lab.utils.paths import safe_join
 
 
 class CommandScriptExists:
@@ -39,8 +40,8 @@ class CommandScriptExists:
                 continue
             checked.add(script)
 
-            script_path = cmd_dir / script
-            if not script_path.exists():
+            script_path = safe_join(cmd_dir, script)
+            if script_path is None or not script_path.exists():
                 context.report(
                     ReportDescriptor(
                         message_id="missing_script",
