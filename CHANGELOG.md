@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.6.2] - 2026-06-29
+
 ### Added
 - Path traversal protection: `safe_join()` and `is_within()` utilities prevent file references and auto-fixes from escaping the project directory
 - 12 tests for path safety covering traversal, symlink escape, and absolute path injection
