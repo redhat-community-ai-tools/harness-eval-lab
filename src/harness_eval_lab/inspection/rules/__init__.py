@@ -75,6 +75,11 @@ def register_all_rules() -> None:
 
     # Hooks rules
     from harness_eval_lab.inspection.rules.hooks.valid_structure import HooksValidStructure
+    from harness_eval_lab.inspection.rules.quality.example_gap import ExampleGap
+    from harness_eval_lab.inspection.rules.quality.imprecise_instruction import ImpreciseInstruction
+    from harness_eval_lab.inspection.rules.quality.redundant_guidance import RedundantGuidance
+    from harness_eval_lab.inspection.rules.quality.stale_references import StaleReferences
+    from harness_eval_lab.inspection.rules.quality.unfinished_content import UnfinishedContent
     from harness_eval_lab.inspection.rules.security.ast_behavioral import AstBehavioral
     from harness_eval_lab.inspection.rules.security.cve_lookup import CveLookup
     from harness_eval_lab.inspection.rules.security.data_exfiltration import DataExfiltration
@@ -136,5 +141,10 @@ def register_all_rules() -> None:
         McpToolPoisoning,
         YaraScan,
         CveLookup,
+        ImpreciseInstruction,
+        RedundantGuidance,
+        UnfinishedContent,
+        ExampleGap,
+        StaleReferences,
     ]:
         register_rule(rule_cls())
