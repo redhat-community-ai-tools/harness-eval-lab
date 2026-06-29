@@ -5,3 +5,14 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: "1.8.3"
+    hooks:
+      - id: bandit
+        args: ["-r", "src/"]
