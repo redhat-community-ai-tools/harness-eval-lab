@@ -96,6 +96,10 @@ No API key needed for review/security/skill. Cursor evaluates in-session.
 
 Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.
 
+## Security
+
+For a full overview of how this tool protects your code, your credentials, and your supply chain, see [`how-can-you-know-its-safe-to-use-this-tool.md`](how-can-you-know-its-safe-to-use-this-tool.md).
+
 ## Privacy and Data Handling
 
 `setup-eval` reads files from your project directory to analyze your AI agent setup. Here is what happens with your data in each mode:
