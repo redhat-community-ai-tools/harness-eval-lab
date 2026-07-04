@@ -14,11 +14,10 @@ All notable changes to this project will be documented in this file.
 - Future-plans spec for distributable packaging
 
 ### Changed
-- Generalized `claude-md/exists` rule to also fire for Gemini CLI and OpenCode instruction files
 - Tool-neutral language in rule messages (replaced assistant-specific references with generic "AI assistant")
 - Consolidated duplicated security scan logic across component types into shared scanner module
 - Extracted discovery layer into per-tool discoverer classes (`core/discoverers/`)
-- Rule count: 48 to 51
+- Rule count: 43 to 51
 
 ## [3.7.0] - 2026-06-29
 

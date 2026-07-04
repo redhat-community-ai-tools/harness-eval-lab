@@ -53,6 +53,8 @@ def analyze_system(setup: Setup) -> SystemReport:
         always_label = "GEMINI.md"
     elif "OpenCode" in tool_set:
         always_label = "AGENTS.md"
+    elif "Copilot" in tool_set:
+        always_label = "system instructions"
     else:
         always_label = "CLAUDE.md"
 
