@@ -11,13 +11,23 @@ All notable changes to this project will be documented in this file.
 - New rule `hooks/script-boundary`: ensures hook scripts resolve within the project directory (path traversal prevention)
 - New rule `agent/model-specified`: suggests adding a model field to agent definitions (off by default, info in strict)
 - MCP_CONFIG linting in the engine: MCP config files are now inspected by rules (previously discovered but not linted)
+- New rule `mcp/duplicate-server`: flags duplicate MCP server URLs in configuration
+- New rule `mcp/suspicious-endpoint`: flags MCP servers pointing to localhost or private IP ranges
+- New rule `mcp/no-wildcard-tools`: flags MCP servers that expose all tools without restriction
+- New rule `hooks/dangerous-command`: flags hooks containing destructive shell commands (rm -rf, chmod 777, dd, mkfs, fork bombs)
+- New rule `hooks/env-leakage`: flags hooks that may leak environment variables via echo/printenv
+- New rule `hooks/network-access`: flags hooks that make network calls (curl, wget, netcat)
+- New rule `security/bash-taint-flow`: detects untrusted input flowing to dangerous sinks in bash scripts
 - Future-plans spec for distributable packaging
 
 ### Changed
 - Tool-neutral language in rule messages (replaced assistant-specific references with generic "AI assistant")
 - Consolidated duplicated security scan logic across component types into shared scanner module
 - Extracted discovery layer into per-tool discoverer classes (`core/discoverers/`)
-- Rule count: 43 to 51
+- Rule count: 43 to 58
+
+### Removed
+- Model-specific context window findings from system analysis output (model names and window sizes no longer appear in user-facing findings)
 
 ## [3.7.0] - 2026-06-29
 

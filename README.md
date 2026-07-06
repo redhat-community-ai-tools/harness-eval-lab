@@ -19,7 +19,7 @@ Four commands, same engine:
 
 | Command | What it does | LLM in CLI | LLM in Claude Code / Cursor |
 |---------|-------------|-----------|----------------------------|
-| `setup-eval-lint` | 51 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. | No | No |
+| `setup-eval-lint` | 58 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. | No | No |
 | `setup-eval-review` | Per-component rubric review with 0-3 scoring per dimension, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes (API key) | Yes (in-session) |
 | `setup-eval-security` | All security rules + YARA + CVE lookups + semantic review. SAFE/CAUTION/UNSAFE. | Scan: no. Semantic review: `--review` flag | Yes (in-session) |
 | `eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Lint: no. Rubric: `--rubric` flag | Yes (in-session) |
@@ -95,7 +95,7 @@ Then copy `.cursor/commands/` from [this repo](https://github.com/redhat-communi
 
 No API key needed for review/security/skill. Cursor evaluates in-session.
 
-## Inspection Rules (51)
+## Inspection Rules (58)
 
 | Category | Rules | What they check |
 |----------|-------|-----------------|
@@ -103,12 +103,12 @@ No API key needed for review/security/skill. Cursor evaluates in-session.
 | Frontmatter | 3 | Description required/quality, format valid |
 | Content | 4 | Duplicate detection (TF-IDF), broken references, circular references, token budget |
 | Quality | 5 | Imprecise instructions (hedging, passive voice, vague conditions), redundant guidance (model defaults + tooling config), unfinished content (placeholders, empty sections, deferred markers), example gap, stale references |
-| Security | 9 | Credential access, prompt injection (17 patterns), data exfiltration, obfuscation, reverse shells, AST analysis, taint tracking, MCP least-privilege, tool poisoning |
+| Security | 10 | Credential access, prompt injection (17 patterns), data exfiltration, obfuscation, reverse shells, AST analysis, Python taint tracking, bash taint tracking, MCP least-privilege, tool poisoning |
 | Security (opt-in) | 2 | YARA signatures, CVE lookups via OSV.dev |
-| Commands | 8 | Description, script exists, duplicates, credentials, injection, skill overlap, shadows built-in, references nonexistent skill |
+| Commands | 11 | Description, script exists, duplicates, credentials, injection, exfiltration, obfuscation, reverse shells, skill overlap, shadows built-in, references nonexistent skill |
 | CLAUDE.md | 3 | Exists, skill duplication, generic advice detection |
-| MCP | 1 | Configuration structure validation |
-| Hooks | 2 | Structure validation, dangerous patterns, network access, script boundary check |
+| MCP | 4 | Configuration structure, duplicate servers, suspicious endpoints (localhost/private IPs), wildcard tool exposure |
+| Hooks | 5 | Structure validation, script boundary, dangerous commands, env variable leakage, network access |
 | Agents | 10 | Description, model specified, skills exist, tool format, constraint matching, credentials, injection, exfiltration, obfuscation, reverse shells |
 
 Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.

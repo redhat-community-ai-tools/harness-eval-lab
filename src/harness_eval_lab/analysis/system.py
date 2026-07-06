@@ -6,9 +6,6 @@ from dataclasses import dataclass, field
 
 from harness_eval_lab.analysis.budget import BudgetReport, analyze_budget
 from harness_eval_lab.analysis.context_utilization import (
-    ALWAYS_LOADED_WARNING_THRESHOLD,
-    PEAK_CRITICAL_THRESHOLD,
-    PEAK_WARNING_THRESHOLD,
     ContextUtilizationReport,
     analyze_context_utilization,
 )
@@ -80,32 +77,6 @@ def analyze_system(setup: Setup) -> SystemReport:
             f"Trigger overlap: '{pair[0]}' and '{pair[1]}' have "
             f"{pair[2]:.0%} description similarity, may load together."
         )
-
-    seen_windows: dict[int, list[str]] = {}
-    for mu in context_utilization.models:
-        seen_windows.setdefault(mu.context_window, []).append(mu.model)
-
-    for window, names in sorted(seen_windows.items()):
-        representative = next(
-            mu for mu in context_utilization.models if mu.context_window == window
-        )
-        label = names[0] if len(names) == 1 else f"{names[0]} and {len(names) - 1} others"
-        if representative.peak_load_pct > PEAK_CRITICAL_THRESHOLD:
-            findings.append(
-                f"Context critical: setup uses {representative.peak_load_pct:.0%} "
-                f"of {label}'s {window:,}-token window."
-            )
-        elif representative.peak_load_pct > PEAK_WARNING_THRESHOLD:
-            findings.append(
-                f"Context pressure: setup uses {representative.peak_load_pct:.0%} "
-                f"of {label}'s {window:,}-token window."
-            )
-        if representative.always_loaded_pct > ALWAYS_LOADED_WARNING_THRESHOLD:
-            findings.append(
-                f"Always-loaded pressure on {label}: "
-                f"{representative.always_loaded_pct:.0%} of context consumed "
-                f"before any skill loads."
-            )
 
     from harness_eval_lab.core.types import ComponentType as CT
 

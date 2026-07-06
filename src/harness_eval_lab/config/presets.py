@@ -16,10 +16,14 @@ RECOMMENDED: dict[str, str] = {
     "security/data-exfiltration": "error",
     "security/ast-behavioral": "warning",
     "security/taint-flow": "warning",
+    "security/bash-taint-flow": "warning",
     "security/mcp-least-privilege": "warning",
     "security/mcp-tool-poisoning": "warning",
     # MCP rules
     "mcp/valid-config": "warning",
+    "mcp/duplicate-server": "warning",
+    "mcp/suspicious-endpoint": "warning",
+    "mcp/no-wildcard-tools": "info",
     # Command rules
     "command/no-prompt-injection": "error",
     "command/no-credential-access": "error",
@@ -29,6 +33,9 @@ RECOMMENDED: dict[str, str] = {
     "command/references-nonexistent-skill": "warning",
     # Hooks rules
     "hooks/script-boundary": "error",
+    "hooks/dangerous-command": "error",
+    "hooks/env-leakage": "warning",
+    "hooks/network-access": "warning",
     # CLAUDE.md rules
     "claude-md/exists": "warning",
     # Agent rules
@@ -62,9 +69,13 @@ STRICT: dict[str, str] = {
     "agent/constraint-body-match": "error",
     "security/ast-behavioral": "error",
     "security/taint-flow": "error",
+    "security/bash-taint-flow": "error",
     "security/mcp-least-privilege": "error",
     "security/mcp-tool-poisoning": "error",
     "mcp/valid-config": "error",
+    "mcp/duplicate-server": "error",
+    "mcp/suspicious-endpoint": "error",
+    "mcp/no-wildcard-tools": "warning",
     "agent/model-specified": "info",
     # Quality rules
     "quality/imprecise-instruction": "error",
@@ -89,9 +100,13 @@ SECURITY: dict[str, str] = {
     "security/data-exfiltration": "error",
     "security/ast-behavioral": "error",
     "security/taint-flow": "error",
+    "security/bash-taint-flow": "error",
     "security/mcp-least-privilege": "error",
     "security/mcp-tool-poisoning": "error",
     "mcp/valid-config": "off",
+    "mcp/duplicate-server": "off",
+    "mcp/suspicious-endpoint": "warning",
+    "mcp/no-wildcard-tools": "off",
     "security/yara-signatures": "error",
     "security/cve-lookup": "error",
     # Command security rules
@@ -102,6 +117,9 @@ SECURITY: dict[str, str] = {
     "command/data-exfiltration": "error",
     # Hooks rules
     "hooks/script-boundary": "error",
+    "hooks/dangerous-command": "error",
+    "hooks/env-leakage": "warning",
+    "hooks/network-access": "warning",
     # CLAUDE.md rules
     "claude-md/exists": "off",
     # Agent rules
@@ -143,12 +161,19 @@ PRE_WORKFLOW: dict[str, str] = {
     "command/reverse-shell": "error",
     "security/ast-behavioral": "error",
     "security/taint-flow": "error",
+    "security/bash-taint-flow": "error",
     "mcp/valid-config": "off",
+    "mcp/duplicate-server": "off",
+    "mcp/suspicious-endpoint": "off",
+    "mcp/no-wildcard-tools": "off",
     "claude-md/exists": "off",
     "claude-md/skill-duplication": "off",
     "claude-md/generic-advice": "off",
     "hooks/valid-structure": "error",
     "hooks/script-boundary": "error",
+    "hooks/dangerous-command": "error",
+    "hooks/env-leakage": "warning",
+    "hooks/network-access": "warning",
     "agent/description-required": "off",
     "agent/referenced-skills-exist": "error",
     "agent/disallowed-tools-parseable": "off",
