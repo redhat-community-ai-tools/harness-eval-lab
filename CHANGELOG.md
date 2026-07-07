@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-07-07
+
 ### Added
 - Multi-assistant discovery: Copilot (`.github/skills/`, `.github/prompts/`, `.github/agents/`), Gemini CLI (`GEMINI.md`, `.gemini/commands/`), OpenCode (`AGENTS.md`, `.opencode/commands/`, `.opencode/agents/`)
 - Third-party module discovery: scans `.lola/modules/` for skills, commands, and agents installed via package managers
