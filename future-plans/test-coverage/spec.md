@@ -1,6 +1,7 @@
 # Test Coverage: Making the Rules Trustworthy
 
-**Status:** future
+**Status:** in progress
+**Phase 1:** 2026-07-07 (22 tests for 16 previously untested rules; 42/58 -> 58/58 rule coverage)
 **Created:** 2026-06-10
 
 ## Problem

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- 22 new tests covering all 16 previously untested rules (agent, command, and content categories)
+
 ## [4.1.0] - 2026-07-08
 
 ### Added
