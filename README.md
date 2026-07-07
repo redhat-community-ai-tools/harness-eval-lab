@@ -19,7 +19,7 @@ Four commands, same engine:
 
 | Command | What it does | LLM in CLI | LLM in Claude Code / Cursor |
 |---------|-------------|-----------|----------------------------|
-| `setup-eval-lint` | 58 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. | No | No |
+| `setup-eval-lint` | 58 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. Supports `--format sarif` for GitHub code scanning. | No | No |
 | `setup-eval-review` | Per-component rubric review with 0-3 scoring per dimension, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes (API key) | Yes (in-session) |
 | `setup-eval-security` | All security rules + YARA + CVE lookups + semantic review. SAFE/CAUTION/UNSAFE. | Scan: no. Semantic review: `--review` flag | Yes (in-session) |
 | `eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Lint: no. Rubric: `--rubric` flag | Yes (in-session) |
@@ -144,4 +144,4 @@ See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 
 ## Future Plans
 
-See [`future-plans/`](future-plans/) for planned improvements (SARIF output, security benchmarks, runner abstraction, dynamic workflows, impact measurement).
+See [`future-plans/`](future-plans/) for planned improvements (security benchmarks, runner abstraction, dynamic workflows, impact measurement).

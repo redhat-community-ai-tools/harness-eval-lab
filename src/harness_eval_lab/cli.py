@@ -77,7 +77,16 @@ def cli() -> None:
     type=click.Choice(["recommended", "strict", "security", "pre-workflow"]),
     default="recommended",
 )
-@click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
+@click.option(
+    "--format", "fmt", type=click.Choice(["terminal", "json", "sarif"]), default="terminal"
+)
+@click.option(
+    "--output",
+    "output_path",
+    type=click.Path(),
+    default=None,
+    help="Write output to file instead of stdout.",
+)
 @click.option("--fix", is_flag=True, help="Apply auto-fixes.")
 @click.option(
     "--fail-on-error",
@@ -99,6 +108,7 @@ def eval_setup_lint(
     path: str,
     preset: str,
     fmt: str,
+    output_path: str | None,
     fix: bool,
     fail_on_error: bool,
     watch: bool,
@@ -122,6 +132,12 @@ def eval_setup_lint(
     from harness_eval_lab.inspection.fixer import apply_fixes
     from harness_eval_lab.output.report import format_json, format_terminal
 
+    def _emit(text: str) -> None:
+        if output_path:
+            Path(output_path).write_text(text)
+        else:
+            click.echo(text)
+
     config_rules = PRESETS.get(preset, {})
     target = Path(path)
 
@@ -138,11 +154,16 @@ def eval_setup_lint(
             invocation_source="cli",
         )
 
-        if fmt == "json":
+        if fmt == "sarif":
+            from harness_eval_lab.output.sarif import format_sarif
+
+            sarif_doc = format_sarif(results, metadata)
+            _emit(json_mod.dumps(sarif_doc, indent=2))
+        elif fmt == "json":
             json_out = format_json(system, results)
             data = json_mod.loads(json_out)
             data["metadata"] = metadata.to_dict()
-            click.echo(json_mod.dumps(data, indent=2))
+            _emit(json_mod.dumps(data, indent=2))
         else:
             click.echo(format_terminal(system, results))
             click.echo(metadata.format_terminal())
@@ -157,7 +178,12 @@ def eval_setup_lint(
             invocation_source="cli",
         )
 
-        if fmt == "json":
+        if fmt == "sarif":
+            from harness_eval_lab.output.sarif import format_sarif
+
+            sarif_doc = format_sarif(results, metadata)
+            _emit(json_mod.dumps(sarif_doc, indent=2))
+        elif fmt == "json":
             output = {
                 "results": [
                     {
@@ -174,7 +200,7 @@ def eval_setup_lint(
                 ],
                 "metadata": metadata.to_dict(),
             }
-            click.echo(json_mod.dumps(output, indent=2))
+            _emit(json_mod.dumps(output, indent=2))
         else:
             total_errors = sum(r.error_count for r in results)
             total_warnings = sum(r.warning_count for r in results)
@@ -354,7 +380,16 @@ def eval_setup_review(
 
 @cli.command("setup-eval-security")
 @click.argument("path", type=click.Path(exists=True))
-@click.option("--format", "fmt", type=click.Choice(["terminal", "json"]), default="terminal")
+@click.option(
+    "--format", "fmt", type=click.Choice(["terminal", "json", "sarif"]), default="terminal"
+)
+@click.option(
+    "--output",
+    "output_path",
+    type=click.Path(),
+    default=None,
+    help="Write output to file instead of stdout.",
+)
 @click.option(
     "--review",
     is_flag=True,
@@ -376,6 +411,7 @@ def eval_setup_review(
 def eval_setup_security(
     path: str,
     fmt: str,
+    output_path: str | None,
     review: bool,
     provider: str,
     model: str | None,
@@ -561,7 +597,18 @@ def eval_setup_security(
         sec_metadata.llm_calls_total = client.calls_total  # type: ignore[attr-defined]
         sec_metadata.llm_calls_succeeded = client.calls_succeeded  # type: ignore[attr-defined]
 
-    if fmt == "json":
+    def _emit_sec(text: str) -> None:
+        if output_path:
+            Path(output_path).write_text(text)
+        else:
+            click.echo(text)
+
+    if fmt == "sarif":
+        from harness_eval_lab.output.sarif import format_sarif
+
+        sarif_doc = format_sarif(results, sec_metadata)
+        _emit_sec(json_mod.dumps(sarif_doc, indent=2))
+    elif fmt == "json":
         output: dict[str, object] = {
             "security_scan": True,
             "setup": setup.name,

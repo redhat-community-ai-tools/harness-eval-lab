@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 - New rule `hooks/network-access`: flags hooks that make network calls (curl, wget, netcat)
 - New rule `security/bash-taint-flow`: detects untrusted input flowing to dangerous sinks in bash scripts
 - Future-plans spec for distributable packaging
+- SARIF v2.1.0 output format (`--format sarif`) for `setup-eval-lint` and `setup-eval-security`, enabling GitHub code scanning inline annotations
+- `--output` flag for writing lint and security output to a file instead of stdout
 
 ### Changed
 - Tool-neutral language in rule messages (replaced assistant-specific references with generic "AI assistant")
