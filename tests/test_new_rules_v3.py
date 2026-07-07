@@ -42,7 +42,7 @@ class TestMcpDuplicateServer:
         result = lint_mcp_config(str(mcp), {"mcp/duplicate-server": "warning"})
         diags = [d for d in result.diagnostics if d.rule_id == "mcp/duplicate-server"]
         assert len(diags) == 1
-        assert "shared.example.com" in diags[0].message
+        assert "https://shared.example.com/mcp" in diags[0].message
 
     def test_command_servers_no_url_clean(self, tmp_path: Path) -> None:
         mcp = tmp_path / ".mcp.json"
