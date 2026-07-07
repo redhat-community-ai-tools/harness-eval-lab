@@ -1,6 +1,7 @@
 # SARIF Output for CI Integration
 
-**Status:** future
+**Status:** built
+**Implemented:** 2026-07-07 (v3.8.0, `output/sarif.py` with `--format sarif` on lint and security commands)
 **Created:** 2026-06-15
 
 ## Problem

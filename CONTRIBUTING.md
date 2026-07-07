@@ -33,10 +33,12 @@ Rules go in `src/harness_eval_lab/inspection/rules/<category>/`. Pick the catego
 | `structural/` | File existence | Skill |
 | `frontmatter/` | YAML metadata quality | Skill |
 | `content/` | Body content (duplicates, references, budget) | Skill |
+| `quality/` | Instruction effectiveness (hedging, redundancy, placeholders) | Skill |
 | `security/` | Credential access, prompt injection | Skill |
 | `commands/` | Command-specific checks | Command |
-| `claude_md/` | CLAUDE.md-specific checks | CLAUDE_MD |
-| `hooks/` | Hook structure and safety | Hooks |
+| `claude_md/` | System instruction checks (CLAUDE.md, GEMINI.md, AGENTS.md, .cursorrules) | CLAUDE_MD |
+| `mcp/` | MCP configuration validation | MCP_CONFIG |
+| `hooks/` | Hook structure, safety, and script boundary | Hooks |
 | `agents/` | Agent definition checks | Agent |
 
 ### 2. Follow the pattern
@@ -99,9 +101,15 @@ Add your class to `src/harness_eval_lab/inspection/rules/__init__.py`:
 
 ### 4. Update the counts
 
-Update the rule count in:
-- `README.md` (the "Inspection Rules (N)" heading and the table)
+Update the rule count in all files that reference it:
+- `README.md` (the "Inspection Rules (N)" heading, table, and command table)
 - `CLAUDE.md` (the project structure line mentioning rule count)
+- `src/harness_eval_lab/cli.py` (the `setup_eval_lint` docstring)
+- `skills/setup-eval-lint/SKILL.md` (the description field)
+- `skills/setup-eval-review/report-format.md` (the lint description)
+- `commands/setup-eval-lint.md` (the description field)
+- `.cursor/commands/setup-eval-lint.md` (the description)
+- `.claude-plugin/marketplace.json` (the plugin description)
 
 ### 5. Add tests
 
@@ -122,6 +130,33 @@ def create(self, context: RuleContext) -> None:
     state = context.scan_state[STATE_KEY]
     # use state instead of module-level dicts
 ```
+
+## Adding support for a new AI assistant
+
+The discovery layer uses per-tool discoverer classes in `src/harness_eval_lab/core/discoverers/`. To add a new assistant:
+
+### 1. Create a discoverer class
+
+Create `src/harness_eval_lab/core/discoverers/my_tool.py` that subclasses `ToolDiscoverer` from `base.py`. Implement:
+- `tool_name` (display name, e.g., "My Tool")
+- `source_tool` (short identifier for `ParsedComponent.source_tool`, e.g., "mytool")
+- `detect(root)` (return True if the tool's files exist)
+- `discover(root)` (return list of `ParsedComponent` objects)
+- `collect_paths(root)` (return list of file paths for watch mode)
+
+Use `parse_file()` from `base.py` to create components. Map files to existing `ComponentType` values (SKILL, COMMAND, AGENT, CLAUDE_MD, HOOKS, MCP_CONFIG).
+
+### 2. Register the discoverer
+
+Add your class to `src/harness_eval_lab/core/discoverers/registry.py` in the `DISCOVERERS` list.
+
+### 3. Add fingerprint patterns
+
+Add the tool's file patterns to `RELEVANT_PATTERNS` in `src/harness_eval_lab/core/fingerprint.py`.
+
+### 4. Add test fixtures
+
+Create `tests/fixtures/sample-mytool-setup/` with representative config files and write tests verifying discovery, source_tool attribution, and tool detection.
 
 ## Adding a new future plan
 

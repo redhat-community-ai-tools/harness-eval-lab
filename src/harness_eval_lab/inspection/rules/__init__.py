@@ -16,6 +16,7 @@ def register_all_rules() -> None:
     from harness_eval_lab.inspection.rules.agents.disallowed_tools_parseable import (
         DisallowedToolsParseable,
     )
+    from harness_eval_lab.inspection.rules.agents.model_specified import AgentModelSpecified
     from harness_eval_lab.inspection.rules.agents.no_credential_access import (
         AgentNoCredentialAccess,
     )
@@ -74,13 +75,24 @@ def register_all_rules() -> None:
     from harness_eval_lab.inspection.rules.frontmatter.format_valid import FormatValid
 
     # Hooks rules
+    from harness_eval_lab.inspection.rules.hooks.dangerous_command import HooksDangerousCommand
+    from harness_eval_lab.inspection.rules.hooks.env_leakage import HooksEnvLeakage
+    from harness_eval_lab.inspection.rules.hooks.network_access import HooksNetworkAccess
+    from harness_eval_lab.inspection.rules.hooks.script_boundary import HooksScriptBoundary
     from harness_eval_lab.inspection.rules.hooks.valid_structure import HooksValidStructure
+
+    # MCP rules
+    from harness_eval_lab.inspection.rules.mcp.duplicate_server import McpDuplicateServer
+    from harness_eval_lab.inspection.rules.mcp.no_wildcard_tools import McpNoWildcardTools
+    from harness_eval_lab.inspection.rules.mcp.suspicious_endpoint import McpSuspiciousEndpoint
+    from harness_eval_lab.inspection.rules.mcp.valid_config import McpValidConfig
     from harness_eval_lab.inspection.rules.quality.example_gap import ExampleGap
     from harness_eval_lab.inspection.rules.quality.imprecise_instruction import ImpreciseInstruction
     from harness_eval_lab.inspection.rules.quality.redundant_guidance import RedundantGuidance
     from harness_eval_lab.inspection.rules.quality.stale_references import StaleReferences
     from harness_eval_lab.inspection.rules.quality.unfinished_content import UnfinishedContent
     from harness_eval_lab.inspection.rules.security.ast_behavioral import AstBehavioral
+    from harness_eval_lab.inspection.rules.security.bash_taint_tracking import BashTaintTracking
     from harness_eval_lab.inspection.rules.security.cve_lookup import CveLookup
     from harness_eval_lab.inspection.rules.security.data_exfiltration import DataExfiltration
     from harness_eval_lab.inspection.rules.security.mcp_least_privilege import McpLeastPrivilege
@@ -125,7 +137,11 @@ def register_all_rules() -> None:
         ClaudeMdExists,
         ClaudeMdSkillDuplication,
         ClaudeMdGenericAdvice,
+        HooksScriptBoundary,
         HooksValidStructure,
+        HooksDangerousCommand,
+        HooksEnvLeakage,
+        HooksNetworkAccess,
         AgentDescriptionRequired,
         ReferencedSkillsExist,
         DisallowedToolsParseable,
@@ -135,9 +151,15 @@ def register_all_rules() -> None:
         AgentReverseShellDetection,
         AgentObfuscationDetection,
         AgentDataExfiltration,
+        AgentModelSpecified,
         AstBehavioral,
         TaintTracking,
+        BashTaintTracking,
         McpLeastPrivilege,
+        McpValidConfig,
+        McpDuplicateServer,
+        McpSuspiciousEndpoint,
+        McpNoWildcardTools,
         McpToolPoisoning,
         YaraScan,
         CveLookup,

@@ -1,7 +1,8 @@
 # Setup Discoverer Abstraction: Multi-Tool Evaluation
 
-**Status:** future
+**Status:** built
 **Created:** 2026-06-10
+**Implemented:** 2026-07-03 (v3.8.0, `core/discoverers/` package with `ToolDiscoverer` ABC)
 
 ## Problem
 

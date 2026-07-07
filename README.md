@@ -9,20 +9,35 @@ Evaluate AI code agent setups for best practices, redundancy, security, and cros
 
 Available as a **CLI tool**, a **Claude Code plugin**, and **Cursor commands**.
 
-Supports Claude Code and Cursor projects. Auto-detects which tool(s) a project uses.
+Supports Claude Code, Cursor, Copilot, Gemini CLI, and OpenCode projects. Auto-detects which tool(s) a project uses. Also discovers third-party modules installed via package managers.
 
 ## What it does
 
-Most tools test whether a skill produces correct output. This tool checks the setup itself: CLAUDE.md, skills, commands, hooks, MCP configs, agents, `.cursor/rules/*.mdc`, `.cursorrules`.
+Most tools test whether a skill produces correct output. This tool checks the setup itself: CLAUDE.md, GEMINI.md, AGENTS.md, skills, commands, hooks, MCP configs, agents, `.cursor/rules/*.mdc`, `.cursorrules`, `.github/prompts/`, `.opencode/`.
 
 Four commands, same engine:
 
 | Command | What it does | LLM in CLI | LLM in Claude Code / Cursor |
 |---------|-------------|-----------|----------------------------|
-| `setup-eval-lint` | 48 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. | No | No |
+| `setup-eval-lint` | 58 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. Supports `--format sarif` for GitHub code scanning. | No | No |
 | `setup-eval-review` | Per-component rubric review with 0-3 scoring per dimension, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes (API key) | Yes (in-session) |
 | `setup-eval-security` | All security rules + YARA + CVE lookups + semantic review. SAFE/CAUTION/UNSAFE. | Scan: no. Semantic review: `--review` flag | Yes (in-session) |
 | `eval-skill` | Deep-evaluate one skill individually and in context of the full setup. | Lint: no. Rubric: `--rubric` flag | Yes (in-session) |
+
+## Supported AI Assistants
+
+Auto-detects which tool(s) a project uses and evaluates all discovered components.
+
+| Assistant | What it discovers |
+|-----------|------------------|
+| Claude Code | `CLAUDE.md`, `skills/`, `commands/`, `.claude/agents/`, `.claude/settings.json`, `.mcp.json` |
+| Cursor | `.cursor/rules/*.mdc`, `.cursorrules`, `.cursor/commands/`, `.cursor/skills/`, `.cursor/hooks.json`, `.cursor/mcp.json` |
+| Copilot | `.github/skills/`, `.github/prompts/`, `.github/agents/` |
+| Gemini CLI | `GEMINI.md`, `.gemini/commands/` |
+| OpenCode | `AGENTS.md`, `.opencode/commands/`, `.opencode/agents/` |
+| Third-party modules | `.lola/modules/` (skills, commands, agents installed via package managers) |
+
+Multi-tool projects are fully supported. When a project contains files for multiple assistants, all are discovered, deduplicated, and evaluated together.
 
 ## Install
 
@@ -80,7 +95,7 @@ Then copy `.cursor/commands/` from [this repo](https://github.com/redhat-communi
 
 No API key needed for review/security/skill. Cursor evaluates in-session.
 
-## Inspection Rules (48)
+## Inspection Rules (58)
 
 | Category | Rules | What they check |
 |----------|-------|-----------------|
@@ -88,12 +103,13 @@ No API key needed for review/security/skill. Cursor evaluates in-session.
 | Frontmatter | 3 | Description required/quality, format valid |
 | Content | 4 | Duplicate detection (TF-IDF), broken references, circular references, token budget |
 | Quality | 5 | Imprecise instructions (hedging, passive voice, vague conditions), redundant guidance (model defaults + tooling config), unfinished content (placeholders, empty sections, deferred markers), example gap, stale references |
-| Security | 9 | Credential access, prompt injection (17 patterns), data exfiltration, obfuscation, reverse shells, AST analysis, taint tracking, MCP least-privilege, tool poisoning |
+| Security | 10 | Credential access, prompt injection (17 patterns), data exfiltration, obfuscation, reverse shells, AST analysis, Python taint tracking, bash taint tracking, MCP least-privilege, tool poisoning |
 | Security (opt-in) | 2 | YARA signatures, CVE lookups via OSV.dev |
-| Commands | 8 | Description, script exists, duplicates, credentials, injection, skill overlap, shadows built-in, references nonexistent skill |
+| Commands | 11 | Description, script exists, duplicates, credentials, injection, exfiltration, obfuscation, reverse shells, skill overlap, shadows built-in, references nonexistent skill |
 | CLAUDE.md | 3 | Exists, skill duplication, generic advice detection |
-| Hooks | 1 | Structure validation, dangerous patterns, network access |
-| Agents | 9 | Description, skills exist, tool format, constraint matching, credentials, injection, exfiltration, obfuscation, reverse shells |
+| MCP | 4 | Configuration structure, duplicate servers, suspicious endpoints (localhost/private IPs), wildcard tool exposure |
+| Hooks | 5 | Structure validation, script boundary, dangerous commands, env variable leakage, network access |
+| Agents | 10 | Description, model specified, skills exist, tool format, constraint matching, credentials, injection, exfiltration, obfuscation, reverse shells |
 
 Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.
 
@@ -128,4 +144,4 @@ See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 
 ## Future Plans
 
-See [`future-plans/`](future-plans/) for planned improvements (SARIF output, security benchmarks, runner abstraction, dynamic workflows, impact measurement).
+See [`future-plans/`](future-plans/) for planned improvements (security benchmarks, runner abstraction, dynamic workflows, impact measurement).

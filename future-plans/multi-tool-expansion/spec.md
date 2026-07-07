@@ -1,8 +1,9 @@
 # Multi-Tool Expansion: Codex, Cline, Gemini CLI, Windsurf
 
-**Status:** future
+**Status:** in progress
 **Created:** 2026-06-17
-**Depends on:** runner-abstraction (SetupDiscoverer ABC)
+**Depends on:** runner-abstraction (SetupDiscoverer ABC) - implemented in v3.8.0
+**Partially implemented:** 2026-07-03 (v3.8.0: Copilot, Gemini CLI, OpenCode added. Windsurf and Cline remain future.)
 
 ## Problem
 

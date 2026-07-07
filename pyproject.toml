@@ -1,6 +1,6 @@
 [project]
 name = "setup-eval"
-version = "3.7.0"
+version = "3.8.0"
 description = "Evaluate and compare AI agent setups through experiments, inspections, and rubric scoring."
 readme = "README.md"
 license = "Apache-2.0"
@@ -54,7 +54,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "src/harness_eval_lab/inspection/engine.py" = ["E501"]
 "src/harness_eval_lab/inspection/types.py" = ["UP042"]
 "src/harness_eval_lab/rubric/dimensions.py" = ["E501"]
-"src/harness_eval_lab/cli.py" = ["E501"]
+"src/harness_eval_lab/cli/*.py" = ["E501"]
 "tests/test_rubric.py" = ["E501"]
 "skills/**" = ["E501"]
 
