@@ -95,9 +95,11 @@ def analyze_dependencies(setup: Setup) -> DependencyReport:
         referenced_names.add(e.source_name)
 
     orphans = []
+    # Skills are activated by description matching, not by explicit references,
+    # so an unreferenced skill is not orphaned. Only flag commands and agents.
+    orphan_types = (ComponentType.COMMAND, ComponentType.AGENT)
     for comp in setup.components:
-        skip_types = (ComponentType.CLAUDE_MD, ComponentType.HOOKS, ComponentType.MCP_CONFIG)
-        if comp.component_type in skip_types:
+        if comp.component_type not in orphan_types:
             continue
         if comp.name not in referenced_names and len(setup.components) > 3:
             orphans.append(f"{comp.component_type.value}/{comp.name}")
