@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Token counting no longer crashes in air-gapped or egress-restricted environments. Falls back to chars/4 heuristic when tiktoken cannot download the cl100k_base BPE file, with a one-time warning.
+- Orphan detection no longer flags unreferenced skills. Skills are activated by description matching, not explicit references, so an unreferenced skill is healthy. Orphan detection is now scoped to commands and agents only.
+
 ## [4.0.0] - 2026-07-08
 
 ### Changed
