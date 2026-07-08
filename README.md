@@ -64,20 +64,65 @@ Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for review/security/skill comma
 
 `setup-eval security` supports optional YARA malware signature scanning. To enable it: `pip install setup-eval[yara]`
 
-### CI integration
+### GitHub Action
 
-Two-tier gating recommended: security blocks on any finding (including warnings), lint blocks only on structural errors.
+Runs two-tier gating (security + lint) and posts inline PR annotations via GitHub Code Scanning. No API key needed, no LLM calls, fully deterministic.
+
+**Quick start:** Create `.github/workflows/setup-eval.yml` in your repo:
 
 ```yaml
-# GitHub Actions example
+name: Agent Setup Check
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  security-events: write    # required for SARIF upload
+  contents: read
+
+jobs:
+  setup-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: redhat-community-ai-tools/setup-eval/.github/actions/setup-eval@main
+```
+
+That's it. Every PR now gets security + lint checks with inline annotations on the diff.
+
+**Options:**
+
+```yaml
+      - uses: redhat-community-ai-tools/setup-eval/.github/actions/setup-eval@main
+        with:
+          path: "."              # directories to scan, one per line (default: repo root)
+          preset: "recommended"  # recommended, strict, security, or pre-workflow
+          security-gate: "true"  # block on any security finding
+          lint-gate: "true"      # block on structural errors
+          lint-fail-on: "error"  # "error" (default) or "warning" (strict)
+          sarif: "true"          # inline PR annotations via Code Scanning
+          version: ""            # pin a specific version (default: latest)
+```
+
+**Multiple directories** (monorepos or repos with nested agent configs):
+
+```yaml
+      - uses: redhat-community-ai-tools/setup-eval/.github/actions/setup-eval@main
+        with:
+          path: |
+            .
+            internal/scaffold/agent-configs
+            apps/frontend
+```
+
+### Manual CI integration
+
+If you prefer manual setup over the action:
+
+```yaml
 - run: pip install setup-eval
 - run: setup-eval security . --fail-on-warning   # strict: any security finding blocks
 - run: setup-eval lint . --fail-on-error          # lenient: only errors block
-```
-
-For SARIF output (inline PR annotations via GitHub Code Scanning):
-
-```yaml
 - run: setup-eval lint . --format sarif --output results.sarif
 - uses: github/codeql-action/upload-sarif@v3
   with:
