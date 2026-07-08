@@ -16,3 +16,24 @@ repos:
     hooks:
       - id: bandit
         args: ["-r", "src/"]
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: uv run pytest tests/ -q
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: security-gate
+        name: security gate
+        entry: uv run setup-eval security . --fail-on-warning
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: lint-gate
+        name: lint gate
+        entry: uv run setup-eval lint . --fail-on-error
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

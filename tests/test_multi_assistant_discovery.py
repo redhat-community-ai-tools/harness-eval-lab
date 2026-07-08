@@ -61,7 +61,8 @@ class TestOpenCodeDiscovery:
     def test_discovers_opencode_instructions(self, opencode_setup_path):
         setup = discover_setup("test", opencode_setup_path)
         claude_mds = setup.by_type(ComponentType.CLAUDE_MD)
-        assert any(c.source_tool == "opencode" for c in claude_mds)
+        # AGENTS.md is a cross-tool standard, attributed as "agents-md"
+        assert any(c.source_tool == "agents-md" for c in claude_mds)
 
     def test_discovers_opencode_commands(self, opencode_setup_path):
         setup = discover_setup("test", opencode_setup_path)

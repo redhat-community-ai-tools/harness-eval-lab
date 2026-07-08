@@ -43,6 +43,11 @@ from setup_eval.output.metadata import EvalMetadata
     help="Watch files for changes and re-run lint automatically.",
 )
 @click.option(
+    "--fail-on-warning",
+    is_flag=True,
+    help="Exit with code 1 if any warnings or errors found.",
+)
+@click.option(
     "--user-config",
     type=click.Path(),
     default=None,
@@ -56,6 +61,7 @@ def eval_setup_lint(
     fix: bool,
     fail_on_error: bool,
     watch: bool,
+    fail_on_warning: bool,
     user_config: str | None,
 ) -> None:
     """Lint: 58 rules + system analysis. No LLM, deterministic, fast."""
@@ -66,6 +72,8 @@ def eval_setup_lint(
             click.echo("Warning: --fix is ignored in watch mode.", err=True)
         if fail_on_error:
             click.echo("Warning: --fail-on-error is ignored in watch mode.", err=True)
+        if fail_on_warning:
+            click.echo("Warning: --fail-on-warning is ignored in watch mode.", err=True)
         run_watch(path=path, preset=preset, fmt=fmt, user_config=user_config)
         return
 
@@ -163,6 +171,12 @@ def eval_setup_lint(
     if fail_on_error:
         total_errors = sum(r.error_count for r in results)
         if total_errors > 0:
+            raise SystemExit(1)
+
+    if fail_on_warning:
+        total_errors = sum(r.error_count for r in results)
+        total_warnings = sum(r.warning_count for r in results)
+        if total_errors + total_warnings > 0:
             raise SystemExit(1)
 
 

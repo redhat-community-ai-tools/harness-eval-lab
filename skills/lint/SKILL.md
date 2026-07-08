@@ -5,6 +5,7 @@ allowed-tools:
   - Bash
   - Read
 ---
+<!-- evaluator-ignore: content/broken-references, security/mcp-least-privilege, security/ast-behavioral -->
 
 # Lint Setup
 

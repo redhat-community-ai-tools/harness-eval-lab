@@ -1,6 +1,6 @@
 [project]
 name = "setup-eval"
-version = "4.0.1"
+version = "4.1.0"
 description = "Evaluate and compare AI agent setups through experiments, inspections, and rubric scoring."
 readme = "README.md"
 license = "Apache-2.0"
@@ -9,7 +9,6 @@ dependencies = [
     "click>=8.0",
     "pydantic>=2.0",
     "pyyaml>=6.0",
-    "tiktoken>=0.7",
     "scikit-learn>=1.0",
     "google-genai>=1.0",
     "anthropic>=0.40",
@@ -22,6 +21,9 @@ setup-eval = "setup_eval.cli:cli"
 [project.optional-dependencies]
 watch = [
     "watchfiles>=1.0",
+]
+tiktoken = [
+    "tiktoken>=0.7",
 ]
 yara = [
     "yara-python>=4.0",

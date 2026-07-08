@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from setup_eval.core.types import ComponentType
+from setup_eval.data import load_builtins
 from setup_eval.inspection.types import (
     Location,
     ReportDescriptor,
@@ -10,24 +11,7 @@ from setup_eval.inspection.types import (
     Severity,
 )
 
-BUILTIN_COMMANDS = {
-    "init",
-    "review",
-    "security-review",
-    "help",
-    "clear",
-    "compact",
-    "config",
-    "cost",
-    "doctor",
-    "login",
-    "logout",
-    "memory",
-    "model",
-    "permissions",
-    "status",
-    "vim",
-}
+BUILTIN_COMMANDS = load_builtins()
 
 
 class CommandShadowsBuiltin:

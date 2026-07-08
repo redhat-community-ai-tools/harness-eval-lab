@@ -20,6 +20,12 @@ class OpenCodeDiscoverer(ToolDiscoverer):
         return "opencode"
 
     def detect(self, root: Path) -> bool:
+        """Detect OpenCode setup files.
+
+        AGENTS.md is a cross-tool standard (Codex CLI, Copilot CLI, Gemini CLI,
+        Claude Code, OpenCode) so it is attributed as "agents-md" rather than
+        "opencode".  The .opencode/ directory is OpenCode-specific.
+        """
         return (root / "AGENTS.md").is_file() or (root / ".opencode").is_dir()
 
     def discover(self, root: Path, user_config_dir: Path | None = None) -> list[ParsedComponent]:
@@ -56,7 +62,7 @@ class OpenCodeDiscoverer(ToolDiscoverer):
     def _discover_instructions(self, root: Path) -> list[ParsedComponent]:
         agents_md = root / "AGENTS.md"
         if agents_md.is_file():
-            return [parse_file(agents_md, ComponentType.CLAUDE_MD, source_tool="opencode")]
+            return [parse_file(agents_md, ComponentType.CLAUDE_MD, source_tool="agents-md")]
         return []
 
     def _discover_commands(self, root: Path) -> list[ParsedComponent]:
