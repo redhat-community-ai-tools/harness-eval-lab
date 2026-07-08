@@ -1,0 +1,8 @@
+{
+  "_comment": "Claude Code built-in slash commands. Update when new built-ins are added.",
+  "claude_code_commands": [
+    "init", "review", "security-review", "help", "clear", "compact",
+    "config", "cost", "doctor", "login", "logout", "memory", "model",
+    "permissions", "status", "vim"
+  ]
+}

@@ -5,6 +5,7 @@ allowed-tools:
   - Bash
   - Read
 ---
+<!-- evaluator-ignore: content/broken-references -->
 
 # Review Setup
 

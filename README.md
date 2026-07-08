@@ -47,18 +47,42 @@ Multi-tool projects are fully supported. When a project contains files for multi
 Install from PyPI and run from the terminal:
 
 ```bash
-pip install setup-eval
+pip install setup-eval                # core (offline token counting via chars/4 heuristic)
+pip install setup-eval[tiktoken]      # exact token counting via tiktoken
 
 setup-eval lint .
-setup-eval lint . --watch     # re-run lint automatically on file changes
+setup-eval lint . --watch             # re-run lint automatically on file changes
+setup-eval lint . --fail-on-error     # exit code 1 on errors (CI gate)
+setup-eval lint . --fail-on-warning   # exit code 1 on any finding (strict CI gate)
 setup-eval review . --provider gemini
 setup-eval security . --review
+setup-eval security . --fail-on-warning  # exit code 1 on any security finding
 setup-eval skill ./skills/my-skill --context . --rubric
 ```
 
 Requires `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for review/security/skill commands.
 
 `setup-eval security` supports optional YARA malware signature scanning. To enable it: `pip install setup-eval[yara]`
+
+### CI integration
+
+Two-tier gating recommended: security blocks on any finding (including warnings), lint blocks only on structural errors.
+
+```yaml
+# GitHub Actions example
+- run: pip install setup-eval
+- run: setup-eval security . --fail-on-warning   # strict: any security finding blocks
+- run: setup-eval lint . --fail-on-error          # lenient: only errors block
+```
+
+For SARIF output (inline PR annotations via GitHub Code Scanning):
+
+```yaml
+- run: setup-eval lint . --format sarif --output results.sarif
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: results.sarif
+```
 
 ### Claude Code plugin
 

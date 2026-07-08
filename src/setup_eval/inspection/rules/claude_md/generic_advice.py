@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import re
-
 from setup_eval.core.types import ComponentType
+from setup_eval.data import load_tautological_patterns
 from setup_eval.inspection.types import (
     Location,
     ReportDescriptor,
@@ -12,23 +11,7 @@ from setup_eval.inspection.types import (
     Severity,
 )
 
-_GENERIC_PATTERNS: list[tuple[str, re.Pattern]] = [
-    ("write clean code", re.compile(r"write\s+clean[\s,]+readable\s+code", re.I)),
-    ("be helpful", re.compile(r"be\s+helpful\s+and\s+thorough", re.I)),
-    ("follow best practices", re.compile(r"follow\s+(the\s+)?best\s+practices", re.I)),
-    ("think step by step", re.compile(r"think\s+step\s+by\s+step", re.I)),
-    ("consider edge cases", re.compile(r"consider\s+(all\s+)?edge\s+cases", re.I)),
-    (
-        "handle errors properly",
-        re.compile(r"handle\s+errors\s+(?:properly|correctly|gracefully)", re.I),
-    ),
-    ("use proper formatting", re.compile(r"use\s+proper\s+formatting", re.I)),
-    ("write maintainable code", re.compile(r"write\s+maintainable\s+code", re.I)),
-    ("be concise", re.compile(r"be\s+concise\s+and\s+clear", re.I)),
-    ("ensure code quality", re.compile(r"ensure\s+(?:code\s+)?quality", re.I)),
-    ("write well-documented code", re.compile(r"write\s+well[- ]documented\s+code", re.I)),
-    ("be thorough", re.compile(r"be\s+thorough\s+(?:in|and|with)", re.I)),
-]
+_GENERIC_PATTERNS = load_tautological_patterns(generic_advice_only=True)
 
 
 class ClaudeMdGenericAdvice:

@@ -89,6 +89,11 @@ def _parse_adjudication_response(
     help="Exit with code 1 if any errors found.",
 )
 @click.option(
+    "--fail-on-warning",
+    is_flag=True,
+    help="Exit with code 1 if any warnings or errors found.",
+)
+@click.option(
     "--user-config",
     type=click.Path(),
     default=None,
@@ -102,6 +107,7 @@ def eval_setup_security(
     provider: str,
     model: str | None,
     fail_on_error: bool,
+    fail_on_warning: bool,
     user_config: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
@@ -431,4 +437,10 @@ def eval_setup_security(
 
     effective_error_count = confirmed_errors if adjudicated else raw_errors
     if fail_on_error and effective_error_count > 0:
+        raise SystemExit(1)
+
+    effective_warning_count = (
+        (confirmed_warnings + downgraded_count) if adjudicated else raw_warnings
+    )
+    if fail_on_warning and (effective_error_count + effective_warning_count) > 0:
         raise SystemExit(1)

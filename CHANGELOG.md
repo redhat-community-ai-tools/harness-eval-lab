@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-07-08
+
+### Added
+- `--fail-on-warning` flag for lint and security commands: exit code 1 on any warnings or errors (not just errors)
+- Versioned data files under `src/setup_eval/data/` for knowledge that decays: built-in commands list and tautological pattern definitions
+
+### Changed
+- AGENTS.md attribution changed from "opencode" to "agents-md" (cross-tool standard, not OpenCode-specific)
+- tiktoken moved from hard dependency to optional extra (`pip install setup-eval[tiktoken]`). Token counting falls back to chars/4 when tiktoken is not installed.
+- Built-in command list (`builtins.json`) and tautological patterns (`tautological_patterns.json`) extracted from hardcoded Python to versioned JSON data files
+- Generic advice patterns in claude-md/generic_advice.py now load from the shared tautological patterns data file (first 12 entries), eliminating duplication with quality/_patterns.py
+
 ### Fixed
 - Token counting no longer crashes in air-gapped or egress-restricted environments. Falls back to chars/4 heuristic when tiktoken cannot download the cl100k_base BPE file, with a one-time warning.
 - Orphan detection no longer flags unreferenced skills. Skills are activated by description matching, not explicit references, so an unreferenced skill is healthy. Orphan detection is now scoped to commands and agents only.

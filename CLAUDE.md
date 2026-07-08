@@ -21,13 +21,15 @@ To cut a release: `uv run scripts/release.py minor` (or `patch`/`major`). This m
 
 ## Before committing
 
-The CI runs 4 jobs: lint, typecheck, test, dogfood. All must pass. Run this before committing:
+The CI runs 5 jobs: lint, typecheck, test, security gate, lint gate. All must pass. Run this before committing:
 
 ```bash
 uv run ruff format src/ tests/ && uv run ruff check src/ tests/ && uv run pytest tests/ -q
+uv run setup-eval security . --fail-on-warning   # security gate: any finding blocks
+uv run setup-eval lint . --fail-on-error          # lint gate: only errors block
 ```
 
-All three must pass. The most common CI failure is forgetting `ruff format`. The `ruff check` (lint rules) and `ruff format` (code style) are separate checks.
+The most common CI failure is forgetting `ruff format`. The security gate blocks on any security finding (even warnings). The lint gate blocks only on structural errors (broken references, missing descriptions).
 
 ## Project structure
 
@@ -42,6 +44,7 @@ All three must pass. The most common CI failure is forgetting `ruff format`. The
   - `analysis/` - system-level analysis (budget, triggers, dependencies, context utilization)
   - `output/` - report generation (terminal + JSON)
   - `utils/` - token counting, TF-IDF similarity, frontmatter parsing, LLM client, path safety
+  - `data/` - versioned JSON data files (builtins, tautological patterns) for knowledge that decays
 - `skills/` - plugin skills with SKILL.md + rubric files + scripts
 - `tests/` - pytest test suite with fixtures
 - `future-plans/` - planned improvements in structured spec format
@@ -55,6 +58,6 @@ All three must pass. The most common CI failure is forgetting `ruff format`. The
 - Cross-component state in rules uses `context.scan_state`, not module-level variables
 - Tests go in `tests/` mirroring the source structure
 - LLM prompts live in `src/setup_eval/rubric/prompts/` as markdown files, not inline strings
-- `skills/skill/rubric/skills-rubric.md` is a symlink to `skills/review/rubric/skills-rubric.md`; edit the source, not the link
+- `skills/eval-skill/rubric/skills-rubric.md` is a symlink to `skills/review/rubric/skills-rubric.md`; edit the source, not the link
 - YARA and CVE rules only run in the `security` preset (used by `security`), never in lint
 - Rules that resolve file paths from user content must use `safe_join()` from `utils.paths` to prevent path traversal; never join untrusted paths with raw `/` or `Path()`

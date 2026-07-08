@@ -20,6 +20,21 @@ All three must pass. Commits that fail `ruff check` or `ruff format` will be rej
 
 Pre-commit also runs **gitleaks** (secret scanning) and **bandit** (Python security analysis). If gitleaks blocks your commit, you likely have a hardcoded credential or API key that needs to be moved to an environment variable.
 
+## Before pushing
+
+Pre-push hooks run the full test suite and two dogfood gates:
+
+```bash
+uv run setup-eval security . --fail-on-warning   # any security finding blocks
+uv run setup-eval lint . --fail-on-error          # only structural errors block
+```
+
+The security gate is strict: even a warning about credential access patterns blocks the push. The lint gate is lenient: quality/style warnings are advisory, only real errors (broken references, missing descriptions) block.
+
+## Versioned data files
+
+Knowledge that decays over time (built-in command lists, tautological pattern definitions) lives in `src/setup_eval/data/` as JSON files. Edit these when Claude Code adds new built-in commands or when model defaults change. No code changes needed.
+
 ## Adding a new inspection rule
 
 A rule is a Python class that checks one specific thing about one component type. Each rule lives in its own file.
@@ -48,8 +63,8 @@ Every rule has the same shape. Here's the minimal template:
 ```python
 from __future__ import annotations
 
-from harness_eval_lab.core.types import ComponentType
-from harness_eval_lab.inspection.types import (
+from setup_eval.core.types import ComponentType
+from setup_eval.inspection.types import (
     Location,
     ReportDescriptor,
     RuleCategory,
