@@ -42,12 +42,7 @@ Multi-tool projects are fully supported. When a project contains files for multi
 
 ## Install
 
-```bash
-pip install setup-eval
-setup-eval lint .
-```
-
-Available as a **CLI tool**, **GitHub Action**, **Claude Code plugin**, and **Cursor commands**. See [`INSTALL.md`](INSTALL.md) for all installation options, CI integration, and configuration.
+See [`INSTALL.md`](INSTALL.md) for all installation options, CI integration, and configuration (Available as a **CLI tool**, **GitHub Action**, **Claude Code plugin**, and **Cursor commands**)
 
 ## Inspection Rules (58)
 
