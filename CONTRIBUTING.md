@@ -173,69 +173,16 @@ Add the tool's file patterns to `RELEVANT_PATTERNS` in `src/setup_eval/core/fing
 
 Create `tests/fixtures/sample-mytool-setup/` with representative config files and write tests verifying discovery, source_tool attribution, and tool detection.
 
-## Adding a new future plan
+## Proposing new features
 
-Future plans go in `future-plans/`, each in its own subfolder.
-
-### 1. Create the subfolder and README
-
-```
-future-plans/my-plan-name/
-  README.md
-```
-
-### 2. Follow the structure
-
-Every plan doc should have:
-
-```markdown
-# Title: What Problem This Solves
-
-> **Status:** future
-
-## The problem
-What's wrong or missing today. Why should anyone care.
-
-## Why it matters
-What happens if we don't solve this. What value solving it provides.
-
-## Approaches explored
-### Approach 1: Name
-How it works. Trade-offs (bullet list).
-
-### Approach 2: Name
-How it works. Trade-offs (bullet list).
-
-## Recommended direction
-Which approach to start with and why.
-
-## How to build it
-Concrete steps. Where in the code. What to create.
-
-## Open questions
-Things we don't know yet. Decisions that need to be made.
-```
-
-### 3. Set the status
-
-| Status | Meaning |
-|--------|---------|
-| `future` | Idea documented, not yet planned |
-| `in design` | Actively being designed |
-| `in progress` | Implementation underway |
-| `built` | Implemented and merged |
-
-### 4. Add to the root README
-
-Add a row to the Future Plans table in `README.md`.
+Open a [GitHub Issue](https://github.com/redhat-community-ai-tools/setup-eval/issues) describing the problem and proposed solution. Feature discussions happen on issues, not in the codebase.
 
 ## PR guidelines
 
-- One logical change per PR. Don't mix a new rule with a future plan rewrite.
+- One logical change per PR.
 - Run `uv run ruff format src/ tests/ && uv run ruff check src/ tests/ && uv run pytest tests/ -q` before committing.
 - PR title should describe what changed, not how (e.g., "Add shadows-builtin rule" not "Add new file and update init").
 - If adding a rule, include the test in the same PR.
-- If adding a future plan, follow the structure above.
 
 ## Project conventions
 

@@ -47,7 +47,6 @@ The most common CI failure is forgetting `ruff format`. The security gate blocks
   - `data/` - versioned JSON data files (builtins, tautological patterns) for knowledge that decays
 - `skills/` - plugin skills with SKILL.md + rubric files + scripts
 - `tests/` - pytest test suite with fixtures
-- `future-plans/` - planned improvements in structured spec format
 
 ## Conventions
 

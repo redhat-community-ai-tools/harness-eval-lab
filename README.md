@@ -91,6 +91,6 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for adding rules and submitting PRs.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 
-## Future Plans
+## Roadmap
 
-See [`future-plans/`](future-plans/) for planned improvements (security benchmarks, runner abstraction, dynamic workflows, impact measurement).
+See [open issues](https://github.com/redhat-community-ai-tools/setup-eval/issues) for planned improvements and feature requests.
