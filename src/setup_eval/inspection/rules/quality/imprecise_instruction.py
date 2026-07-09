@@ -21,15 +21,6 @@ _HEDGING: list[tuple[str, re.Pattern[str]]] = [
     ("consider using", re.compile(r"\bconsider\s+(?:using|adding|implementing)\b", re.I)),
 ]
 
-_PAST_PARTICIPLES = (
-    r"(?:run|checked|tested|validated|formatted|built|deployed|used|added|removed"
-    r"|created|updated|linted|installed|configured|generated|executed|compiled"
-    r"|reviewed|analyzed|scanned|parsed|processed|evaluated|verified|merged"
-    r"|committed|pushed|released|published)"
-)
-
-_PASSIVE: list[tuple[str, re.Pattern[str]]] = []
-
 _CONDITIONAL_AMBIGUITY: list[tuple[str, re.Pattern[str]]] = [
     ("if needed", re.compile(r"\bif\s+needed\b", re.I)),
     ("if appropriate", re.compile(r"\bif\s+appropriate\b", re.I)),
@@ -39,15 +30,12 @@ _CONDITIONAL_AMBIGUITY: list[tuple[str, re.Pattern[str]]] = [
     ("where suitable", re.compile(r"\bwhere\s+suitable\b", re.I)),
 ]
 
-_ALL_PATTERNS: list[tuple[str, str, re.Pattern[str]]] = (
-    [("hedging", label, pat) for label, pat in _HEDGING]
-    + [("passive", label, pat) for label, pat in _PASSIVE]
-    + [("vague condition", label, pat) for label, pat in _CONDITIONAL_AMBIGUITY]
-)
+_ALL_PATTERNS: list[tuple[str, str, re.Pattern[str]]] = [
+    ("hedging", label, pat) for label, pat in _HEDGING
+] + [("vague condition", label, pat) for label, pat in _CONDITIONAL_AMBIGUITY]
 
 _CATEGORY_ADVICE = {
     "hedging": "State directly for reliable compliance",
-    "passive": "Use active voice with the agent as subject",
     "vague condition": "Specify a testable condition",
 }
 
