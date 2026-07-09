@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-07-09
+
 ### Added
 - GitHub Action at `.github/actions/setup-eval/`: one-step CI integration with two-tier gating (security + lint) and SARIF upload for inline PR annotations
 - New rule `quality/negative-only`: flags prohibitions without constructive alternatives (e.g., "don't use var" without saying what to use instead)
