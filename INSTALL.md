@@ -38,7 +38,7 @@ Add one file to your repo. Every PR gets security + lint checks with inline anno
 Create `.github/workflows/harness-eval.yml`:
 
 ```yaml
-name: Agent Setup Check
+name: Harness Checks
 on:
   pull_request:
     branches: [main]
@@ -46,16 +46,17 @@ on:
 permissions:
   security-events: write
   contents: read
+  pull-requests: write
 
 jobs:
-  harness-eval:
+  lint-and-security:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: redhat-community-ai-tools/harness-eval/.github/actions/harness-eval@main
 ```
 
-No API key needed. No LLM calls. Fully deterministic.
+No API key needed. No LLM calls. Fully deterministic. Posts a summary comment on the PR showing which components were scanned, which rules ran, and pass/fail status.
 
 ### Options
 
@@ -64,10 +65,11 @@ No API key needed. No LLM calls. Fully deterministic.
         with:
           path: "."              # directories to scan, one per line (default: repo root)
           preset: "recommended"  # recommended, strict, security, or pre-workflow
-          security-gate: "true"  # block on any security finding
-          lint-gate: "true"      # block on structural errors
+          security-gate: "true"  # run security checks (15 rules)
+          lint-gate: "true"      # run lint checks (64 rules)
           lint-fail-on: "error"  # "error" (default) or "warning" (strict)
           sarif: "true"          # inline PR annotations via Code Scanning
+          comment: "true"        # post summary comment on PRs
           version: ""            # pin a specific version (default: latest)
 ```
 
@@ -83,6 +85,17 @@ For monorepos or repos with nested agent configs:
             internal/scaffold/agent-configs
             apps/frontend
 ```
+
+### What appears on the PR
+
+The action posts a comment showing:
+- **Security checks**: pass/fail with rule count
+- **Lint checks**: pass/fail with error and warning counts (warnings are non-blocking)
+- **Code scanning**: SARIF upload status and finding count
+- **Scanned components**: table showing which files were checked and how many rules ran on each
+- **Rules by category**: table showing which rule categories ran and their results
+
+Findings also appear as inline annotations on the PR diff via GitHub Code Scanning.
 
 ### Manual CI setup
 
