@@ -84,14 +84,20 @@ runs:
           fail_flag="--fail-on-warning"
         fi
         failed=0
+        json_dir="${{ runner.temp }}/harness-eval-json"
+        mkdir -p "$json_dir"
+        i=0
         while IFS= read -r dir; do
           dir=$(echo "$dir" | xargs)
           [ -z "$dir" ] && continue
           harness-eval lint "$dir" --preset "${{ inputs.preset }}" || true
+          harness-eval lint "$dir" --preset "${{ inputs.preset }}" --format json > "$json_dir/lint-$i.json" 2>/dev/null || true
           if ! harness-eval lint "$dir" --preset "${{ inputs.preset }}" $fail_flag > /dev/null 2>&1; then
             failed=1
           fi
+          i=$((i + 1))
         done <<< "${{ inputs.path }}"
+        echo "json-dir=$json_dir" >> "$GITHUB_OUTPUT"
         exit $failed
 
     - name: Generate SARIF
@@ -121,47 +127,153 @@ runs:
         sarif_file: ${{ steps.sarif.outputs.sarif-dir }}
         category: harness-eval
 
-    - name: Post PR comment
+    - name: Build PR comment
+      id: comment-body
       if: inputs.comment == 'true' && always() && github.event_name == 'pull_request'
       shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
       run: |
-        sec_icon="✓"; sec_msg="passed"
-        if [ "${{ inputs.security-gate }}" != "true" ]; then
-          sec_icon="○"; sec_msg="skipped"
-        elif [ "${{ steps.security.outcome }}" != "success" ]; then
-          sec_icon="✗"; sec_msg="findings detected"
-        fi
-
-        lint_icon="✓"; lint_msg="passed"
-        if [ "${{ inputs.lint-gate }}" != "true" ]; then
-          lint_icon="○"; lint_msg="skipped"
-        elif [ "${{ steps.lint.outcome }}" != "success" ]; then
-          lint_icon="✗"; lint_msg="errors found"
-        fi
-
-        sarif_icon="✓"; sarif_msg="uploaded"
-        if [ "${{ inputs.sarif }}" != "true" ]; then
-          sarif_icon="○"; sarif_msg="skipped"
-        elif [ "${{ steps.sarif.outcome }}" != "success" ]; then
-          sarif_icon="✗"; sarif_msg="failed"
-        fi
-
+        json_dir="${{ steps.lint.outputs.json-dir }}"
         sarif_results="${{ steps.sarif.outputs.total-results }}"
         ver=$(harness-eval --version 2>&1 | grep -oP '[\d.]+' || echo "unknown")
 
+        # Build component and category tables from JSON
+        details=$(python3 << 'PYEOF'
+        import json, glob, os, sys
+
+        json_dir = os.environ.get("JSON_DIR", "")
+        files = sorted(glob.glob(f"{json_dir}/lint-*.json")) if json_dir else []
+
+        components = []
+        categories = {}
+        total_errors = 0
+        total_warnings = 0
+
+        for f in files:
+            try:
+                d = json.load(open(f))
+            except Exception:
+                continue
+            inspection = d.get("inspection", {})
+            summary = inspection.get("summary", {})
+            total_errors += summary.get("errors", 0)
+            total_warnings += summary.get("warnings", 0)
+
+            for type_key in inspection:
+                if type_key == "summary":
+                    continue
+                for comp in inspection[type_key]:
+                    name = comp.get("name", "unknown")
+                    rules_checked = len(comp.get("rules", []))
+                    findings = comp.get("errors", 0) + comp.get("warnings", 0)
+                    status = "✓" if findings == 0 else f"✗ {findings}"
+                    components.append((name, type_key, rules_checked, status))
+                    for rule in comp.get("rules", []):
+                        cat = rule["rule"].split("/")[0]
+                        if cat not in categories:
+                            categories[cat] = {"checked": 0, "passed": 0}
+                        categories[cat]["checked"] += 1
+                        if rule.get("result") == "pass":
+                            categories[cat]["passed"] += 1
+
+        lines = []
+        lines.append(f"total_errors={total_errors}")
+        lines.append(f"total_warnings={total_warnings}")
+
+        if components:
+            lines.append("COMP_TABLE_START")
+            for name, ctype, rules, status in components:
+                lines.append(f"| {name} | {ctype} | {rules} | {status} |")
+            lines.append("COMP_TABLE_END")
+
+        if categories:
+            lines.append("CAT_TABLE_START")
+            for cat in sorted(categories):
+                c = categories[cat]
+                result = "✓ clean" if c["checked"] == c["passed"] else f"✗ {c['checked'] - c['passed']} issues"
+                lines.append(f"| {cat} | {c['checked']} | {result} |")
+            lines.append("CAT_TABLE_END")
+
+        print("\n".join(lines))
+        PYEOF
+        )
+
+        total_errors=$(echo "$details" | grep "^total_errors=" | cut -d= -f2)
+        total_warnings=$(echo "$details" | grep "^total_warnings=" | cut -d= -f2)
+
+        sec_icon="✓"; sec_msg="passed"
+        [ "${{ inputs.security-gate }}" != "true" ] && { sec_icon="○"; sec_msg="skipped"; }
+        [ "${{ steps.security.outcome }}" != "success" ] && [ "${{ inputs.security-gate }}" = "true" ] && { sec_icon="✗"; sec_msg="findings detected"; }
+
+        lint_icon="✓"; lint_msg="passed (${total_errors:-0} errors, ${total_warnings:-0} warnings)"
+        [ "${{ inputs.lint-gate }}" != "true" ] && { lint_icon="○"; lint_msg="skipped"; }
+        [ "${{ steps.lint.outcome }}" != "success" ] && [ "${{ inputs.lint-gate }}" = "true" ] && { lint_icon="✗"; lint_msg="${total_errors:-0} errors, ${total_warnings:-0} warnings"; }
+
+        sarif_icon="✓"; sarif_msg="uploaded (${sarif_results:-0} findings)"
+        [ "${{ inputs.sarif }}" != "true" ] && { sarif_icon="○"; sarif_msg="skipped"; }
+        [ "${{ steps.sarif.outcome }}" != "success" ] && [ "${{ inputs.sarif }}" = "true" ] && { sarif_icon="✗"; sarif_msg="failed"; }
+
+        # Build component table
+        comp_table=""
+        if echo "$details" | grep -q "COMP_TABLE_START"; then
+            comp_rows=$(echo "$details" | sed -n '/COMP_TABLE_START/,/COMP_TABLE_END/p' | grep "^|")
+            comp_count=$(echo "$comp_rows" | wc -l)
+            comp_header="| Component | Type | Rules checked | Result |
+        |---|---|---|---|"
+            if [ "$comp_count" -le 8 ]; then
+                comp_table="
+        ### Scanned components
+
+        ${comp_header}
+        ${comp_rows}"
+            else
+                comp_table="
+        <details><summary>Scanned components (${comp_count})</summary>
+
+        ${comp_header}
+        ${comp_rows}
+
+        </details>"
+            fi
+        fi
+
+        # Build category table
+        cat_table=""
+        if echo "$details" | grep -q "CAT_TABLE_START"; then
+            cat_rows=$(echo "$details" | sed -n '/CAT_TABLE_START/,/CAT_TABLE_END/p' | grep "^|")
+            cat_table="
+        ### Rules by category
+
+        | Category | Rules checked | Result |
+        |---|---|---|
+        ${cat_rows}"
+        fi
+
+        # Assemble final body
         body="## Harness Eval Results
 
         ${sec_icon} **Security gate**: ${sec_msg}
         ${lint_icon} **Lint gate**: ${lint_msg}
-        ${sarif_icon} **SARIF**: ${sarif_msg} (${sarif_results:-0} findings)
+        ${sarif_icon} **SARIF**: ${sarif_msg}
+        ${comp_table}
+        ${cat_table}
 
         ---
         *[harness-eval](https://github.com/redhat-community-ai-tools/harness-eval) v${ver} | 64 rules | preset: ${{ inputs.preset }}*"
 
         body=$(echo "$body" | sed 's/^        //')
 
+        # Save to file to avoid quoting issues
+        echo "$body" > "${{ runner.temp }}/harness-eval-comment.md"
+
+      env:
+        JSON_DIR: ${{ steps.lint.outputs.json-dir }}
+
+    - name: Post PR comment
+      if: inputs.comment == 'true' && always() && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
         pr_number="${{ github.event.pull_request.number }}"
 
         existing=$(gh api "repos/${{ github.repository }}/issues/${pr_number}/comments" \
@@ -170,4 +282,4 @@ runs:
           gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$cid" 2>/dev/null || true
         done
 
-        gh pr comment "$pr_number" --body "$body"
+        gh pr comment "$pr_number" --body-file "${{ runner.temp }}/harness-eval-comment.md"
