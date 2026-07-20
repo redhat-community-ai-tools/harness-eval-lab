@@ -25,8 +25,11 @@ inputs:
   sarif:
     description: "Upload SARIF to GitHub Code Scanning for inline PR annotations"
     default: "true"
+  comment:
+    description: "Post a summary comment on pull requests"
+    default: "true"
   version:
-    description: "harness-eval version to install (e.g. '4.1.0'). Leave empty for latest."
+    description: "harness-eval version to install (e.g. '5.0.0'). Leave empty for latest."
     default: ""
 
 outputs:
@@ -51,29 +54,31 @@ runs:
         else
           pip install -q harness-eval
         fi
+        echo "Installed: $(harness-eval --version)"
 
     - name: Security gate
       id: security
       if: inputs.security-gate == 'true'
       shell: bash
       run: |
+        echo "=== Security Scan ==="
         failed=0
         while IFS= read -r dir; do
           dir=$(echo "$dir" | xargs)
           [ -z "$dir" ] && continue
-          echo "::group::Security: $dir"
-          if ! harness-eval security "$dir" --fail-on-warning; then
+          harness-eval security "$dir" || true
+          if ! harness-eval security "$dir" --fail-on-warning > /dev/null 2>&1; then
             failed=1
           fi
-          echo "::endgroup::"
         done <<< "${{ inputs.path }}"
         exit $failed
 
     - name: Lint gate
       id: lint
-      if: inputs.lint-gate == 'true'
+      if: inputs.lint-gate == 'true' && always()
       shell: bash
       run: |
+        echo "=== Lint Scan ==="
         fail_flag="--fail-on-error"
         if [ "${{ inputs.lint-fail-on }}" = "warning" ]; then
           fail_flag="--fail-on-warning"
@@ -82,11 +87,10 @@ runs:
         while IFS= read -r dir; do
           dir=$(echo "$dir" | xargs)
           [ -z "$dir" ] && continue
-          echo "::group::Lint: $dir"
-          if ! harness-eval lint "$dir" --preset "${{ inputs.preset }}" $fail_flag; then
+          harness-eval lint "$dir" --preset "${{ inputs.preset }}" || true
+          if ! harness-eval lint "$dir" --preset "${{ inputs.preset }}" $fail_flag > /dev/null 2>&1; then
             failed=1
           fi
-          echo "::endgroup::"
         done <<< "${{ inputs.path }}"
         exit $failed
 
@@ -97,14 +101,18 @@ runs:
       run: |
         sarif_dir="${{ runner.temp }}/harness-eval-sarif"
         mkdir -p "$sarif_dir"
+        total_results=0
         i=0
         while IFS= read -r dir; do
           dir=$(echo "$dir" | xargs)
           [ -z "$dir" ] && continue
           harness-eval lint "$dir" --preset "${{ inputs.preset }}" --format sarif --output "$sarif_dir/results-$i.sarif" || true
+          count=$(python3 -c "import json; d=json.load(open('$sarif_dir/results-$i.sarif')); print(len(d['runs'][0]['results']))" 2>/dev/null || echo "0")
+          total_results=$((total_results + count))
           i=$((i + 1))
         done <<< "${{ inputs.path }}"
         echo "sarif-dir=$sarif_dir" >> "$GITHUB_OUTPUT"
+        echo "total-results=$total_results" >> "$GITHUB_OUTPUT"
 
     - name: Upload SARIF
       if: inputs.sarif == 'true' && always() && steps.sarif.outputs.sarif-dir != ''
@@ -112,3 +120,54 @@ runs:
       with:
         sarif_file: ${{ steps.sarif.outputs.sarif-dir }}
         category: harness-eval
+
+    - name: Post PR comment
+      if: inputs.comment == 'true' && always() && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        sec_icon="✓"; sec_msg="passed"
+        if [ "${{ inputs.security-gate }}" != "true" ]; then
+          sec_icon="○"; sec_msg="skipped"
+        elif [ "${{ steps.security.outcome }}" != "success" ]; then
+          sec_icon="✗"; sec_msg="findings detected"
+        fi
+
+        lint_icon="✓"; lint_msg="passed"
+        if [ "${{ inputs.lint-gate }}" != "true" ]; then
+          lint_icon="○"; lint_msg="skipped"
+        elif [ "${{ steps.lint.outcome }}" != "success" ]; then
+          lint_icon="✗"; lint_msg="errors found"
+        fi
+
+        sarif_icon="✓"; sarif_msg="uploaded"
+        if [ "${{ inputs.sarif }}" != "true" ]; then
+          sarif_icon="○"; sarif_msg="skipped"
+        elif [ "${{ steps.sarif.outcome }}" != "success" ]; then
+          sarif_icon="✗"; sarif_msg="failed"
+        fi
+
+        sarif_results="${{ steps.sarif.outputs.total-results }}"
+        ver=$(harness-eval --version 2>&1 | grep -oP '[\d.]+' || echo "unknown")
+
+        body="## Harness Eval Results
+
+        ${sec_icon} **Security gate**: ${sec_msg}
+        ${lint_icon} **Lint gate**: ${lint_msg}
+        ${sarif_icon} **SARIF**: ${sarif_msg} (${sarif_results:-0} findings)
+
+        ---
+        *[harness-eval](https://github.com/redhat-community-ai-tools/harness-eval) v${ver} | 64 rules | preset: ${{ inputs.preset }}*"
+
+        body=$(echo "$body" | sed 's/^        //')
+
+        pr_number="${{ github.event.pull_request.number }}"
+
+        existing=$(gh api "repos/${{ github.repository }}/issues/${pr_number}/comments" \
+          --jq '.[] | select(.body | contains("Harness Eval Results")) | .id' 2>/dev/null || true)
+        for cid in $existing; do
+          gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$cid" 2>/dev/null || true
+        done
+
+        gh pr comment "$pr_number" --body "$body"
