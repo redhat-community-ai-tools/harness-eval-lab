@@ -14,7 +14,7 @@ pip install harness-eval[tiktoken]      # exact token counting via tiktoken
 Run:
 
 ```bash
-harness-eval lint .                         # deterministic lint (59 rules)
+harness-eval lint .                         # deterministic lint (64 rules)
 harness-eval lint . --watch                 # re-run automatically on file changes
 harness-eval lint . --fail-on-error         # exit code 1 on errors (CI gate)
 harness-eval lint . --fail-on-warning       # exit code 1 on any finding (strict)
@@ -25,6 +25,10 @@ harness-eval security .                     # deterministic security scan
 harness-eval security . --review            # security scan + LLM semantic review
 harness-eval security . --fail-on-warning   # exit code 1 on any security finding
 harness-eval skill ./skills/my-skill --context . --rubric   # deep-evaluate one skill
+harness-eval rules                          # list all 64 rules
+harness-eval rules --category security      # list security rules only
+harness-eval rules --target hooks           # list rules that apply to hooks
+harness-eval rules --format json            # machine-readable rule list
 ```
 
 `review`, `security --review`, and `skill --rubric` require `GEMINI_API_KEY` or `ANTHROPIC_API_KEY`.

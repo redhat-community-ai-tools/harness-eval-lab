@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- New CLI command `harness-eval rules`: list all 64 rules with ID, severity, target type, and description. Supports `--category`, `--target`, and `--format json` filters.
+- GitHub Action PR comment now shows scanned components table and rules by category table
+- GitHub Action renamed from "Harness Eval / eval" to "Harness Checks / lint-and-security" for clarity
+
+### Changed
+- GitHub Action PR comment labels: "Security gate" -> "Security checks (15 rules)", "Lint gate" -> "Lint checks (64 rules)", "SARIF" -> "Code scanning"
+- Warnings in lint checks shown as non-blocking in PR comment
+
 ## [5.0.0] - 2026-07-19
 
 ### Changed

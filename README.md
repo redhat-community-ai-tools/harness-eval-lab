@@ -16,7 +16,7 @@ Supports Claude Code, Cursor, Copilot, Gemini CLI, and OpenCode projects. Auto-d
 
 Most tools test whether a skill produces correct output. This tool checks the setup itself: CLAUDE.md, GEMINI.md, AGENTS.md, skills, commands, hooks, MCP configs, agents, `.cursor/rules/*.mdc`, `.cursorrules`, `.github/prompts/`, `.opencode/`.
 
-Four commands, same engine:
+Five commands, same engine:
 
 | Command | What it does | LLM in CLI | LLM in Claude Code / Cursor |
 |---------|-------------|-----------|----------------------------|
@@ -24,6 +24,7 @@ Four commands, same engine:
 | `review` | Per-component rubric review with 0-3 scoring per dimension, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes (API key) | Yes (in-session) |
 | `security` | All security rules + YARA + CVE lookups + semantic review. SAFE/CAUTION/UNSAFE. | Scan: no. Semantic review: `--review` flag | Yes (in-session) |
 | `skill` | Deep-evaluate one skill individually and in context of the full setup. | Lint: no. Rubric: `--rubric` flag | Yes (in-session) |
+| `rules` | List all available rules with ID, severity, target type, and description. Filter by `--category` or `--target`. | No | No |
 
 ## Supported AI Assistants
 

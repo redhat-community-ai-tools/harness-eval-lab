@@ -9,5 +9,6 @@ click.version_option(package_name="harness-eval")(cli)
 
 from harness_eval.cli import lint as _lint  # noqa: E402, F401
 from harness_eval.cli import review as _review  # noqa: E402, F401
+from harness_eval.cli import rules as _rules  # noqa: E402, F401
 from harness_eval.cli import security as _security  # noqa: E402, F401
 from harness_eval.cli import skill as _skill  # noqa: E402, F401
