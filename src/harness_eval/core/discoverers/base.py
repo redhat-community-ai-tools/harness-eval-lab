@@ -13,6 +13,19 @@ from harness_eval.core.types import (
 from harness_eval.utils.parsing import parse_frontmatter
 from harness_eval.utils.tokens import count_tokens
 
+_EXCLUDE_DIRS = {".git", "__pycache__", "node_modules", ".venv", "vendor", ".tox"}
+
+
+def _recursive_glob(root: Path, pattern: str) -> list[Path]:
+    """Glob recursively, excluding common non-project directories."""
+    results = []
+    for f in sorted(root.rglob(pattern)):
+        if any(excluded in f.parts for excluded in _EXCLUDE_DIRS):
+            continue
+        if f.is_file():
+            results.append(f)
+    return results
+
 
 def parse_file(
     filepath: Path,
@@ -54,9 +67,13 @@ class ToolDiscoverer(ABC):
         """Return True if this tool's setup files exist in root."""
 
     @abstractmethod
-    def discover(self, root: Path, user_config_dir: Path | None = None) -> list[ParsedComponent]:
+    def discover(
+        self, root: Path, user_config_dir: Path | None = None, *, recursive: bool = False
+    ) -> list[ParsedComponent]:
         """Discover all components for this tool."""
 
     @abstractmethod
-    def collect_paths(self, root: Path, user_config_dir: Path | None = None) -> list[Path]:
+    def collect_paths(
+        self, root: Path, user_config_dir: Path | None = None, *, recursive: bool = False
+    ) -> list[Path]:
         """Return file paths this discoverer would scan (for watch mode)."""

@@ -53,6 +53,11 @@ from harness_eval.output.metadata import EvalMetadata
     default=None,
     help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
 )
+@click.option(
+    "--recursive",
+    is_flag=True,
+    help="Recursively search for agent configs in all subdirectories.",
+)
 def eval_setup_lint(
     path: str,
     preset: str,
@@ -63,6 +68,7 @@ def eval_setup_lint(
     watch: bool,
     fail_on_warning: bool,
     user_config: str | None,
+    recursive: bool,
 ) -> None:
     """Lint: 64 rules + system analysis. No LLM, deterministic, fast."""
     if watch:
@@ -88,7 +94,9 @@ def eval_setup_lint(
     target = Path(path)
 
     if target.is_dir():
-        setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
+        setup = discover_setup(
+            name=target.name, path=path, user_config_dir=user_config, recursive=recursive
+        )
         results = inspect_setup(setup, config_rules)
         system = analyze_system(setup)
 

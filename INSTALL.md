@@ -90,6 +90,27 @@ For monorepos or repos with nested agent configs:
             apps/frontend
 ```
 
+### Recursive discovery
+
+By default, harness-eval scans the repo root for agent config files (CLAUDE.md, skills, commands, hooks, MCP configs, agents). Use `--recursive` to search the entire directory tree for agent configs in nested directories. This is useful for monorepos and repos with scaffold templates.
+
+CLI:
+
+```bash
+harness-eval lint . --recursive
+harness-eval security . --recursive
+```
+
+GitHub Action:
+
+```yaml
+      - uses: redhat-community-ai-tools/harness-eval/.github/actions/harness-eval@main
+        with:
+          recursive: "true"
+```
+
+Directories like `.git/`, `__pycache__/`, `node_modules/`, `.venv/`, `vendor/`, and `.tox/` are automatically excluded from the recursive search.
+
 ### What appears on the PR
 
 The action posts a comment showing:
