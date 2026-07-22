@@ -11,6 +11,7 @@ import click
 from harness_eval.cli import cli
 from harness_eval.cli._helpers import emit_output
 from harness_eval.core.setup import discover_setup
+from harness_eval.core.types import ParsedComponent
 from harness_eval.inspection.types import AdjudicatedFinding, Finding, Severity
 from harness_eval.output.metadata import EvalMetadata
 
@@ -99,6 +100,17 @@ def _parse_adjudication_response(
     default=None,
     help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
 )
+@click.option(
+    "--recursive",
+    is_flag=True,
+    help="Recursively search for agent configs in all subdirectories.",
+)
+@click.option(
+    "--enforce",
+    type=click.Choice(["strict", "advisory", "off"]),
+    default=None,
+    help="Enforcement mode: strict (exit 1 on any finding), advisory (exit 0 always), off (skip).",
+)
 def eval_setup_security(
     path: str,
     fmt: str,
@@ -109,14 +121,23 @@ def eval_setup_security(
     fail_on_error: bool,
     fail_on_warning: bool,
     user_config: str | None,
+    recursive: bool,
+    enforce: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
+    if enforce and (fail_on_error or fail_on_warning):
+        raise click.UsageError(
+            "--enforce is mutually exclusive with --fail-on-error and --fail-on-warning"
+        )
+
     t0 = time.monotonic()
     from harness_eval.config.presets import SECURITY
     from harness_eval.inspection.engine import inspect_setup
 
     target = Path(path)
-    setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
+    setup = discover_setup(
+        name=target.name, path=path, user_config_dir=user_config, recursive=recursive
+    )
     results = inspect_setup(setup, SECURITY)
 
     skip_rules = {"security/yara-signatures", "security/cve-lookup"}
@@ -186,9 +207,13 @@ def eval_setup_security(
                 f"  Adjudicating {n} components with findings...",
                 err=True,
             )
-            comp_map = {c.name: c for c in setup.components}
+            comp_map: dict[str, ParsedComponent] = {}
+            for c in setup.components:
+                key = f"{c.component_type.value}/{c.name}"
+                if key not in comp_map:
+                    comp_map[key] = c
             for r in components_needing_adjudication:
-                comp = comp_map.get(r.target_name)
+                comp = comp_map.get(f"{r.target_type}/{r.target_name}")
                 if not comp:
                     continue
                 findings_data = [
@@ -436,11 +461,20 @@ def eval_setup_security(
         click.echo("")
 
     effective_error_count = confirmed_errors if adjudicated else raw_errors
-    if fail_on_error and effective_error_count > 0:
-        raise SystemExit(1)
-
     effective_warning_count = (
         (confirmed_warnings + downgraded_count) if adjudicated else raw_warnings
     )
+
+    if enforce == "off":
+        return
+    if enforce == "strict":
+        if effective_error_count + effective_warning_count > 0:
+            raise SystemExit(1)
+        return
+    if enforce == "advisory":
+        return
+
+    if fail_on_error and effective_error_count > 0:
+        raise SystemExit(1)
     if fail_on_warning and (effective_error_count + effective_warning_count) > 0:
         raise SystemExit(1)

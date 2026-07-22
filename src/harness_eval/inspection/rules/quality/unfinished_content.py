@@ -72,8 +72,10 @@ class UnfinishedContent:
         if not skill.raw_content:
             return
 
+        from harness_eval.inspection.rules._context import ContextTracker
+
         lines = skill.raw_content.split("\n")
-        in_code_fence = False
+        tracker = ContextTracker()
 
         prev_heading: tuple[int, str] | None = None
         prev_heading_had_content = False
@@ -81,13 +83,14 @@ class UnfinishedContent:
         for i, line in enumerate(lines):
             stripped = line.strip()
 
+            tracker.update(line)
+
             if stripped.startswith("```"):
-                in_code_fence = not in_code_fence
-                if not in_code_fence and prev_heading is not None:
+                if not tracker.is_fenced() and prev_heading is not None:
                     prev_heading_had_content = True
                 continue
 
-            if in_code_fence:
+            if tracker.is_fenced():
                 continue
 
             is_heading = bool(_HEADING_RE.match(stripped))

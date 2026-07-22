@@ -53,6 +53,24 @@ from harness_eval.output.metadata import EvalMetadata
     default=None,
     help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
 )
+@click.option(
+    "--recursive",
+    is_flag=True,
+    help="Recursively search for agent configs in all subdirectories.",
+)
+@click.option(
+    "--enforce",
+    type=click.Choice(["strict", "advisory", "off"]),
+    default=None,
+    help="Enforcement mode: strict (exit 1 on any finding), advisory (exit 0 always), off (skip).",
+)
+@click.option(
+    "--report-card",
+    "report_card_path",
+    type=click.Path(),
+    default=None,
+    help="Write a unified report card JSON to this path.",
+)
 def eval_setup_lint(
     path: str,
     preset: str,
@@ -63,8 +81,16 @@ def eval_setup_lint(
     watch: bool,
     fail_on_warning: bool,
     user_config: str | None,
+    recursive: bool,
+    enforce: str | None,
+    report_card_path: str | None,
 ) -> None:
-    """Lint: 64 rules + system analysis. No LLM, deterministic, fast."""
+    """Lint: deterministic rules + system analysis. No LLM, fast."""
+    if enforce and (fail_on_error or fail_on_warning):
+        raise click.UsageError(
+            "--enforce is mutually exclusive with --fail-on-error and --fail-on-warning"
+        )
+
     if watch:
         from harness_eval.watch import run_watch
 
@@ -74,7 +100,7 @@ def eval_setup_lint(
             click.echo("Warning: --fail-on-error is ignored in watch mode.", err=True)
         if fail_on_warning:
             click.echo("Warning: --fail-on-warning is ignored in watch mode.", err=True)
-        run_watch(path=path, preset=preset, fmt=fmt, user_config=user_config)
+        run_watch(path=path, preset=preset, fmt=fmt, user_config=user_config, recursive=recursive)
         return
 
     t0 = time.monotonic()
@@ -88,7 +114,9 @@ def eval_setup_lint(
     target = Path(path)
 
     if target.is_dir():
-        setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
+        setup = discover_setup(
+            name=target.name, path=path, user_config_dir=user_config, recursive=recursive
+        )
         results = inspect_setup(setup, config_rules)
         system = analyze_system(setup)
 
@@ -178,6 +206,30 @@ def eval_setup_lint(
             f"\n{fixable_count} of {len(all_findings)} findings are auto-fixable. "
             f"Run with --fix to apply."
         )
+
+    if report_card_path:
+        from harness_eval.output.report import format_report_card
+
+        card = format_report_card(results)
+        Path(report_card_path).write_text(json_mod.dumps(card, indent=2))
+        cert = card.get("certification", {})
+        tier = cert.get("tier", "NONE")
+        click.echo(f"\nCertification: {tier}")
+        for level in ("basic", "verified", "hardened"):
+            info = cert.get(level, {})
+            icon = "PASS" if info.get("passed") else "FAIL"
+            click.echo(f"  {level.capitalize()}: {icon} ({info.get('reason', '')})")
+        click.echo(f"Report card written to {report_card_path}")
+
+    if enforce == "off":
+        return
+    if enforce == "strict":
+        total = sum(r.error_count + r.warning_count for r in results)
+        if total > 0:
+            raise SystemExit(1)
+        return
+    if enforce == "advisory":
+        return
 
     if fail_on_error:
         total_errors = sum(r.error_count for r in results)

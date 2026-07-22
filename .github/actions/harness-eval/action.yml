@@ -1,5 +1,5 @@
 name: "harness-eval"
-description: "Lint and security-scan AI agent setups (CLAUDE.md, skills, commands, hooks, MCP configs, agents). 64 deterministic rules, no LLM required."
+description: "Lint and security-scan AI agent setups (CLAUDE.md, skills, commands, hooks, MCP configs, agents). 68 deterministic rules, no LLM required."
 author: "redhat-community-ai-tools"
 
 branding:
@@ -28,6 +28,9 @@ inputs:
   comment:
     description: "Post a summary comment on pull requests"
     default: "true"
+  recursive:
+    description: "Recursively search for agent configs in all subdirectories"
+    default: "false"
   version:
     description: "harness-eval version to install (e.g. '5.0.0'). Leave empty for latest."
     default: ""
@@ -62,12 +65,16 @@ runs:
       shell: bash
       run: |
         echo "=== Security Scan ==="
+        recursive_flag=""
+        if [ "${{ inputs.recursive }}" = "true" ]; then
+          recursive_flag="--recursive"
+        fi
         failed=0
         while IFS= read -r dir; do
           dir=$(echo "$dir" | xargs)
           [ -z "$dir" ] && continue
-          harness-eval security "$dir" || true
-          if ! harness-eval security "$dir" --fail-on-warning > /dev/null 2>&1; then
+          harness-eval security "$dir" $recursive_flag || true
+          if ! harness-eval security "$dir" $recursive_flag --fail-on-warning > /dev/null 2>&1; then
             failed=1
           fi
         done <<< "${{ inputs.path }}"
@@ -83,6 +90,10 @@ runs:
         if [ "${{ inputs.lint-fail-on }}" = "warning" ]; then
           fail_flag="--fail-on-warning"
         fi
+        recursive_flag=""
+        if [ "${{ inputs.recursive }}" = "true" ]; then
+          recursive_flag="--recursive"
+        fi
         failed=0
         json_dir="${{ runner.temp }}/harness-eval-json"
         mkdir -p "$json_dir"
@@ -90,9 +101,9 @@ runs:
         while IFS= read -r dir; do
           dir=$(echo "$dir" | xargs)
           [ -z "$dir" ] && continue
-          harness-eval lint "$dir" --preset "${{ inputs.preset }}" || true
-          harness-eval lint "$dir" --preset "${{ inputs.preset }}" --format json > "$json_dir/lint-$i.json" 2>/dev/null || true
-          if ! harness-eval lint "$dir" --preset "${{ inputs.preset }}" $fail_flag > /dev/null 2>&1; then
+          harness-eval lint "$dir" --preset "${{ inputs.preset }}" $recursive_flag || true
+          harness-eval lint "$dir" --preset "${{ inputs.preset }}" $recursive_flag --format json > "$json_dir/lint-$i.json" 2>/dev/null || true
+          if ! harness-eval lint "$dir" --preset "${{ inputs.preset }}" $recursive_flag $fail_flag > /dev/null 2>&1; then
             failed=1
           fi
           i=$((i + 1))
@@ -107,12 +118,16 @@ runs:
       run: |
         sarif_dir="${{ runner.temp }}/harness-eval-sarif"
         mkdir -p "$sarif_dir"
+        recursive_flag=""
+        if [ "${{ inputs.recursive }}" = "true" ]; then
+          recursive_flag="--recursive"
+        fi
         total_results=0
         i=0
         while IFS= read -r dir; do
           dir=$(echo "$dir" | xargs)
           [ -z "$dir" ] && continue
-          harness-eval lint "$dir" --preset "${{ inputs.preset }}" --format sarif --output "$sarif_dir/results-$i.sarif" || true
+          harness-eval lint "$dir" --preset "${{ inputs.preset }}" $recursive_flag --format sarif --output "$sarif_dir/results-$i.sarif" || true
           count=$(python3 -c "import json; d=json.load(open('$sarif_dir/results-$i.sarif')); print(len(d['runs'][0]['results']))" 2>/dev/null || echo "0")
           total_results=$((total_results + count))
           i=$((i + 1))
@@ -206,7 +221,7 @@ runs:
 
         warnings_note=""
         [ "${total_warnings:-0}" -gt 0 ] && warnings_note=", ${total_warnings} warnings (non-blocking)"
-        lint_icon="✓"; lint_msg="passed (64 rules, ${total_errors:-0} errors${warnings_note})"
+        lint_icon="✓"; lint_msg="passed (68 rules, ${total_errors:-0} errors${warnings_note})"
         [ "${{ inputs.lint-gate }}" != "true" ] && { lint_icon="○"; lint_msg="skipped"; }
         [ "${{ steps.lint.outcome }}" != "success" ] && [ "${{ inputs.lint-gate }}" = "true" ] && { lint_icon="✗"; lint_msg="${total_errors:-0} errors${warnings_note}"; }
 
@@ -260,7 +275,7 @@ runs:
         ${cat_table}
 
         ---
-        *[harness-eval](https://github.com/redhat-community-ai-tools/harness-eval) v${ver} | 64 rules | preset: ${{ inputs.preset }}*"
+        *[harness-eval](https://github.com/redhat-community-ai-tools/harness-eval) v${ver} | 68 rules | preset: ${{ inputs.preset }}*"
 
         body=$(echo "$body" | sed 's/^        //')
 

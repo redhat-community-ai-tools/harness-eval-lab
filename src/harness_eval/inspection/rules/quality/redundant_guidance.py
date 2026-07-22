@@ -149,17 +149,15 @@ class RedundantGuidance:
                 if _config_exists(project_root, config_key):
                     present_configs.add(config_key)
 
+        from harness_eval.inspection.rules._context import ContextTracker
+
         lines = skill.body.split("\n")
-        in_code_fence = False
+        tracker = ContextTracker()
 
         for i, line in enumerate(lines):
-            stripped = line.strip()
+            tracker.update(line)
 
-            if stripped.startswith("```"):
-                in_code_fence = not in_code_fence
-                continue
-
-            if in_code_fence:
+            if tracker.is_fenced():
                 continue
 
             if self._check_tooling(context, skill, line, i, present_configs):

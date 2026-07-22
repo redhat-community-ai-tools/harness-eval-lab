@@ -67,7 +67,11 @@ def register_all_rules() -> None:
     from harness_eval.inspection.rules.content.broken_references import BrokenReferences
     from harness_eval.inspection.rules.content.circular_references import CircularReferences
     from harness_eval.inspection.rules.content.duplicate_detection import DuplicateDetection
+    from harness_eval.inspection.rules.content.mcp_skill_alignment import McpSkillAlignment
+    from harness_eval.inspection.rules.content.orphan_skills import OrphanSkills
+    from harness_eval.inspection.rules.content.permission_escalation import PermissionEscalation
     from harness_eval.inspection.rules.content.token_budget import TokenBudget
+    from harness_eval.inspection.rules.content.total_context_budget import TotalContextBudget
     from harness_eval.inspection.rules.frontmatter.description_quality import DescriptionQuality
     from harness_eval.inspection.rules.frontmatter.description_required import (
         DescriptionRequired,
@@ -180,5 +184,9 @@ def register_all_rules() -> None:
         CoerciveOverride,
         StealthPersistence,
         PromptExfiltration,
+        OrphanSkills,
+        McpSkillAlignment,
+        TotalContextBudget,
+        PermissionEscalation,
     ]:
         register_rule(rule_cls())

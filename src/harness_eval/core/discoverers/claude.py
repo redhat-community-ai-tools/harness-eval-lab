@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from harness_eval.core.discoverers.base import ToolDiscoverer, parse_file
+from harness_eval.core.discoverers.base import ToolDiscoverer, _recursive_glob, parse_file
 from harness_eval.core.types import (
     ComponentScope,
     ComponentType,
@@ -26,19 +26,23 @@ class ClaudeCodeDiscoverer(ToolDiscoverer):
     def detect(self, root: Path) -> bool:
         return (root / "CLAUDE.md").is_file() or (root / ".claude").is_dir()
 
-    def discover(self, root: Path, user_config_dir: Path | None = None) -> list[ParsedComponent]:
+    def discover(
+        self, root: Path, user_config_dir: Path | None = None, *, recursive: bool = False
+    ) -> list[ParsedComponent]:
         results: list[ParsedComponent] = []
         results.extend(self._discover_claude_md(root, user_config_dir))
-        results.extend(self._discover_skills(root))
-        results.extend(self._discover_commands(root))
-        results.extend(self._discover_hooks(root))
-        results.extend(self._discover_agents(root))
+        results.extend(self._discover_skills(root, recursive=recursive))
+        results.extend(self._discover_commands(root, recursive=recursive))
+        results.extend(self._discover_hooks(root, recursive=recursive))
+        results.extend(self._discover_agents(root, recursive=recursive))
         results.extend(self._discover_mcp_configs(root))
         results.extend(self._discover_rules(root))
         results.extend(self._discover_output_styles(root))
         return results
 
-    def collect_paths(self, root: Path, user_config_dir: Path | None = None) -> list[Path]:
+    def collect_paths(
+        self, root: Path, user_config_dir: Path | None = None, *, recursive: bool = False
+    ) -> list[Path]:
         paths: list[Path] = []
 
         # CLAUDE.md - project-local
@@ -65,6 +69,9 @@ class ClaudeCodeDiscoverer(ToolDiscoverer):
             if skills_dir.is_dir():
                 for f in sorted(skills_dir.rglob("SKILL.md")):
                     paths.append(f)
+        if recursive:
+            for f in _recursive_glob(root, "skills/*/SKILL.md"):
+                paths.append(f)
 
         # Commands
         for commands_dir in [root / "commands", root / ".claude" / "commands"]:
@@ -76,11 +83,19 @@ class ClaudeCodeDiscoverer(ToolDiscoverer):
                         cmd_md = item / "command.md"
                         if cmd_md.is_file():
                             paths.append(cmd_md)
+        if recursive:
+            for f in _recursive_glob(root, "commands/*.md"):
+                paths.append(f)
+            for f in _recursive_glob(root, "commands/*/command.md"):
+                paths.append(f)
 
         # Settings / hooks
         settings = root / ".claude" / "settings.json"
         if settings.is_file():
             paths.append(settings)
+        if recursive:
+            for f in _recursive_glob(root, ".claude/settings.json"):
+                paths.append(f)
 
         # Agents
         agents_dir = root / ".claude" / "agents"
@@ -88,6 +103,9 @@ class ClaudeCodeDiscoverer(ToolDiscoverer):
             for f in sorted(agents_dir.glob("*.md")):
                 if f.is_file():
                     paths.append(f)
+        if recursive:
+            for f in _recursive_glob(root, ".claude/agents/*.md"):
+                paths.append(f)
 
         # MCP configs
         for pattern in [".mcp.json", "**/.mcp.json"]:
@@ -170,7 +188,7 @@ class ClaudeCodeDiscoverer(ToolDiscoverer):
 
         return results
 
-    def _discover_skills(self, root: Path) -> list[ParsedComponent]:
+    def _discover_skills(self, root: Path, *, recursive: bool = False) -> list[ParsedComponent]:
         results = []
         seen_paths: set[str] = set()
         for skills_dir in [root / "skills", root / ".claude" / "skills"]:
@@ -186,45 +204,92 @@ class ClaudeCodeDiscoverer(ToolDiscoverer):
                 results.append(
                     parse_file(skill_md, ComponentType.SKILL, name=skill_dir.name, source_tool=tool)
                 )
+        if recursive:
+            for skill_md in _recursive_glob(root, "skills/*/SKILL.md"):
+                resolved = str(skill_md.resolve())
+                if resolved in seen_paths:
+                    continue
+                seen_paths.add(resolved)
+                results.append(
+                    parse_file(
+                        skill_md, ComponentType.SKILL, name=skill_md.parent.name, source_tool=None
+                    )
+                )
         return results
 
-    def _discover_commands(self, root: Path) -> list[ParsedComponent]:
+    def _discover_commands(self, root: Path, *, recursive: bool = False) -> list[ParsedComponent]:
         results = []
+        seen_paths: set[str] = set()
         for commands_dir in [root / "commands", root / ".claude" / "commands"]:
             if not commands_dir.is_dir():
                 continue
             tool = "claude" if ".claude" in commands_dir.parts else None
             for item in sorted(commands_dir.iterdir()):
                 if item.is_file() and item.suffix == ".md":
+                    seen_paths.add(str(item.resolve()))
                     results.append(parse_file(item, ComponentType.COMMAND, source_tool=tool))
                 elif item.is_dir():
                     cmd_md = item / "command.md"
                     if cmd_md.is_file():
+                        seen_paths.add(str(cmd_md.resolve()))
                         results.append(
                             parse_file(
                                 cmd_md, ComponentType.COMMAND, name=item.name, source_tool=tool
                             )
                         )
+        if recursive:
+            for f in _recursive_glob(root, "commands/*.md"):
+                resolved = str(f.resolve())
+                if resolved not in seen_paths:
+                    seen_paths.add(resolved)
+                    results.append(parse_file(f, ComponentType.COMMAND, source_tool=None))
+            for f in _recursive_glob(root, "commands/*/command.md"):
+                resolved = str(f.resolve())
+                if resolved not in seen_paths:
+                    seen_paths.add(resolved)
+                    results.append(
+                        parse_file(f, ComponentType.COMMAND, name=f.parent.name, source_tool=None)
+                    )
         return results
 
-    def _discover_hooks(self, root: Path) -> list[ParsedComponent]:
+    def _discover_hooks(self, root: Path, *, recursive: bool = False) -> list[ParsedComponent]:
+        results = []
+        seen_paths: set[str] = set()
         settings = root / ".claude" / "settings.json"
         if settings.is_file():
-            return [
+            seen_paths.add(str(settings.resolve()))
+            results.append(
                 parse_file(
                     settings, ComponentType.HOOKS, name="settings.json", source_tool="claude"
                 )
-            ]
-        return []
+            )
+        if recursive:
+            for f in _recursive_glob(root, ".claude/settings.json"):
+                resolved = str(f.resolve())
+                if resolved not in seen_paths:
+                    seen_paths.add(resolved)
+                    results.append(
+                        parse_file(
+                            f, ComponentType.HOOKS, name="settings.json", source_tool="claude"
+                        )
+                    )
+        return results
 
-    def _discover_agents(self, root: Path) -> list[ParsedComponent]:
+    def _discover_agents(self, root: Path, *, recursive: bool = False) -> list[ParsedComponent]:
         results = []
+        seen_paths: set[str] = set()
         agents_dir = root / ".claude" / "agents"
-        if not agents_dir.is_dir():
-            return results
-        for f in sorted(agents_dir.glob("*.md")):
-            if f.is_file():
-                results.append(parse_file(f, ComponentType.AGENT, source_tool="claude"))
+        if agents_dir.is_dir():
+            for f in sorted(agents_dir.glob("*.md")):
+                if f.is_file():
+                    seen_paths.add(str(f.resolve()))
+                    results.append(parse_file(f, ComponentType.AGENT, source_tool="claude"))
+        if recursive:
+            for f in _recursive_glob(root, ".claude/agents/*.md"):
+                resolved = str(f.resolve())
+                if resolved not in seen_paths:
+                    seen_paths.add(resolved)
+                    results.append(parse_file(f, ComponentType.AGENT, source_tool="claude"))
         return results
 
     def _discover_mcp_configs(self, root: Path) -> list[ParsedComponent]:

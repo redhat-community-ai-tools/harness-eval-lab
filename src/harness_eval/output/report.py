@@ -351,3 +351,140 @@ def format_json(
     if system.uncategorized_files:
         output["uncategorized_files"] = system.uncategorized_files
     return json.dumps(output, indent=2)
+
+
+def format_report_card(
+    results: list[InspectionResult],
+) -> dict:
+    """Generate a unified report card aggregating all inspection results.
+
+    Returns a dict (not JSON string) so the caller can add metadata.
+    """
+    total_errors = sum(r.error_count for r in results)
+    total_warnings = sum(r.warning_count for r in results)
+    total_findings = total_errors + total_warnings
+
+    if total_errors > 0:
+        verdict = "BLOCKED"
+    elif total_warnings > 0:
+        verdict = "NEEDS_WORK"
+    else:
+        verdict = "CLEAN"
+
+    by_category: dict[str, int] = defaultdict(int)
+    for r in results:
+        for d in r.diagnostics:
+            category = d.rule_id.split("/")[0] if "/" in d.rule_id else "other"
+            by_category[category] += 1
+
+    components = []
+    for r in results:
+        components.append(
+            {
+                "name": r.target_name,
+                "type": r.target_type,
+                "verdict": "pass" if r.error_count == 0 else "fail",
+                "errors": r.error_count,
+                "warnings": r.warning_count,
+                "tokens": r.tokens,
+            }
+        )
+
+    certification = _compute_certification(results)
+
+    return {
+        "verdict": verdict,
+        "certification": certification,
+        "summary": {
+            "components_scanned": len(results),
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "total_findings": total_findings,
+        },
+        "by_category": dict(by_category),
+        "components": components,
+    }
+
+
+def _compute_certification(
+    results: list[InspectionResult],
+) -> dict:
+    """Compute setup certification tiers.
+
+    Tiers are hierarchical: Hardened requires Verified, Verified requires Basic.
+
+    Basic: lint passes with 0 errors.
+    Verified: Basic + no quality warnings (imprecise, unfinished, generic advice).
+    Hardened: Verified + no security findings.
+    """
+    total_errors = sum(r.error_count for r in results)
+
+    quality_rule_prefixes = (
+        "quality/",
+        "content/orphan",
+        "content/total-context",
+        "content/permission-escalation",
+    )
+    quality_warnings = sum(
+        1
+        for r in results
+        for d in r.diagnostics
+        if d.severity.value == "warning"
+        and any(d.rule_id.startswith(p) for p in quality_rule_prefixes)
+    )
+
+    security_errors = sum(
+        1
+        for r in results
+        for d in r.diagnostics
+        if d.rule_id.startswith("security/") and d.severity.value == "error"
+    )
+
+    basic_passed = total_errors == 0
+    verified_passed = basic_passed and quality_warnings == 0
+    hardened_passed = verified_passed and security_errors == 0
+
+    if hardened_passed:
+        tier = "HARDENED"
+    elif verified_passed:
+        tier = "VERIFIED"
+    elif basic_passed:
+        tier = "BASIC"
+    else:
+        tier = "NONE"
+
+    return {
+        "tier": tier,
+        "basic": {
+            "passed": basic_passed,
+            "reason": "0 lint errors" if basic_passed else f"{total_errors} lint errors",
+        },
+        "verified": {
+            "passed": verified_passed,
+            "reason": (
+                "no quality warnings"
+                if verified_passed
+                else (
+                    f"{total_errors} lint errors"
+                    if not basic_passed
+                    else f"{quality_warnings} quality warnings"
+                )
+            ),
+        },
+        "hardened": {
+            "passed": hardened_passed,
+            "reason": (
+                "no security findings"
+                if hardened_passed
+                else (
+                    f"{total_errors} lint errors"
+                    if not basic_passed
+                    else (
+                        f"{quality_warnings} quality warnings"
+                        if not verified_passed
+                        else f"{security_errors} security findings"
+                    )
+                )
+            ),
+        },
+    }

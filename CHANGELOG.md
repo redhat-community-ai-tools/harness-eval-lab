@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- 4 cross-component lint rules: `content/orphan-skills` (unreferenced skills), `content/mcp-skill-alignment` (MCP config vs skill usage), `content/total-context-budget` (aggregate token usage), `content/permission-escalation` (transitive privilege through skill references)
+- `--enforce` flag for `lint` and `security` commands: `strict` (exit 1 on any finding), `advisory` (exit 0 always), `off` (skip)
+- `--report-card PATH` flag for `lint`: writes unified JSON report card with verdict (CLEAN/NEEDS_WORK/BLOCKED), per-component results, category breakdown, and certification tier
+- Setup certification tiers in report card: Basic (0 lint errors), Verified (Basic + no quality warnings), Hardened (Verified + no security findings)
+- Shared `ContextTracker` utility for consistent code-fence/blockquote/example detection across rules
+- Contradictory guidance detection (check #22) in LLM review cross-type checks rubric
+- `--recursive` flag for lint, security, and review: search the entire directory tree for agent configs in nested directories (skills, agents, commands, hooks, MCP configs)
+- Recursive mode in GitHub Action via `recursive: "true"` input
+
+### Changed
+- Quality rules (`imprecise-instruction`, `unfinished-content`, `redundant-guidance`, `stale-references`) and `generic-advice` now use shared `ContextTracker` instead of ad-hoc code fence tracking
+- Cross-type checks rubric expanded from 21 to 22 checks
+- Rule count: 64 to 68 (4 new cross-component content rules)
+
+### Fixed
+- `--recursive` now skips symlinks that resolve outside the project boundary, preventing traversal into unrelated directories
+
 ## [5.1.0] - 2026-07-20
 
 ### Added

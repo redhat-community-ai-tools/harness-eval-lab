@@ -1,6 +1,6 @@
 # Cross-Type Optimization Checks
 
-Answer each of the 21 checks with YES or NO and a one-line explanation. Do not skip any.
+Answer each of the 22 checks with YES or NO and a one-line explanation. Do not skip any.
 
 ## What good looks like
 
@@ -59,6 +59,8 @@ A well-structured setup follows these principles:
 
 21. **Broad trigger collision:** Multiple skills with overlapping broad triggers waste context by loading redundant instructions.
 
+22. **Contradictory guidance:** Instructions in one component directly contradict instructions in another. Examples: CLAUDE.md says "never use semicolons" but a skill says "always end statements with semicolons"; a skill says "use tabs for indentation" but CLAUDE.md says "use 2-space indentation"; an agent says "always ask before running commands" but a skill says "run commands without confirmation." Look for explicit conflicts in formatting rules, coding conventions, behavioral directives, and tool usage policies across all component types.
+
 ## Output format
 
 ```
@@ -88,4 +90,5 @@ A well-structured setup follows these principles:
   19. Mandate stacking:           [YES/NO] - [how many, acceptable?]
   20. Autonomy erosion:           [YES/NO] - [which or "none"]
   21. Broad trigger collision:    [YES/NO] - [which or "none"]
+  22. Contradictory guidance:     [YES/NO] - [which components and what contradicts]
 ```
