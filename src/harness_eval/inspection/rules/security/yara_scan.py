@@ -93,6 +93,7 @@ class YaraScan:
             "yara_match": "{{file}}: YARA rule '{{rule}}' matched ({{category}}). Review this file for malicious content.",
             "yara_skipped": "YARA scanning skipped: {{reason}}. Install with: pip install yara-python",
         },
+        frameworks={"mitre_atlas": "AML.T0054"},
     )
 
     def create(self, context: RuleContext) -> None:

@@ -29,6 +29,7 @@ class AgentNoCredentialAccess:
             "sensitive_env": "References sensitive environment variable '{{match}}' at line {{line}}",
         },
         target_type=ComponentType.AGENT,
+        frameworks={"owasp_llm": "LLM06", "owasp_agentic": "AG05"},
     )
 
     def create(self, context: RuleContext) -> None:

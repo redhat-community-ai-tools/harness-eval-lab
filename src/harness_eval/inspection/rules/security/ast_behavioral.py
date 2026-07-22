@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from harness_eval.data import load_capabilities
 from harness_eval.inspection.types import (
     Location,
     ReportDescriptor,
@@ -12,39 +13,10 @@ from harness_eval.inspection.types import (
     Severity,
 )
 
-_DANGEROUS_BUILTINS = {"exec", "eval", "compile", "__import__"}
-
-_SUBPROCESS_CALLS = {
-    "subprocess.run",
-    "subprocess.call",
-    "subprocess.Popen",
-    "subprocess.check_output",
-    "subprocess.check_call",
-    "subprocess.getoutput",
-    "subprocess.getstatusoutput",
-}
-
-_OS_EXEC_CALLS = {
-    "os.system",
-    "os.popen",
-    "os.exec",
-    "os.execl",
-    "os.execle",
-    "os.execlp",
-    "os.execlpe",
-    "os.execv",
-    "os.execve",
-    "os.execvp",
-    "os.execvpe",
-    "os.spawnl",
-    "os.spawnle",
-    "os.spawnlp",
-    "os.spawnlpe",
-    "os.spawnv",
-    "os.spawnve",
-    "os.spawnvp",
-    "os.spawnvpe",
-}
+_caps = load_capabilities()
+_DANGEROUS_BUILTINS = _caps.python_sinks("dangerous_builtins")
+_SUBPROCESS_CALLS = _caps.python_sinks("subprocess")
+_OS_EXEC_CALLS = _caps.python_sinks("os_exec")
 
 
 def _get_call_name(node: ast.Call) -> str | None:
@@ -190,6 +162,7 @@ class AstBehavioral:
             "ast_dynamic_import": "{{file}}:{{line}} uses {{call}}, which can load arbitrary modules.",
             "ast_exec_chain": "{{file}}:{{line}} calls {{call}} with a dynamic source (decoded/fetched data), a high-risk execution chain.",
         },
+        frameworks={"owasp_agentic": "AG04", "mitre_atlas": "AML.T0054"},
     )
 
     def create(self, context: RuleContext) -> None:

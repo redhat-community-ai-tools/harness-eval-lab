@@ -1,0 +1,174 @@
+version: "1.0"
+
+sources:
+  credential:
+    python:
+      - "os.environ.get"
+      - "os.environ"
+      - "os.getenv"
+      - "dotenv.dotenv_values"
+    bash:
+      - pattern: "\\$\\{!\\w+\\}"
+        label: indirect_expansion
+
+  file_read:
+    python:
+      - "open"
+      - "pathlib.Path.read_text"
+      - "pathlib.Path.read_bytes"
+
+  network_input:
+    python:
+      - "requests.get"
+      - "requests.post"
+      - "httpx.get"
+      - "httpx.post"
+      - "urllib.request.urlopen"
+      - "input"
+
+sinks:
+  network_output:
+    python:
+      - "requests.post"
+      - "requests.put"
+      - "requests.patch"
+      - "httpx.post"
+      - "httpx.put"
+      - "httpx.patch"
+      - "urllib.request.urlopen"
+      - "urllib.request.Request"
+      - "smtplib.SMTP.sendmail"
+      - "socket.socket.send"
+      - "socket.socket.sendall"
+
+  code_execution:
+    python:
+      - "exec"
+      - "eval"
+      - "compile"
+      - "subprocess.run"
+      - "subprocess.call"
+      - "subprocess.Popen"
+      - "subprocess.check_output"
+      - "os.system"
+      - "os.popen"
+
+  dangerous_builtins:
+    python:
+      - "exec"
+      - "eval"
+      - "compile"
+      - "__import__"
+
+  subprocess:
+    python:
+      - "subprocess.run"
+      - "subprocess.call"
+      - "subprocess.Popen"
+      - "subprocess.check_output"
+      - "subprocess.check_call"
+      - "subprocess.getoutput"
+      - "subprocess.getstatusoutput"
+
+  os_exec:
+    python:
+      - "os.system"
+      - "os.popen"
+      - "os.exec"
+      - "os.execl"
+      - "os.execle"
+      - "os.execlp"
+      - "os.execlpe"
+      - "os.execv"
+      - "os.execve"
+      - "os.execvp"
+      - "os.execvpe"
+      - "os.spawnl"
+      - "os.spawnle"
+      - "os.spawnlp"
+      - "os.spawnlpe"
+      - "os.spawnv"
+      - "os.spawnve"
+      - "os.spawnvp"
+      - "os.spawnvpe"
+
+bash_taint:
+  sources:
+    - pattern: "\\$[1-9]"
+      label: positional_arg
+    - pattern: "\\$[@*]"
+      label: all_args
+    - pattern: "\\$\\{!\\w+\\}"
+      label: indirect_var
+    - pattern: "\\bread\\b"
+      label: read_cmd
+    - pattern: "\\$\\([^)]+\\)"
+      label: command_substitution
+
+  sinks:
+    - pattern: "\\beval\\b"
+      label: eval
+    - pattern: "\\bexec\\b"
+      label: exec
+    - pattern: "`[^`]+`"
+      label: backtick
+    - pattern: "\\bsource\\b"
+      label: source
+    - pattern: "\\bbash\\s+-c\\b"
+      label: bash_c
+    - pattern: "\\bsh\\s+-c\\b"
+      label: sh_c
+
+  self_contained:
+    - pattern: "\\bcurl\\b.*\\|\\s*(?:bash|sh)\\b"
+      label: "curl | bash"
+    - pattern: "\\bwget\\b.*\\|\\s*(?:bash|sh)\\b"
+      label: "wget | bash"
+    - pattern: "\\bbase64\\b.*\\|\\s*(?:bash|sh)\\b"
+      label: "base64 | bash"
+
+capability_patterns:
+  shell:
+    - pattern: "\\bsubprocess\\b"
+    - pattern: "\\bos\\.system\\b"
+    - pattern: "\\bos\\.popen\\b"
+    - pattern: "\\bos\\.exec"
+    - pattern: "\\bshutil\\b"
+  network:
+    - pattern: "\\brequests\\."
+    - pattern: "\\bhttpx\\."
+    - pattern: "\\burllib\\."
+    - pattern: "\\bsocket\\."
+    - pattern: "\\baiohttp\\."
+  file_write:
+    - pattern: "\\.write\\("
+    - pattern: "open\\(.+['\"]w"
+    - pattern: "\\.write_text\\("
+    - pattern: "\\.write_bytes\\("
+  file_read:
+    - pattern: "open\\(.+['\"]r"
+    - pattern: "\\.read_text\\("
+    - pattern: "\\.read_bytes\\("
+    - pattern: "\\.read\\("
+  env:
+    - pattern: "\\bos\\.environ\\b"
+    - pattern: "\\bos\\.getenv\\b"
+    - pattern: "\\bdotenv\\b"
+
+tool_to_capability:
+  bash:
+    - shell
+    - network
+    - file_write
+    - file_read
+    - env
+  read:
+    - file_read
+  write:
+    - file_write
+  edit:
+    - file_write
+  webfetch:
+    - network
+  websearch:
+    - network

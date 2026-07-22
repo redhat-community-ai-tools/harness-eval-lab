@@ -26,6 +26,7 @@ class AgentObfuscationDetection:
             "obfuscation_in_code_block": "Line {{line}} contains '{{label}}' inside a code block (likely safe).",
         },
         target_type=ComponentType.AGENT,
+        frameworks={"owasp_llm": "LLM02", "mitre_atlas": "AML.T0054"},
     )
 
     def create(self, context: RuleContext) -> None:

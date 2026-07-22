@@ -16,14 +16,20 @@ _SEVERITY_MAP = {
 
 
 def _build_rule_descriptors(findings: list[Finding]) -> list[dict]:
+    from harness_eval.inspection.registry import get_rule
+
     seen: dict[str, dict] = {}
     for f in findings:
         if f.rule_id in seen:
             continue
+        props: dict = {"tags": [f.category.value]}
+        rule = get_rule(f.rule_id)
+        if rule and rule.meta.frameworks:
+            props["frameworks"] = rule.meta.frameworks
         descriptor: dict = {
             "id": f.rule_id,
             "shortDescription": {"text": f.rule_id},
-            "properties": {"tags": [f.category.value]},
+            "properties": props,
         }
         seen[f.rule_id] = descriptor
     return list(seen.values())
@@ -50,6 +56,8 @@ def _build_result(finding: Finding, rule_index: dict[str, int]) -> dict:
                 "description": {"text": finding.fix.description},
             }
         ]
+    if finding.reachability:
+        result.setdefault("properties", {})["reachability"] = finding.reachability
     return result
 
 

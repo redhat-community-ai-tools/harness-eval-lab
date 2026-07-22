@@ -40,6 +40,7 @@ class DataExfiltration:
             "exfil_detected": "Line {{line}} contains a data exfiltration pattern ('{{label}}'). This is a critical security risk.",
             "exfil_in_code_block": "Line {{line}} contains '{{label}}' inside a code block — likely documentation, but verify.",
         },
+        frameworks={"owasp_llm": "LLM06", "owasp_agentic": "AG04"},
     )
 
     def create(self, context: RuleContext) -> None:

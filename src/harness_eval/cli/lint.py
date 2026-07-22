@@ -71,6 +71,13 @@ from harness_eval.output.metadata import EvalMetadata
     default=None,
     help="Write a unified report card JSON to this path.",
 )
+@click.option(
+    "--baseline",
+    "baseline_path",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to baseline JSON file. Suppress baselined findings.",
+)
 def eval_setup_lint(
     path: str,
     preset: str,
@@ -84,6 +91,7 @@ def eval_setup_lint(
     recursive: bool,
     enforce: str | None,
     report_card_path: str | None,
+    baseline_path: str | None,
 ) -> None:
     """Lint: deterministic rules + system analysis. No LLM, fast."""
     if enforce and (fail_on_error or fail_on_warning):
@@ -118,6 +126,15 @@ def eval_setup_lint(
             name=target.name, path=path, user_config_dir=user_config, recursive=recursive
         )
         results = inspect_setup(setup, config_rules)
+
+        if baseline_path:
+            import json as _json_bl
+
+            from harness_eval.baseline import filter_baselined
+
+            bl_data = _json_bl.loads(Path(baseline_path).read_text())
+            results = filter_baselined(results, bl_data)
+
         system = analyze_system(setup)
 
         metadata = EvalMetadata(

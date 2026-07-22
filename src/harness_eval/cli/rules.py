@@ -19,12 +19,17 @@ from harness_eval.cli import cli
     help="Filter by target type (skill, command, claude_md, hooks, agent, mcp_config).",
 )
 @click.option(
+    "--framework",
+    default=None,
+    help="Filter by security framework (owasp_llm, owasp_agentic, mitre_atlas).",
+)
+@click.option(
     "--format",
     "fmt",
     type=click.Choice(["terminal", "json"]),
     default="terminal",
 )
-def list_rules(category: str | None, target: str | None, fmt: str) -> None:
+def list_rules(category: str | None, target: str | None, framework: str | None, fmt: str) -> None:
     """List all available lint rules with ID, severity, target, and description."""
     from harness_eval.inspection.registry import get_all_rules
 
@@ -41,11 +46,15 @@ def list_rules(category: str | None, target: str | None, fmt: str) -> None:
             or str(r.meta.target_type) == target
         ]
 
+    if framework:
+        rules = [r for r in rules if r.meta.frameworks and framework in r.meta.frameworks]
+
     if fmt == "json":
         import json as json_mod
 
-        output = [
-            {
+        output = []
+        for r in rules:
+            entry: dict = {
                 "id": r.meta.id,
                 "severity": r.meta.default_severity.value,
                 "target": r.meta.target_type.value
@@ -55,8 +64,9 @@ def list_rules(category: str | None, target: str | None, fmt: str) -> None:
                 "fixable": r.meta.fixable,
                 "description": r.meta.description,
             }
-            for r in rules
-        ]
+            if r.meta.frameworks:
+                entry["frameworks"] = r.meta.frameworks
+            output.append(entry)
         click.echo(json_mod.dumps(output, indent=2))
     else:
         categories: dict[str, int] = {}

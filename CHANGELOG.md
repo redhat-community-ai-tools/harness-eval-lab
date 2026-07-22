@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-07-22
+
+### Added
+- Cross-component security analysis (`security/cross-component-flow`): graph-aware rule detecting inter-component exfiltration, confused-deputy privilege bypass, and phantom MCP server calls
+- Unified `ComponentGraph` (`analysis/component_graph.py`): shared graph of all components, edges, and capabilities used by cross-component rules
+- Capability taxonomy data file (`data/capabilities.yaml`): all source/sink/exec definitions extracted from hardcoded frozensets into a versioned, structured YAML
+- Reachability analysis: security findings annotated with reachability status (reachable/unreachable) based on trigger and reference graph
+- Framework mapping: OWASP LLM Top 10, OWASP Agentic Security, and MITRE ATLAS metadata on all security rules. Emitted in SARIF `rule.properties`
+- `--framework` filter for `rules` and `security` commands (e.g., `--framework owasp_llm`)
+- `harness-eval baseline` command: snapshot current findings for incremental adoption. `--baseline` option on `lint` and `security` suppresses baselined findings
+- Suggestion plans: structured remediation guidance on security findings (advisory only, no auto-modification)
+- Letter grade (A-F) in report card output
+- Enhanced bash taint analysis: `base64 | bash`, `export` propagation, optional `bashlex` AST parsing with regex fallback
+- `THREAT_MODEL.md`: attacker model, trust boundaries, and defense scope
+
+### Changed
+- Source/sink definitions loaded from `capabilities.yaml` instead of inline frozensets
+- Rule count: 68 to 69 (1 new cross-component security rule)
+- SARIF output includes framework metadata and reachability properties
+- README restructured to lead with cross-component analysis
+
 ## [5.2.0] - 2026-07-22
 
 ### Added

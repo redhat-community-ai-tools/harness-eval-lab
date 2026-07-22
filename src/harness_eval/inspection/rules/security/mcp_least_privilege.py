@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from harness_eval.data import load_capabilities
 from harness_eval.inspection.types import (
     Location,
     ReportDescriptor,
@@ -12,48 +13,9 @@ from harness_eval.inspection.types import (
     Severity,
 )
 
-_CAPABILITY_PATTERNS: dict[str, list[re.Pattern[str]]] = {
-    "shell": [
-        re.compile(r"\bsubprocess\b", re.I),
-        re.compile(r"\bos\.system\b", re.I),
-        re.compile(r"\bos\.popen\b", re.I),
-        re.compile(r"\bos\.exec", re.I),
-        re.compile(r"\bshutil\b", re.I),
-    ],
-    "network": [
-        re.compile(r"\brequests\.", re.I),
-        re.compile(r"\bhttpx\.", re.I),
-        re.compile(r"\burllib\.", re.I),
-        re.compile(r"\bsocket\.", re.I),
-        re.compile(r"\baiohttp\.", re.I),
-    ],
-    "file_write": [
-        re.compile(r"\.write\(", re.I),
-        re.compile(r"open\(.+['\"]w", re.I),
-        re.compile(r"\.write_text\(", re.I),
-        re.compile(r"\.write_bytes\(", re.I),
-    ],
-    "file_read": [
-        re.compile(r"open\(.+['\"]r", re.I),
-        re.compile(r"\.read_text\(", re.I),
-        re.compile(r"\.read_bytes\(", re.I),
-        re.compile(r"\.read\(", re.I),
-    ],
-    "env": [
-        re.compile(r"\bos\.environ\b", re.I),
-        re.compile(r"\bos\.getenv\b", re.I),
-        re.compile(r"\bdotenv\b", re.I),
-    ],
-}
-
-_TOOL_TO_CAPABILITY: dict[str, set[str]] = {
-    "bash": {"shell", "network", "file_write", "file_read", "env"},
-    "read": {"file_read"},
-    "write": {"file_write"},
-    "edit": {"file_write"},
-    "webfetch": {"network"},
-    "websearch": {"network"},
-}
+_caps = load_capabilities()
+_CAPABILITY_PATTERNS: dict[str, list[re.Pattern[str]]] = _caps.capability_patterns()
+_TOOL_TO_CAPABILITY: dict[str, set[str]] = _caps.tool_to_capability()
 
 
 def _detect_capabilities(skill_dir: Path) -> dict[str, list[str]]:
@@ -105,6 +67,7 @@ class McpLeastPrivilege:
             "mcp_wildcard": "allowed-tools contains a wildcard (*), granting unrestricted access. Consider declaring specific tools.",
             "mcp_overdeclared": "allowed-tools grants {{capability}} access but no code uses it. Remove unused permissions to follow least-privilege.",
         },
+        frameworks={"owasp_agentic": "AG02"},
     )
 
     def create(self, context: RuleContext) -> None:

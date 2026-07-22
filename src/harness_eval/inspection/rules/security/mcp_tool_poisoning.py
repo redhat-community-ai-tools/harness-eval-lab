@@ -117,6 +117,7 @@ class McpToolPoisoning:
             "mcp_unicode_deception": "Line {{line}}: contains {{label}} (U+{{codepoint}}). Unicode deception can disguise malicious content as benign.",
             "mcp_suspicious_default": "Line {{line}}: {{label}}. Suspicious content pattern detected.",
         },
+        frameworks={"owasp_llm": "LLM05", "owasp_agentic": "AG03"},
     )
 
     def create(self, context: RuleContext) -> None:

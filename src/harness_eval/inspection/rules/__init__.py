@@ -101,6 +101,7 @@ def register_all_rules() -> None:
     from harness_eval.inspection.rules.security.ast_behavioral import AstBehavioral
     from harness_eval.inspection.rules.security.bash_taint_tracking import BashTaintTracking
     from harness_eval.inspection.rules.security.coercive_override import CoerciveOverride
+    from harness_eval.inspection.rules.security.cross_component_flow import CrossComponentFlow
     from harness_eval.inspection.rules.security.cve_lookup import CveLookup
     from harness_eval.inspection.rules.security.data_exfiltration import DataExfiltration
     from harness_eval.inspection.rules.security.mcp_least_privilege import McpLeastPrivilege
@@ -188,5 +189,6 @@ def register_all_rules() -> None:
         McpSkillAlignment,
         TotalContextBudget,
         PermissionEscalation,
+        CrossComponentFlow,
     ]:
         register_rule(rule_cls())

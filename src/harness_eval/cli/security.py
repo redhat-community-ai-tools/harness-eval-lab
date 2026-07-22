@@ -111,6 +111,13 @@ def _parse_adjudication_response(
     default=None,
     help="Enforcement mode: strict (exit 1 on any finding), advisory (exit 0 always), off (skip).",
 )
+@click.option(
+    "--baseline",
+    "baseline_path",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to baseline JSON file. Suppress baselined findings.",
+)
 def eval_setup_security(
     path: str,
     fmt: str,
@@ -123,6 +130,7 @@ def eval_setup_security(
     user_config: str | None,
     recursive: bool,
     enforce: str | None,
+    baseline_path: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
     if enforce and (fail_on_error or fail_on_warning):
@@ -139,6 +147,14 @@ def eval_setup_security(
         name=target.name, path=path, user_config_dir=user_config, recursive=recursive
     )
     results = inspect_setup(setup, SECURITY)
+
+    if baseline_path:
+        import json as _json_bl
+
+        from harness_eval.baseline import filter_baselined
+
+        bl_data = _json_bl.loads(Path(baseline_path).read_text())
+        results = filter_baselined(results, bl_data)
 
     skip_rules = {"security/yara-signatures", "security/cve-lookup"}
     non_security_rules = {"parser", "frontmatter/format-valid"}

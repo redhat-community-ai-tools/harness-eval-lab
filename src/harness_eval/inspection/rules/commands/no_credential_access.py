@@ -31,6 +31,7 @@ class CommandNoCredentialAccess:
             "dangerous_command": "Contains dangerous command '{{match}}' at line {{line}}",
         },
         target_type=ComponentType.COMMAND,
+        frameworks={"owasp_llm": "LLM06", "owasp_agentic": "AG05"},
     )
 
     def create(self, context: RuleContext) -> None:

@@ -3,7 +3,7 @@
 [![CI](https://github.com/redhat-community-ai-tools/harness-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/redhat-community-ai-tools/harness-eval/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/harness-eval)](https://pypi.org/project/harness-eval/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![Rules](https://img.shields.io/badge/rules-68-blue)](https://github.com/redhat-community-ai-tools/harness-eval#inspection-rules-68)
+[![Rules](https://img.shields.io/badge/rules-69-blue)](https://github.com/redhat-community-ai-tools/harness-eval#inspection-rules-69)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 
 Evaluate AI code agent setups for best practices, redundancy, security, and cross-component issues.
@@ -16,11 +16,17 @@ Supports Claude Code, Cursor, Copilot, Gemini CLI, and OpenCode projects. Auto-d
 
 Most tools test whether a skill produces correct output. This tool checks the setup itself: CLAUDE.md, GEMINI.md, AGENTS.md, skills, commands, hooks, MCP configs, agents, `.cursor/rules/*.mdc`, `.cursorrules`, `.github/prompts/`, `.opencode/`.
 
+### Security
+
+Cross-component analysis is the core differentiator. Most linters check files in isolation; harness-eval builds a component graph that traces data flows across skills, agents, hooks, and MCP servers. This catches threats like credential exfiltration chains (one skill reads secrets, another has network access) and confused deputy attacks (an agent disallows a tool but references a skill that uses the equivalent capability).
+
+Beyond cross-component analysis, the security engine includes Python taint tracking, bash taint analysis, YARA signature scanning, CVE lookups via OSV.dev, and optional LLM-based semantic review.
+
 Five commands, same engine:
 
 | Command | What it does | LLM in CLI | LLM in Claude Code / Cursor |
 |---------|-------------|-----------|----------------------------|
-| `lint` | 68 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. Supports `--format sarif` for GitHub code scanning. | No | No |
+| `lint` | 69 deterministic rules + system analysis (token budget, trigger overlaps, dependencies). Fast, CI-suitable. Supports `--format sarif` for GitHub code scanning. | No | No |
 | `review` | Per-component rubric review with 0-3 scoring per dimension, 21 cross-type checks. KEEP/REVIEW/REMOVE verdicts. | Yes (API key) | Yes (in-session) |
 | `security` | All security rules + YARA + CVE lookups + semantic review. SAFE/CAUTION/UNSAFE. | Scan: no. Semantic review: `--review` flag | Yes (in-session) |
 | `skill` | Deep-evaluate one skill individually and in context of the full setup. | Lint: no. Rubric: `--rubric` flag | Yes (in-session) |
@@ -45,7 +51,7 @@ Multi-tool projects are fully supported. When a project contains files for multi
 
 See [`INSTALL.md`](INSTALL.md) for all installation options, CI integration, and configuration (Available as a **CLI tool**, **GitHub Action**, **Claude Code plugin**, and **Cursor commands**)
 
-## Inspection Rules (68)
+## Inspection Rules (69)
 
 | Category | Rules | What they check |
 |----------|-------|-----------------|
@@ -55,6 +61,7 @@ See [`INSTALL.md`](INSTALL.md) for all installation options, CI integration, and
 | Quality | 8 | Imprecise instructions, redundant guidance, unfinished content, example gap, stale references, negative-only prohibitions, scope overreach, trigger manipulation |
 | Security | 13 | Credential access, prompt injection, data exfiltration, obfuscation, reverse shells, AST analysis, Python taint tracking, bash taint tracking, MCP least-privilege, tool poisoning, coercive override, stealth persistence, prompt exfiltration |
 | Security (opt-in) | 2 | YARA signatures, CVE lookups via OSV.dev |
+| Cross-component | 1 | Cross-component exfiltration chains, confused deputy attacks, phantom MCP tool references |
 | Commands | 11 | Description, script exists, duplicates, credentials, injection, exfiltration, obfuscation, reverse shells, skill overlap, shadows built-in, references nonexistent skill |
 | CLAUDE.md | 3 | Exists, skill duplication, generic advice detection |
 | MCP | 4 | Configuration structure, duplicate servers, suspicious endpoints (localhost/private IPs), wildcard tool exposure |
@@ -62,6 +69,14 @@ See [`INSTALL.md`](INSTALL.md) for all installation options, CI integration, and
 | Agents | 10 | Description, model specified, skills exist, tool format, constraint matching, credentials, injection, exfiltration, obfuscation, reverse shells |
 
 Four presets: `recommended` (default), `strict`, `security`, `pre-workflow`.
+
+### Frameworks
+
+Rules are mapped to industry security frameworks where applicable:
+
+- **OWASP LLM Top 10** (2025): coverage across LLM01 (prompt injection), LLM02 (sensitive data), LLM06 (excessive agency), and others
+- **OWASP Agentic Security**: AG04 (data exfiltration), AG05 (credential access), and related controls
+- **MITRE ATLAS**: AML.T0054 (LLM prompt injection) and related techniques
 
 ## Security
 
