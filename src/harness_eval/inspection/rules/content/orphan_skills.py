@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from harness_eval.core.types import ComponentType
 from harness_eval.inspection.types import (
@@ -32,6 +33,45 @@ def _is_referenced(name: str, text: str) -> bool:
     return bool(re.search(rf"\b{re.escape(name)}\b", text))
 
 
+def _find_project_root(skill_path: str) -> Path | None:
+    """Walk up from a skill path to find the project root (containing CLAUDE.md or .claude/)."""
+    current = Path(skill_path).resolve()
+    for _ in range(10):
+        if (current / "CLAUDE.md").is_file() or (current / ".claude").is_dir():
+            return current
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    return None
+
+
+def _read_claude_md(project_root: Path) -> str:
+    """Read the CLAUDE.md file from the project root, if it exists."""
+    claude_md = project_root / "CLAUDE.md"
+    if claude_md.is_file():
+        try:
+            return claude_md.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            pass
+    return ""
+
+
+def _read_agent_bodies(project_root: Path) -> list[str]:
+    """Read all agent .md files from .claude/agents/."""
+    bodies: list[str] = []
+    agents_dir = project_root / ".claude" / "agents"
+    if not agents_dir.is_dir():
+        return bodies
+    for f in sorted(agents_dir.glob("*.md")):
+        if f.is_file():
+            try:
+                bodies.append(f.read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                continue
+    return bodies
+
+
 class OrphanSkills:
     meta = RuleMeta(
         id="content/orphan-skills",
@@ -60,14 +100,15 @@ class OrphanSkills:
             if cmd.body:
                 reference_texts.append(cmd.body)
 
-        # Check scan_state for CLAUDE.md and agent content
-        claude_md_content = context.scan_state.get("claude_md_content", "")
-        if claude_md_content:
-            reference_texts.append(claude_md_content)
+        # Read CLAUDE.md and agent bodies directly from the project
+        project_root = _find_project_root(all_skills[0].dir_path)
+        if project_root is not None:
+            claude_md_content = _read_claude_md(project_root)
+            if claude_md_content:
+                reference_texts.append(claude_md_content)
 
-        agent_bodies = context.scan_state.get("agent_bodies", [])
-        for body in agent_bodies:
-            reference_texts.append(body)
+            for body in _read_agent_bodies(project_root):
+                reference_texts.append(body)
 
         combined = "\n".join(reference_texts)
 

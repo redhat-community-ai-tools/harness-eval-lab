@@ -118,6 +118,11 @@ def eval_setup_security(
     enforce: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
+    if enforce and (fail_on_error or fail_on_warning):
+        raise click.UsageError(
+            "--enforce is mutually exclusive with --fail-on-error and --fail-on-warning"
+        )
+
     t0 = time.monotonic()
     from harness_eval.config.presets import SECURITY
     from harness_eval.inspection.engine import inspect_setup

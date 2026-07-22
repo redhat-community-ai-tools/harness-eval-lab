@@ -80,6 +80,11 @@ def eval_setup_lint(
     report_card_path: str | None,
 ) -> None:
     """Lint: deterministic rules + system analysis. No LLM, fast."""
+    if enforce and (fail_on_error or fail_on_warning):
+        raise click.UsageError(
+            "--enforce is mutually exclusive with --fail-on-error and --fail-on-warning"
+        )
+
     if watch:
         from harness_eval.watch import run_watch
 

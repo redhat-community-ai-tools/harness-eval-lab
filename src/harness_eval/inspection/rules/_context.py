@@ -28,7 +28,7 @@ class ContextTracker:
         if self.in_code_fence:
             return True
         stripped = line.lstrip()
-        if stripped.startswith(">") or stripped.startswith('"'):
+        if stripped.startswith(">"):
             return True
         return bool(_EXAMPLE_RE.search(line))
 
