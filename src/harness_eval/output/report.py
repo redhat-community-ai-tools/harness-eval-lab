@@ -351,3 +351,53 @@ def format_json(
     if system.uncategorized_files:
         output["uncategorized_files"] = system.uncategorized_files
     return json.dumps(output, indent=2)
+
+
+def format_report_card(
+    results: list[InspectionResult],
+) -> dict:
+    """Generate a unified report card aggregating all inspection results.
+
+    Returns a dict (not JSON string) so the caller can add metadata.
+    """
+    total_errors = sum(r.error_count for r in results)
+    total_warnings = sum(r.warning_count for r in results)
+    total_findings = total_errors + total_warnings
+
+    if total_errors > 0:
+        verdict = "BLOCKED"
+    elif total_warnings > 0:
+        verdict = "NEEDS_WORK"
+    else:
+        verdict = "CLEAN"
+
+    by_category: dict[str, int] = defaultdict(int)
+    for r in results:
+        for d in r.diagnostics:
+            category = d.rule_id.split("/")[0] if "/" in d.rule_id else "other"
+            by_category[category] += 1
+
+    components = []
+    for r in results:
+        components.append(
+            {
+                "name": r.target_name,
+                "type": r.target_type,
+                "verdict": "pass" if r.error_count == 0 else "fail",
+                "errors": r.error_count,
+                "warnings": r.warning_count,
+                "tokens": r.tokens,
+            }
+        )
+
+    return {
+        "verdict": verdict,
+        "summary": {
+            "components_scanned": len(results),
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "total_findings": total_findings,
+        },
+        "by_category": dict(by_category),
+        "components": components,
+    }

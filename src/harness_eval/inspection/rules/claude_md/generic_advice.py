@@ -33,17 +33,15 @@ class ClaudeMdGenericAdvice:
         if claude_md is None or not claude_md.raw_content:
             return
 
+        from harness_eval.inspection.rules._context import ContextTracker
+
         lines = claude_md.raw_content.split("\n")
-        in_code_fence = False
+        tracker = ContextTracker()
 
         for i, line in enumerate(lines):
-            stripped = line.strip()
+            tracker.update(line)
 
-            if stripped.startswith("```"):
-                in_code_fence = not in_code_fence
-                continue
-
-            if in_code_fence:
+            if tracker.is_fenced():
                 continue
 
             for label, pattern in _GENERIC_PATTERNS:

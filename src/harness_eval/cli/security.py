@@ -99,6 +99,12 @@ def _parse_adjudication_response(
     default=None,
     help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
 )
+@click.option(
+    "--enforce",
+    type=click.Choice(["strict", "advisory", "off"]),
+    default=None,
+    help="Enforcement mode: strict (exit 1 on any finding), advisory (exit 0 always), off (skip).",
+)
 def eval_setup_security(
     path: str,
     fmt: str,
@@ -109,6 +115,7 @@ def eval_setup_security(
     fail_on_error: bool,
     fail_on_warning: bool,
     user_config: str | None,
+    enforce: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
     t0 = time.monotonic()
@@ -436,11 +443,20 @@ def eval_setup_security(
         click.echo("")
 
     effective_error_count = confirmed_errors if adjudicated else raw_errors
-    if fail_on_error and effective_error_count > 0:
-        raise SystemExit(1)
-
     effective_warning_count = (
         (confirmed_warnings + downgraded_count) if adjudicated else raw_warnings
     )
+
+    if enforce == "off":
+        return
+    if enforce == "strict":
+        if effective_error_count + effective_warning_count > 0:
+            raise SystemExit(1)
+        return
+    if enforce == "advisory":
+        return
+
+    if fail_on_error and effective_error_count > 0:
+        raise SystemExit(1)
     if fail_on_warning and (effective_error_count + effective_warning_count) > 0:
         raise SystemExit(1)

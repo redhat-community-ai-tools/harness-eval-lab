@@ -53,6 +53,19 @@ from harness_eval.output.metadata import EvalMetadata
     default=None,
     help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
 )
+@click.option(
+    "--enforce",
+    type=click.Choice(["strict", "advisory", "off"]),
+    default=None,
+    help="Enforcement mode: strict (exit 1 on any finding), advisory (exit 0 always), off (skip).",
+)
+@click.option(
+    "--report-card",
+    "report_card_path",
+    type=click.Path(),
+    default=None,
+    help="Write a unified report card JSON to this path.",
+)
 def eval_setup_lint(
     path: str,
     preset: str,
@@ -63,8 +76,10 @@ def eval_setup_lint(
     watch: bool,
     fail_on_warning: bool,
     user_config: str | None,
+    enforce: str | None,
+    report_card_path: str | None,
 ) -> None:
-    """Lint: 64 rules + system analysis. No LLM, deterministic, fast."""
+    """Lint: deterministic rules + system analysis. No LLM, fast."""
     if watch:
         from harness_eval.watch import run_watch
 
@@ -178,6 +193,23 @@ def eval_setup_lint(
             f"\n{fixable_count} of {len(all_findings)} findings are auto-fixable. "
             f"Run with --fix to apply."
         )
+
+    if report_card_path:
+        from harness_eval.output.report import format_report_card
+
+        card = format_report_card(results)
+        Path(report_card_path).write_text(json_mod.dumps(card, indent=2))
+        click.echo(f"\nReport card written to {report_card_path}")
+
+    if enforce == "off":
+        return
+    if enforce == "strict":
+        total = sum(r.error_count + r.warning_count for r in results)
+        if total > 0:
+            raise SystemExit(1)
+        return
+    if enforce == "advisory":
+        return
 
     if fail_on_error:
         total_errors = sum(r.error_count for r in results)

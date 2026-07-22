@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- 4 cross-component lint rules: `content/orphan-skills` (unreferenced skills), `content/mcp-skill-alignment` (MCP config vs skill usage), `content/total-context-budget` (aggregate token usage), `content/permission-escalation` (transitive privilege through skill references)
+- `--enforce` flag for `lint` and `security` commands: `strict` (exit 1 on any finding), `advisory` (exit 0 always), `off` (skip)
+- `--report-card PATH` flag for `lint`: writes unified JSON report card with verdict (CLEAN/NEEDS_WORK/BLOCKED), per-component results, and category breakdown
+- Shared `ContextTracker` utility for consistent code-fence/blockquote/example detection across rules
+- Contradictory guidance detection (check #22) in LLM review cross-type checks rubric
+
+### Changed
+- Quality rules (`imprecise-instruction`, `unfinished-content`, `redundant-guidance`, `stale-references`) and `generic-advice` now use shared `ContextTracker` instead of ad-hoc code fence tracking
+- Cross-type checks rubric expanded from 21 to 22 checks
+- Rule count: 66 to 70
+
 ## [5.1.0] - 2026-07-20
 
 ### Added
