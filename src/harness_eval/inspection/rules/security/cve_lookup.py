@@ -137,6 +137,7 @@ class CveLookup:
             "cve_lookup_skipped": "CVE lookup skipped: {{reason}}",
             "cve_no_deps": "No dependency files found in skill directory; CVE lookup skipped.",
         },
+        frameworks={"owasp_llm": "LLM05"},
     )
 
     def create(self, context: RuleContext) -> None:

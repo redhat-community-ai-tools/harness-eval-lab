@@ -73,6 +73,7 @@ class NoPromptInjection:
             "injection_in_code_block": "Line {{line}} contains '{{label}}' inside a code block — likely safe (documentation or example).",
             "injection_in_example": "Line {{line}} contains '{{label}}' in a quote or example — likely safe.",
         },
+        frameworks={"owasp_llm": "LLM01", "mitre_atlas": "AML.T0051"},
     )
 
     def create(self, context: RuleContext) -> None:

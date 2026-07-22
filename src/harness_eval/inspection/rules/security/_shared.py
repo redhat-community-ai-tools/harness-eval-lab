@@ -14,6 +14,20 @@ from harness_eval.inspection.types import (
 )
 
 
+def strip_code_blocks(text: str) -> str:
+    """Return *text* with fenced code blocks removed."""
+    lines = text.split("\n")
+    out: list[str] = []
+    in_fence = False
+    for line in lines:
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            out.append(line)
+    return "\n".join(out)
+
+
 def extract_content_and_path(
     context: RuleContext, target_type: ComponentType
 ) -> tuple[str, str] | None:
@@ -99,6 +113,7 @@ def scan_lines_for_credential_patterns(
     context: RuleContext,
     pattern_groups: Sequence[tuple[str, Sequence[re.Pattern[str] | tuple[re.Pattern[str], str]]]],
     code_block_msg: str | None = None,
+    suggestion: str | None = None,
 ) -> None:
     """Scan content lines for credential and command patterns.
 
@@ -108,6 +123,7 @@ def scan_lines_for_credential_patterns(
 
     When code_block_msg is provided, matches inside code fences use that
     message ID with WARNING severity instead of the group's message ID.
+    When suggestion is provided, it is attached to every reported finding.
     """
     lines = content.split("\n")
     in_code_fence = False
@@ -136,6 +152,7 @@ def scan_lines_for_credential_patterns(
                             message_id=message_id,
                             data={"match": label or match.group(0), "line": str(i + 1)},
                             location=Location(file=file_path, start_line=i + 1),
+                            suggestion=suggestion,
                         )
                     )
                     break

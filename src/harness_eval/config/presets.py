@@ -65,6 +65,7 @@ RECOMMENDED: dict[str, str] = {
     "security/coercive-override": "error",
     "security/stealth-persistence": "error",
     "security/prompt-exfiltration": "error",
+    "security/cross-component-flow": "warning",
 }
 
 STRICT: dict[str, str] = {
@@ -86,6 +87,7 @@ STRICT: dict[str, str] = {
     "security/bash-taint-flow": "error",
     "security/mcp-least-privilege": "error",
     "security/mcp-tool-poisoning": "error",
+    "security/cross-component-flow": "error",
     "mcp/valid-config": "error",
     "mcp/duplicate-server": "error",
     "mcp/suspicious-endpoint": "error",
@@ -117,6 +119,7 @@ SECURITY: dict[str, str] = {
     "security/bash-taint-flow": "error",
     "security/mcp-least-privilege": "error",
     "security/mcp-tool-poisoning": "error",
+    "security/cross-component-flow": "error",
     "mcp/valid-config": "off",
     "mcp/duplicate-server": "off",
     "mcp/suspicious-endpoint": "warning",

@@ -1,6 +1,6 @@
 [project]
 name = "harness-eval"
-version = "5.2.0"
+version = "6.0.0"
 description = "Evaluate and compare AI agent setups through experiments, inspections, and rubric scoring."
 readme = "README.md"
 license = "Apache-2.0"
@@ -27,6 +27,9 @@ tiktoken = [
 ]
 yara = [
     "yara-python>=4.0",
+]
+bash-ast = [
+    "bashlex>=0.18",
 ]
 dev = [
     "pytest>=8.0",

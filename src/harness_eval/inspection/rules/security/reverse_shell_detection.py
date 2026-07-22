@@ -39,6 +39,7 @@ class ReverseShellDetection:
             "shell_detected": "Line {{line}} contains a reverse shell pattern ('{{label}}'). This is a critical security risk.",
             "shell_in_code_block": "Line {{line}} contains '{{label}}' inside a code block — likely documentation, but verify.",
         },
+        frameworks={"owasp_agentic": "AG04", "mitre_atlas": "AML.T0054"},
     )
 
     def create(self, context: RuleContext) -> None:

@@ -58,6 +58,7 @@ class PromptExfiltration:
             "exfil_in_code_block": "Line {{line}} contains '{{label}}' inside a code block (likely safe).",
             "exfil_in_example": "Line {{line}} contains '{{label}}' in a quote or example (likely safe).",
         },
+        frameworks={"owasp_llm": "LLM07"},
     )
 
     def create(self, context: RuleContext) -> None:

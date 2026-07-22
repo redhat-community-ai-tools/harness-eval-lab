@@ -20,6 +20,7 @@ class RuleCategory(str, Enum):
     CONTENT = "content"
     SECURITY = "security"
     BEST_PRACTICES = "best_practices"
+    CROSS_COMPONENT = "cross_component"
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,8 @@ class Finding:
     location: Location
     category: RuleCategory
     fix: FixSuggestion | None = None
+    reachability: str | None = None
+    suggestion: str | None = None
 
 
 @dataclass(frozen=True)
@@ -77,6 +80,7 @@ class RuleMeta:
     messages: dict[str, str]
     target_type: ComponentType = ComponentType.SKILL
     tools: tuple[str, ...] | None = None
+    frameworks: dict[str, str] | None = None
 
 
 @dataclass
@@ -86,6 +90,7 @@ class ReportDescriptor:
     location: Location | None = None
     fix: FixSuggestion | None = None
     severity_override: Severity | None = None
+    suggestion: str | None = None
 
 
 @dataclass

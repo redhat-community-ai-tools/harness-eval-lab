@@ -58,6 +58,7 @@ class NoCredentialAccess:
             "sensitive_env": "References sensitive environment variable '{{match}}' at line {{line}}",
             "dangerous_command": "Contains dangerous command '{{match}}' at line {{line}}",
         },
+        frameworks={"owasp_llm": "LLM06", "owasp_agentic": "AG05"},
     )
 
     def create(self, context: RuleContext) -> None:
@@ -75,4 +76,7 @@ class NoCredentialAccess:
                 ("dangerous_command", _DANGEROUS_COMMANDS),
             ],
             code_block_msg="skip",
+            suggestion=(
+                "Use a secret manager or environment variable injection instead of hardcoded paths."
+            ),
         )

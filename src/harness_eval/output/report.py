@@ -391,9 +391,11 @@ def format_report_card(
         )
 
     certification = _compute_certification(results)
+    grade = _compute_grade(total_errors, total_warnings)
 
     return {
         "verdict": verdict,
+        "grade": grade,
         "certification": certification,
         "summary": {
             "components_scanned": len(results),
@@ -404,6 +406,26 @@ def format_report_card(
         "by_category": dict(by_category),
         "components": components,
     }
+
+
+def _compute_grade(total_errors: int, total_warnings: int) -> str:
+    """Compute a letter grade from error/warning counts.
+
+    - A: 0 errors, 0 warnings
+    - B: 0 errors, warnings < 3
+    - C: 0 errors
+    - D: errors < 5
+    - F: errors >= 5
+    """
+    if total_errors == 0 and total_warnings == 0:
+        return "A"
+    if total_errors == 0 and total_warnings < 3:
+        return "B"
+    if total_errors == 0:
+        return "C"
+    if total_errors < 5:
+        return "D"
+    return "F"
 
 
 def _compute_certification(

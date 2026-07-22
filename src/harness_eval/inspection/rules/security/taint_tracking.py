@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from harness_eval.data import load_capabilities
 from harness_eval.inspection.types import (
     Location,
     ReportDescriptor,
@@ -12,56 +13,28 @@ from harness_eval.inspection.types import (
     Severity,
 )
 
-_CREDENTIAL_SOURCES = {
-    "os.environ.get",
-    "os.environ",
-    "os.getenv",
-    "dotenv.dotenv_values",
-}
 
-_FILE_READ_SOURCES = {
-    "open",
-    "pathlib.Path.read_text",
-    "pathlib.Path.read_bytes",
-}
+def _load_sets() -> tuple[set[str], set[str], set[str], set[str], set[str], set[str], set[str]]:
+    caps = load_capabilities()
+    credential = caps.python_sources("credential")
+    file_read = caps.python_sources("file_read")
+    network_input = caps.python_sources("network_input")
+    network_sinks = caps.python_sinks("network_output")
+    exec_sinks = caps.python_sinks("code_execution")
+    all_sources = credential | file_read | network_input
+    all_sinks = network_sinks | exec_sinks
+    return credential, file_read, network_input, network_sinks, exec_sinks, all_sources, all_sinks
 
-_NETWORK_INPUT_SOURCES = {
-    "requests.get",
-    "requests.post",
-    "httpx.get",
-    "httpx.post",
-    "urllib.request.urlopen",
-    "input",
-}
 
-_NETWORK_SINKS = {
-    "requests.post",
-    "requests.put",
-    "requests.patch",
-    "httpx.post",
-    "httpx.put",
-    "httpx.patch",
-    "urllib.request.urlopen",
-    "urllib.request.Request",
-    "smtplib.SMTP.sendmail",
-    "socket.socket.send",
-    "socket.socket.sendall",
-}
-
-_EXEC_SINKS = {
-    "exec",
-    "eval",
-    "compile",
-    "subprocess.run",
-    "subprocess.call",
-    "subprocess.Popen",
-    "subprocess.check_output",
-    "os.system",
-    "os.popen",
-}
-
-ALL_SOURCES = _CREDENTIAL_SOURCES | _FILE_READ_SOURCES | _NETWORK_INPUT_SOURCES
-ALL_SINKS = _NETWORK_SINKS | _EXEC_SINKS
+(
+    _CREDENTIAL_SOURCES,
+    _FILE_READ_SOURCES,
+    _NETWORK_INPUT_SOURCES,
+    _NETWORK_SINKS,
+    _EXEC_SINKS,
+    ALL_SOURCES,
+    ALL_SINKS,
+) = _load_sets()
 
 
 def _resolve_dotted_name(node: ast.expr) -> str | None:
@@ -186,12 +159,18 @@ def _report_flow(
 ) -> None:
     if source_type == "credential" and sink_type == "network_output":
         msg_id = "taint_credential_leak"
+        suggestion = (
+            "Remove the network call or use a secret manager instead of environment variables."
+        )
     elif source_type in ("file_read", "credential") and sink_type == "network_output":
         msg_id = "taint_data_exfil"
+        suggestion = None
     elif sink_type == "code_execution":
         msg_id = "taint_input_exec"
+        suggestion = None
     else:
         msg_id = "taint_data_exfil"
+        suggestion = None
 
     context.report(
         ReportDescriptor(
@@ -204,6 +183,7 @@ def _report_flow(
                 "sink_line": str(sink_line),
             },
             location=Location(file=skill_md_path, start_line=sink_line),
+            suggestion=suggestion,
         )
     )
 
@@ -220,6 +200,7 @@ class TaintTracking:
             "taint_data_exfil": "{{file}}: {{source}} data (line {{source_line}}) flows to {{sink}} (line {{sink_line}}). Verify this is intentional.",
             "taint_input_exec": "{{file}}: external input (line {{source_line}}) flows to code execution (line {{sink_line}}). Possible injection vector.",
         },
+        frameworks={"owasp_llm": "LLM06", "owasp_agentic": "AG04"},
     )
 
     def create(self, context: RuleContext) -> None:

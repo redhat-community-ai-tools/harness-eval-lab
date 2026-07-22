@@ -124,6 +124,7 @@ def _make_report_fn(
                 location=loc,
                 category=category,
                 fix=descriptor.fix if fixable else None,
+                suggestion=descriptor.suggestion,
             )
         )
 
@@ -608,6 +609,19 @@ def inspect_setup(
         for comp in setup.by_type(CT.COMMAND)
     ]
 
+    from harness_eval.analysis.component_graph import build_component_graph
+    from harness_eval.inspection.parsers import parse_agent, parse_hooks
+
+    parsed_agents = [parse_agent(comp.path) for comp in setup.by_type(CT.AGENT)]
+    hooks_comps = setup.by_type(CT.HOOKS)
+    parsed_hooks = parse_hooks(hooks_comps[0].path) if hooks_comps else None
+    mcp_comps = setup.by_type(CT.MCP_CONFIG)
+    mcp_path = mcp_comps[0].path if mcp_comps else None
+
+    scan_state["component_graph"] = build_component_graph(
+        all_skills, all_commands, parsed_agents, parsed_hooks, mcp_path
+    )
+
     for comp in setup.by_type(CT.SKILL):
         results.append(
             lint(
@@ -690,6 +704,54 @@ def inspect_setup(
                 source_tool=comp.source_tool,
             )
         )
+
+    graph = scan_state.get("component_graph")
+    if graph:
+        from harness_eval.analysis.reachability import compute_reachability
+
+        skill_descriptions: dict[str, str] = {}
+        for s in all_skills:
+            desc = s.frontmatter.get("description", "")
+            if isinstance(desc, str) and desc:
+                skill_descriptions[s.dir_name] = desc
+
+        annotated_results: list[InspectionResult] = []
+        for r in results:
+            new_diags: list[Finding] = []
+            for d in r.diagnostics:
+                if d.category in (RuleCategory.SECURITY, RuleCategory.CROSS_COMPONENT):
+                    reach = compute_reachability(graph, d.location.file, skill_descriptions)
+                    new_diags.append(
+                        Finding(
+                            rule_id=d.rule_id,
+                            severity=d.severity,
+                            message=d.message,
+                            location=d.location,
+                            category=d.category,
+                            fix=d.fix,
+                            reachability="reachable" if reach.reachable else "unreachable",
+                            suggestion=d.suggestion,
+                        )
+                    )
+                else:
+                    new_diags.append(d)
+            annotated_results.append(
+                InspectionResult(
+                    target_path=r.target_path,
+                    target_name=r.target_name,
+                    tokens=r.tokens,
+                    target_type=r.target_type,
+                    diagnostics=new_diags,
+                    rules_run=r.rules_run,
+                    error_count=r.error_count,
+                    warning_count=r.warning_count,
+                    info_count=r.info_count,
+                    fixable_count=r.fixable_count,
+                    suppression_count=r.suppression_count,
+                )
+            )
+        results = annotated_results
+
     return results
 
 

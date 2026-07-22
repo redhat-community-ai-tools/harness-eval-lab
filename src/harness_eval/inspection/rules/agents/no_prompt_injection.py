@@ -27,6 +27,7 @@ class AgentNoPromptInjection:
             "injection_in_example": "Line {{line}} contains '{{label}}' in a quote or example — likely safe.",
         },
         target_type=ComponentType.AGENT,
+        frameworks={"owasp_llm": "LLM01", "mitre_atlas": "AML.T0051"},
     )
 
     def create(self, context: RuleContext) -> None:
