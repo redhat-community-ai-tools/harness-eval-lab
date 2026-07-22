@@ -54,6 +54,11 @@ from harness_eval.output.metadata import EvalMetadata
     help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
 )
 @click.option(
+    "--recursive",
+    is_flag=True,
+    help="Recursively search for agent configs in all subdirectories.",
+)
+@click.option(
     "--enforce",
     type=click.Choice(["strict", "advisory", "off"]),
     default=None,
@@ -76,6 +81,7 @@ def eval_setup_lint(
     watch: bool,
     fail_on_warning: bool,
     user_config: str | None,
+    recursive: bool,
     enforce: str | None,
     report_card_path: str | None,
 ) -> None:
@@ -108,7 +114,9 @@ def eval_setup_lint(
     target = Path(path)
 
     if target.is_dir():
-        setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
+        setup = discover_setup(
+            name=target.name, path=path, user_config_dir=user_config, recursive=recursive
+        )
         results = inspect_setup(setup, config_rules)
         system = analyze_system(setup)
 

@@ -100,6 +100,11 @@ def _parse_adjudication_response(
     help="Path to ~/.claude directory for user-level CLAUDE.md discovery.",
 )
 @click.option(
+    "--recursive",
+    is_flag=True,
+    help="Recursively search for agent configs in all subdirectories.",
+)
+@click.option(
     "--enforce",
     type=click.Choice(["strict", "advisory", "off"]),
     default=None,
@@ -115,6 +120,7 @@ def eval_setup_security(
     fail_on_error: bool,
     fail_on_warning: bool,
     user_config: str | None,
+    recursive: bool,
     enforce: str | None,
 ) -> None:
     """Deep security audit: all deterministic security rules + optional LLM review."""
@@ -128,7 +134,9 @@ def eval_setup_security(
     from harness_eval.inspection.engine import inspect_setup
 
     target = Path(path)
-    setup = discover_setup(name=target.name, path=path, user_config_dir=user_config)
+    setup = discover_setup(
+        name=target.name, path=path, user_config_dir=user_config, recursive=recursive
+    )
     results = inspect_setup(setup, SECURITY)
 
     skip_rules = {"security/yara-signatures", "security/cve-lookup"}

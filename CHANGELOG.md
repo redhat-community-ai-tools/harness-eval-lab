@@ -11,11 +11,16 @@ All notable changes to this project will be documented in this file.
 - Setup certification tiers in report card: Basic (0 lint errors), Verified (Basic + no quality warnings), Hardened (Verified + no security findings)
 - Shared `ContextTracker` utility for consistent code-fence/blockquote/example detection across rules
 - Contradictory guidance detection (check #22) in LLM review cross-type checks rubric
+- `--recursive` flag for lint, security, and review: search the entire directory tree for agent configs in nested directories (skills, agents, commands, hooks, MCP configs)
+- Recursive mode in GitHub Action via `recursive: "true"` input
 
 ### Changed
 - Quality rules (`imprecise-instruction`, `unfinished-content`, `redundant-guidance`, `stale-references`) and `generic-advice` now use shared `ContextTracker` instead of ad-hoc code fence tracking
 - Cross-type checks rubric expanded from 21 to 22 checks
-- Rule count: 66 to 70
+- Rule count: 64 to 68
+
+### Fixed
+- `--recursive` now skips symlinks that resolve outside the project boundary, preventing traversal into unrelated directories
 
 ## [5.1.0] - 2026-07-20
 

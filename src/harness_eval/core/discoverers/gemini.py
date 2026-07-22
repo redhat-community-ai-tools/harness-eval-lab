@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from harness_eval.core.discoverers.base import ToolDiscoverer, parse_file
+from harness_eval.core.discoverers.base import ToolDiscoverer, _recursive_glob, parse_file
 from harness_eval.core.types import ComponentType, ParsedComponent
 
 
@@ -22,19 +22,26 @@ class GeminiDiscoverer(ToolDiscoverer):
     def detect(self, root: Path) -> bool:
         return (root / "GEMINI.md").is_file() or (root / ".gemini").is_dir()
 
-    def discover(self, root: Path, user_config_dir: Path | None = None) -> list[ParsedComponent]:
+    def discover(
+        self, root: Path, user_config_dir: Path | None = None, *, recursive: bool = False
+    ) -> list[ParsedComponent]:
         results: list[ParsedComponent] = []
-        results.extend(self._discover_instructions(root))
-        results.extend(self._discover_commands(root))
+        results.extend(self._discover_instructions(root, recursive=recursive))
+        results.extend(self._discover_commands(root, recursive=recursive))
         return results
 
-    def collect_paths(self, root: Path, user_config_dir: Path | None = None) -> list[Path]:
+    def collect_paths(
+        self, root: Path, user_config_dir: Path | None = None, *, recursive: bool = False
+    ) -> list[Path]:
         paths: list[Path] = []
 
         # Gemini instructions
         gemini_md = root / "GEMINI.md"
         if gemini_md.is_file():
             paths.append(gemini_md)
+        if recursive:
+            for f in _recursive_glob(root, "GEMINI.md"):
+                paths.append(f)
 
         # Gemini commands
         gemini_commands = root / ".gemini" / "commands"
@@ -42,23 +49,46 @@ class GeminiDiscoverer(ToolDiscoverer):
             for f in sorted(gemini_commands.iterdir()):
                 if f.is_file() and (f.suffix == ".toml" or f.suffix == ".md"):
                     paths.append(f)
+        if recursive:
+            for f in _recursive_glob(root, ".gemini/commands/*.md"):
+                paths.append(f)
 
         return paths
 
-    def _discover_instructions(self, root: Path) -> list[ParsedComponent]:
+    def _discover_instructions(
+        self, root: Path, *, recursive: bool = False
+    ) -> list[ParsedComponent]:
+        results = []
+        seen_paths: set[str] = set()
         gemini_md = root / "GEMINI.md"
         if gemini_md.is_file():
-            return [parse_file(gemini_md, ComponentType.CLAUDE_MD, source_tool="gemini")]
-        return []
+            seen_paths.add(str(gemini_md.resolve()))
+            results.append(parse_file(gemini_md, ComponentType.CLAUDE_MD, source_tool="gemini"))
+        if recursive:
+            for f in _recursive_glob(root, "GEMINI.md"):
+                resolved = str(f.resolve())
+                if resolved not in seen_paths:
+                    seen_paths.add(resolved)
+                    results.append(parse_file(f, ComponentType.CLAUDE_MD, source_tool="gemini"))
+        return results
 
-    def _discover_commands(self, root: Path) -> list[ParsedComponent]:
+    def _discover_commands(self, root: Path, *, recursive: bool = False) -> list[ParsedComponent]:
         results = []
+        seen_paths: set[str] = set()
         commands_dir = root / ".gemini" / "commands"
-        if not commands_dir.is_dir():
-            return results
-        for f in sorted(commands_dir.iterdir()):
-            if f.is_file() and (f.suffix == ".toml" or f.suffix == ".md"):
-                results.append(
-                    parse_file(f, ComponentType.COMMAND, name=f.stem, source_tool="gemini")
-                )
+        if commands_dir.is_dir():
+            for f in sorted(commands_dir.iterdir()):
+                if f.is_file() and (f.suffix == ".toml" or f.suffix == ".md"):
+                    seen_paths.add(str(f.resolve()))
+                    results.append(
+                        parse_file(f, ComponentType.COMMAND, name=f.stem, source_tool="gemini")
+                    )
+        if recursive:
+            for f in _recursive_glob(root, ".gemini/commands/*.md"):
+                resolved = str(f.resolve())
+                if resolved not in seen_paths:
+                    seen_paths.add(resolved)
+                    results.append(
+                        parse_file(f, ComponentType.COMMAND, name=f.stem, source_tool="gemini")
+                    )
         return results

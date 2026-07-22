@@ -18,6 +18,8 @@ def discover_setup(
     name: str,
     path: str,
     user_config_dir: str | None = None,
+    *,
+    recursive: bool = False,
 ) -> Setup:
     """Walk a directory and discover all agent-relevant components."""
     root = Path(path)
@@ -29,7 +31,7 @@ def discover_setup(
     components: list[ParsedComponent] = []
 
     for discoverer in get_all_discoverers():
-        components.extend(discoverer.discover(root, user_config_dir=user_dir))
+        components.extend(discoverer.discover(root, user_config_dir=user_dir, recursive=recursive))
 
     components = _deduplicate_components(components)
     components.extend(_discover_uncategorized(root, components))
@@ -51,6 +53,8 @@ def discover_setup(
 def collect_setup_file_paths(
     root: Path,
     user_config_dir: Path | None = None,
+    *,
+    recursive: bool = False,
 ) -> list[Path]:
     """Return deduplicated file paths that ``discover_setup`` would scan.
 
@@ -61,7 +65,9 @@ def collect_setup_file_paths(
     paths: list[Path] = []
 
     for discoverer in get_all_discoverers():
-        paths.extend(discoverer.collect_paths(root, user_config_dir=user_config_dir))
+        paths.extend(
+            discoverer.collect_paths(root, user_config_dir=user_config_dir, recursive=recursive)
+        )
 
     # Deduplicate while preserving order
     seen: set[str] = set()
