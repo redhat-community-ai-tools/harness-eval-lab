@@ -14,6 +14,20 @@ from harness_eval.inspection.types import (
 )
 
 
+def strip_code_blocks(text: str) -> str:
+    """Return *text* with fenced code blocks removed."""
+    lines = text.split("\n")
+    out: list[str] = []
+    in_fence = False
+    for line in lines:
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            out.append(line)
+    return "\n".join(out)
+
+
 def extract_content_and_path(
     context: RuleContext, target_type: ComponentType
 ) -> tuple[str, str] | None:

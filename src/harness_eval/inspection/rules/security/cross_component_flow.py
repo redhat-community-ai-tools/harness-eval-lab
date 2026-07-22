@@ -5,6 +5,7 @@ from __future__ import annotations
 from harness_eval.analysis.component_graph import ComponentGraph, _extract_mcp_tool_calls
 from harness_eval.core.types import ComponentType
 from harness_eval.data import load_capabilities
+from harness_eval.inspection.rules.security._shared import strip_code_blocks
 from harness_eval.inspection.types import (
     Location,
     ReportDescriptor,
@@ -153,7 +154,7 @@ class CrossComponentFlow:
         for skill in context.all_skills:
             if not skill.body:
                 continue
-            mcp_calls = _extract_mcp_tool_calls(skill.body)
+            mcp_calls = _extract_mcp_tool_calls(strip_code_blocks(skill.body))
             for server_name, tool_name in mcp_calls:
                 if server_name not in configured_servers:
                     context.report(

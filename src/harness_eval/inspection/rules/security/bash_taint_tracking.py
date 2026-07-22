@@ -278,7 +278,7 @@ def _analyze_bash_file_regex(
     context: RuleContext,
     skill_md_path: str,
 ) -> None:
-    """Analyze a bash script using regex patterns only (original implementation)."""
+    """Regex fallback: bashlex fails on many real-world scripts, so this ensures coverage."""
     lines = source.split("\n")
 
     # Track variables assigned from tainted sources
@@ -377,7 +377,7 @@ def _analyze_bash_file(bash_path: Path, context: RuleContext, skill_md_path: str
 
     rel_path = bash_path.name
 
-    # Try AST-based analysis first, fall back to regex
+    # AST first; regex fallback catches scripts bashlex can't parse
     if not _analyze_bash_file_ast(source, rel_path, context, skill_md_path):
         _analyze_bash_file_regex(source, rel_path, context, skill_md_path)
 

@@ -10,6 +10,7 @@ from pathlib import Path
 from harness_eval.core.types import ComponentType
 from harness_eval.data import load_capabilities
 from harness_eval.inspection.rules.content._skill_refs import extract_references
+from harness_eval.inspection.rules.security._shared import strip_code_blocks
 from harness_eval.inspection.types import ParsedAgent, ParsedCommand, ParsedHooks, ParsedSkill
 
 
@@ -235,7 +236,7 @@ def build_component_graph(
         for skill in all_skills:
             if not skill.body:
                 continue
-            mcp_calls = _extract_mcp_tool_calls(skill.body)
+            mcp_calls = _extract_mcp_tool_calls(strip_code_blocks(skill.body))
             for server_name, tool_name in mcp_calls:
                 server_key = f"mcp:{server_name}"
                 if server_key in graph.nodes:

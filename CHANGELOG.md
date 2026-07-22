@@ -19,6 +19,9 @@ All notable changes to this project will be documented in this file.
 - Enhanced bash taint analysis: `base64 | bash`, `export` propagation, optional `bashlex` AST parsing with regex fallback
 - `THREAT_MODEL.md`: attacker model, trust boundaries, and defense scope
 
+### Fixed
+- MCP tool call detection now skips code blocks, reducing false positives in cross-component and phantom MCP checks
+
 ### Changed
 - Source/sink definitions loaded from `capabilities.yaml` instead of inline frozensets
 - Rule count: 68 to 69 (1 new cross-component security rule)
