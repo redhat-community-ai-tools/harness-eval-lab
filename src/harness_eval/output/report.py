@@ -390,8 +390,11 @@ def format_report_card(
             }
         )
 
+    certification = _compute_certification(results)
+
     return {
         "verdict": verdict,
+        "certification": certification,
         "summary": {
             "components_scanned": len(results),
             "total_errors": total_errors,
@@ -400,4 +403,94 @@ def format_report_card(
         },
         "by_category": dict(by_category),
         "components": components,
+    }
+
+
+def _compute_certification(
+    results: list[InspectionResult],
+    security_results: list[InspectionResult] | None = None,
+    review_score: float | None = None,
+) -> dict:
+    """Compute setup certification tiers.
+
+    Tiers are hierarchical: Hardened requires Verified, Verified requires Basic.
+
+    Basic: lint passes with 0 errors.
+    Verified: Basic + no quality warnings (imprecise, unfinished, generic advice).
+    Hardened: Verified + no security findings.
+    """
+    total_errors = sum(r.error_count for r in results)
+
+    quality_rule_prefixes = (
+        "quality/",
+        "content/orphan",
+        "content/total-context",
+        "content/permission-escalation",
+    )
+    quality_warnings = sum(
+        1
+        for r in results
+        for d in r.diagnostics
+        if d.severity.value == "warning"
+        and any(d.rule_id.startswith(p) for p in quality_rule_prefixes)
+    )
+
+    security_errors = 0
+    if security_results is not None:
+        security_errors = sum(r.error_count for r in security_results)
+    else:
+        security_errors = sum(
+            1
+            for r in results
+            for d in r.diagnostics
+            if d.rule_id.startswith("security/") and d.severity.value == "error"
+        )
+
+    basic_passed = total_errors == 0
+    verified_passed = basic_passed and quality_warnings == 0
+    hardened_passed = verified_passed and security_errors == 0
+
+    if hardened_passed:
+        tier = "HARDENED"
+    elif verified_passed:
+        tier = "VERIFIED"
+    elif basic_passed:
+        tier = "BASIC"
+    else:
+        tier = "NONE"
+
+    return {
+        "tier": tier,
+        "basic": {
+            "passed": basic_passed,
+            "reason": "0 lint errors" if basic_passed else f"{total_errors} lint errors",
+        },
+        "verified": {
+            "passed": verified_passed,
+            "reason": (
+                "no quality warnings"
+                if verified_passed
+                else (
+                    f"{total_errors} lint errors"
+                    if not basic_passed
+                    else f"{quality_warnings} quality warnings"
+                )
+            ),
+        },
+        "hardened": {
+            "passed": hardened_passed,
+            "reason": (
+                "no security findings"
+                if hardened_passed
+                else (
+                    f"{total_errors} lint errors"
+                    if not basic_passed
+                    else (
+                        f"{quality_warnings} quality warnings"
+                        if not verified_passed
+                        else f"{security_errors} security findings"
+                    )
+                )
+            ),
+        },
     }

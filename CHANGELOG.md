@@ -7,7 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - 4 cross-component lint rules: `content/orphan-skills` (unreferenced skills), `content/mcp-skill-alignment` (MCP config vs skill usage), `content/total-context-budget` (aggregate token usage), `content/permission-escalation` (transitive privilege through skill references)
 - `--enforce` flag for `lint` and `security` commands: `strict` (exit 1 on any finding), `advisory` (exit 0 always), `off` (skip)
-- `--report-card PATH` flag for `lint`: writes unified JSON report card with verdict (CLEAN/NEEDS_WORK/BLOCKED), per-component results, and category breakdown
+- `--report-card PATH` flag for `lint`: writes unified JSON report card with verdict (CLEAN/NEEDS_WORK/BLOCKED), per-component results, category breakdown, and certification tier
+- Setup certification tiers in report card: Basic (0 lint errors), Verified (Basic + no quality warnings), Hardened (Verified + no security findings)
 - Shared `ContextTracker` utility for consistent code-fence/blockquote/example detection across rules
 - Contradictory guidance detection (check #22) in LLM review cross-type checks rubric
 

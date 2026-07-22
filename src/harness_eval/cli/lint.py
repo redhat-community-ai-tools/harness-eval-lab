@@ -199,7 +199,14 @@ def eval_setup_lint(
 
         card = format_report_card(results)
         Path(report_card_path).write_text(json_mod.dumps(card, indent=2))
-        click.echo(f"\nReport card written to {report_card_path}")
+        cert = card.get("certification", {})
+        tier = cert.get("tier", "NONE")
+        click.echo(f"\nCertification: {tier}")
+        for level in ("basic", "verified", "hardened"):
+            info = cert.get(level, {})
+            icon = "PASS" if info.get("passed") else "FAIL"
+            click.echo(f"  {level.capitalize()}: {icon} ({info.get('reason', '')})")
+        click.echo(f"Report card written to {report_card_path}")
 
     if enforce == "off":
         return
