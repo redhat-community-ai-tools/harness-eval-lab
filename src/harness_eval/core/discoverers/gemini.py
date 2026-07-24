@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from harness_eval.core.discoverers.base import ToolDiscoverer, _recursive_glob, parse_file
+from harness_eval.core.discoverers.base import (
+    ToolDiscoverer,
+    _json_top_level_keys,
+    _recursive_glob,
+    parse_file,
+)
 from harness_eval.core.types import ComponentType, ParsedComponent
 
 
@@ -28,6 +33,7 @@ class GeminiDiscoverer(ToolDiscoverer):
         results: list[ParsedComponent] = []
         results.extend(self._discover_instructions(root, recursive=recursive))
         results.extend(self._discover_commands(root, recursive=recursive))
+        results.extend(self._discover_mcp(root))
         return results
 
     def collect_paths(
@@ -52,6 +58,10 @@ class GeminiDiscoverer(ToolDiscoverer):
         if recursive:
             for f in _recursive_glob(root, ".gemini/commands/*.md"):
                 paths.append(f)
+
+        settings = root / ".gemini" / "settings.json"
+        if settings.is_file():
+            paths.append(settings)
 
         return paths
 
@@ -92,3 +102,19 @@ class GeminiDiscoverer(ToolDiscoverer):
                         parse_file(f, ComponentType.COMMAND, name=f.stem, source_tool="gemini")
                     )
         return results
+
+    def _discover_mcp(self, root: Path) -> list[ParsedComponent]:
+        # Gemini CLI stores MCP servers in .gemini/settings.json under the
+        # standard 'mcpServers' key. Only treat it as an MCP config when that
+        # key is present, so ordinary settings files are not misclassified.
+        settings = root / ".gemini" / "settings.json"
+        if settings.is_file() and "mcpServers" in _json_top_level_keys(settings):
+            return [
+                parse_file(
+                    settings,
+                    ComponentType.MCP_CONFIG,
+                    name=".gemini/settings.json",
+                    source_tool="gemini",
+                )
+            ]
+        return []
