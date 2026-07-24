@@ -247,7 +247,7 @@ class TestContentRules:
         skill_dir.mkdir()
         (skill_dir / "SKILL.md").write_text(
             "---\nname: inline-ref\ndescription: Skill with inline code ref\n---\n\n"
-            "Edit `config.yaml` to change settings."
+            "Edit `scripts/config.yaml` to change settings."
         )
         result = lint(str(skill_dir))
         broken = [d for d in result.diagnostics if d.rule_id == "content/broken-references"]
