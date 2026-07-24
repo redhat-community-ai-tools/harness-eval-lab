@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Windsurf discovery: `.windsurfrules` and `.windsurf/rules/*.md` mapped to CLAUDE_MD (#30)
+- Cline discovery: `.clinerules` file or `.clinerules/*.md` directory mapped to CLAUDE_MD (#30)
+- Copilot discovery: `.github/copilot-instructions.md` mapped to CLAUDE_MD (#30)
+- Gemini CLI MCP discovery: `.gemini/settings.json` (`mcpServers`) mapped to MCP_CONFIG (#30)
+- OpenCode MCP discovery: `opencode.json`/`opencode.jsonc` (`mcp` key) mapped to MCP_CONFIG; MCP rules now read both `mcpServers` and OpenCode's `mcp` key (#30)
 ## [6.1.1] - 2026-07-24
 
 ### Fixed
