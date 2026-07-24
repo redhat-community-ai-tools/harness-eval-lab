@@ -596,7 +596,7 @@ def inspect_setup(
     if config_rules:
         _warn_unknown_config_rules(config_rules)
 
-    scan_state: dict[str, Any] = {}
+    scan_state: dict[str, Any] = {"project_root": setup.path}
     results: list[InspectionResult] = []
 
     all_skills = [parse_skill(str(Path(comp.path).parent)) for comp in setup.by_type(CT.SKILL)]

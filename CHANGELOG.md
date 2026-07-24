@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [6.1.1] - 2026-07-24
+
+### Fixed
+- `content/broken-references`: reduced false positives by resolving paths against project root (not just skill directory), checking skill `scripts/` subdirectory, skipping code-fenced blocks, skipping bare filenames without path separators, skipping placeholder patterns (NNNN-), skipping unknown file extensions, and safely resolving relative `..` links within project boundary
+
 ## [6.1.0] - 2026-07-22
 
 ### Added
