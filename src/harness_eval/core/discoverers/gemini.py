@@ -33,7 +33,7 @@ class GeminiDiscoverer(ToolDiscoverer):
         results: list[ParsedComponent] = []
         results.extend(self._discover_instructions(root, recursive=recursive))
         results.extend(self._discover_commands(root, recursive=recursive))
-        results.extend(self._discover_mcp(root))
+        results.extend(self._discover_mcp(root, user_config_dir))
         return results
 
     def collect_paths(
@@ -62,6 +62,10 @@ class GeminiDiscoverer(ToolDiscoverer):
         settings = root / ".gemini" / "settings.json"
         if settings.is_file():
             paths.append(settings)
+        if user_config_dir is not None:
+            global_settings = user_config_dir / "settings.json"
+            if global_settings.is_file():
+                paths.append(global_settings)
 
         return paths
 
@@ -103,18 +107,33 @@ class GeminiDiscoverer(ToolDiscoverer):
                     )
         return results
 
-    def _discover_mcp(self, root: Path) -> list[ParsedComponent]:
-        # Gemini CLI stores MCP servers in .gemini/settings.json under the
-        # standard 'mcpServers' key. Only treat it as an MCP config when that
-        # key is present, so ordinary settings files are not misclassified.
-        settings = root / ".gemini" / "settings.json"
-        if settings.is_file() and "mcpServers" in _json_top_level_keys(settings):
-            return [
-                parse_file(
-                    settings,
-                    ComponentType.MCP_CONFIG,
-                    name=".gemini/settings.json",
-                    source_tool="gemini",
+    def _discover_mcp(
+        self, root: Path, user_config_dir: Path | None = None
+    ) -> list[ParsedComponent]:
+        # Gemini CLI stores MCP servers in settings.json under the standard
+        # 'mcpServers' key -- project-level (.gemini/settings.json) and global
+        # (~/.gemini/settings.json, passed via --user-config). Only treat a file
+        # as an MCP config when that key is present, so ordinary settings files
+        # are not misclassified.
+        results: list[ParsedComponent] = []
+        seen: set[str] = set()
+        candidates = [(root / ".gemini" / "settings.json", ".gemini/settings.json")]
+        if user_config_dir is not None:
+            candidates.append((user_config_dir / "settings.json", "~/.gemini/settings.json"))
+        for path, name in candidates:
+            if not path.is_file():
+                continue
+            resolved = str(path.resolve())
+            if resolved in seen:
+                continue
+            if "mcpServers" in _json_top_level_keys(path):
+                seen.add(resolved)
+                results.append(
+                    parse_file(
+                        path,
+                        ComponentType.MCP_CONFIG,
+                        name=name,
+                        source_tool="gemini",
+                    )
                 )
-            ]
-        return []
+        return results

@@ -64,6 +64,21 @@ class TestGeminiMcp:
         setup = discover_setup("gemini", str(tmp_path))
         assert setup.by_type(ComponentType.MCP_CONFIG) == []
 
+    def test_global_settings_via_user_config(self, tmp_path: Path) -> None:
+        home = tmp_path / "home-gemini"
+        home.mkdir()
+        (home / "settings.json").write_text(
+            json.dumps({"mcpServers": {"fs": {"command": "npx", "args": ["-y", "srv"]}}}),
+            encoding="utf-8",
+        )
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        setup = discover_setup("gemini", str(proj), user_config_dir=str(home))
+        mcp = setup.by_type(ComponentType.MCP_CONFIG)
+        assert len(mcp) == 1
+        assert mcp[0].source_tool == "gemini"
+        assert mcp[0].name == "~/.gemini/settings.json"
+
 
 class TestOpenCodeMcp:
     def _write(self, tmp_path: Path, obj: dict) -> None:
